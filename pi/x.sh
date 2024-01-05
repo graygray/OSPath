@@ -8,7 +8,7 @@ echo "param 3:"$3
 echo "param 4:"$4
 echo "param 5:"$5
 
-WorkingDir="/home/pi/lcd"
+WorkingDir="/home/pi/head"
 emojiDir="$WorkingDir/LCD"
 emojiDir2="$WorkingDir/LCD_timeless"
 emojiFile="Agree.mp4"
@@ -16,8 +16,39 @@ emojiFile2="Blink.mp4"
 emojiFiles=(Agree Blink Confused Cute Disagree Dizzy Happy_1 Shock SleepLoop Sleep Smile StartSleep Talk Tired WakeUp2)
 
 rosDir_Home="/opt/ros/galactic"
-testNode="lcd_set_emoji"
+testNode="xxx"
 nodeDir="$WorkingDir/$testNode"
+
+# head
+if [ "$1" = "h" ] ; then
+	testNode="ctrl_head"
+
+	if [ "$2" = "kill" ] ; then
+		echo "kill..."
+
+	elif [ "$2" = "clean" ] ; then
+		echo "clean..."
+		rm -rf $WorkingDir/$testNode
+
+	elif [ "$2" = "git" ] ; then
+		echo "git clone..."
+		cd $WorkingDir
+		rm -rf $testNode
+		git clone ssh://git@10.1.7.125:10022/Gray.LIn/ctrl_head.git
+
+	elif [ "$2" = "b" ] ; then
+		echo "========== colcon build =========="
+		cd $nodeDir
+		colcon build
+		# colcon build --packages-select lcd_set_emoji
+
+	elif [  "$2" = "r" ] ; then
+		echo "ros2 run $testNode "$testNode"_node"
+		source $nodeDir/install/setup.sh
+		ros2 run $testNode "$testNode"_node
+
+	fi
+fi
 
 # ROS
 if [ "$1" = "ros" ] ; then
@@ -124,6 +155,10 @@ fi
 
 
 if [ "$1" = "emoji" ] ; then
+
+	WorkingDir="/home/pi/lcd"
+	testNode="lcd_set_emoji"
+
 	export XDG_RUNTIME_DIR=/run/user/root
 	PID_2kill=`cat $WorkingDir/PID_2kill`
 	PID_last=`cat $WorkingDir/PID_last`
@@ -138,8 +173,8 @@ if [ "$1" = "emoji" ] ; then
 	elif [ "$2" = "clean" ] ; then
 		echo "clean..."
 		rm $WorkingDir/PID_*
-		rm run_counter
-		rm -rf lcd_set_emoji
+		rm $WorkingDir/run_counter
+		rm -rf $WorkingDir/$testNode
 
 	elif [ "$2" = "git" ] ; then
 		echo "git clone..."
