@@ -35,7 +35,7 @@ if [ "$1" = "ros" ] ; then
 			echo "========== colcon build =========="
 			cd $nodeDir
 			colcon build
-			# colcon build --packages-select lcd_set_emoji
+			# colcon build --packages-select $testNode
 		else
 			ros2 node list
 		fi
