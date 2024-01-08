@@ -22,6 +22,7 @@ nodeDir="$WorkingDir/$testNode"
 # head
 if [ "$1" = "h" ] ; then
 	testNode="ctrl_head"
+	nodeDir="$WorkingDir/$testNode"
 
 	if [ "$2" = "kill" ] ; then
 		echo "kill..."
@@ -43,9 +44,9 @@ if [ "$1" = "h" ] ; then
 		# colcon build --packages-select lcd_set_emoji
 
 	elif [  "$2" = "r" ] ; then
-		echo "ros2 run $testNode "$testNode"_node"
+		echo "ros2 run $testNode "$testNode
 		source $nodeDir/install/setup.sh
-		ros2 run $testNode "$testNode"_node
+		ros2 run $testNode $testNode
 
 	fi
 fi
