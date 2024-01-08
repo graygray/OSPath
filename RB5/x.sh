@@ -48,6 +48,38 @@ if [ "$1" = "h" ] ; then
 		source $nodeDir/install/setup.sh
 		ros2 run $testNode "$testNode"
 
+	elif [ "$2" = "p" ] ; then
+		echo "param..."
+
+		if [ "$3" = "set" ] ; then
+			echo "ros2 param set $testNode ctrl_fixed_action '$4'"
+			ros2 param set $testNode ctrl_fixed_action "$4"
+		elif [ "$3" = "get" ] ; then
+			echo "ros2 param get $testNode ctrl_fixed_action"
+			ros2 param get $testNode ctrl_fixed_action
+		fi
+
+	elif [ "$2" = "tt" ] ; then
+		echo "test..."
+		ros2 param set $testNode ctrl_fixed_action 1&
+		# sleep 0.5
+		ros2 param set $testNode ctrl_fixed_action 2&
+
+	elif [ "$2" = "rt" ] ; then
+		echo "reset..."
+		ros2 param set ctrl_head select_servo_num 1
+		ros2 param set ctrl_head set_servo_en 0
+		ros2 param set ctrl_head select_servo_num 2
+		ros2 param set ctrl_head set_servo_en 0
+		ros2 param set ctrl_head select_servo_num 3
+		ros2 param set ctrl_head set_servo_en 0
+
+		ros2 param set ctrl_head select_servo_num 1
+		ros2 param set ctrl_head reset_mid_pos 1
+		ros2 param set ctrl_head select_servo_num 2
+		ros2 param set ctrl_head reset_mid_pos 1
+		ros2 param set ctrl_head select_servo_num 3
+		ros2 param set ctrl_head reset_mid_pos 1
 	else
 		ros2 node list
 	fi
