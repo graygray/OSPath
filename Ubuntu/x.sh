@@ -42,6 +42,36 @@ echo "param 3:"$3
 echo "param 4:"$4
 echo "param 5:"$5
 
+# head
+if [ "$1" = "h" ] ; then
+
+	if [ "$2" = "kill" ] ; then
+		echo "kill..."
+
+	elif [ "$2" = "clean" ] ; then
+		echo "clean..."
+		rm -rf $WorkingDir/$testNode
+
+	elif [ "$2" = "git" ] ; then
+		echo "git clone..."
+		cd $WorkingDir
+		rm -rf $testNode
+		git clone ssh://git@10.1.7.125:10022/Gray.LIn/ctrl_head.git
+
+	elif [ "$2" = "b" ] ; then
+		echo "========== colcon build =========="
+		cd $nodeDir
+		colcon build
+		# colcon build --packages-select lcd_set_emoji
+
+	elif [  "$2" = "r" ] ; then
+		echo "ros2 run $testNode "$testNode"_node"
+		source $nodeDir/install/setup.sh
+		ros2 run $testNode "$testNode"_node
+
+	fi
+fi
+
 # Test
 if [ "$1" = "tt" ] ; then
 	cd ~
