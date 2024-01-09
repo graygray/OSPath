@@ -89,32 +89,118 @@ if [ "$1" = "tt" ] ; then
 
 fi
 
-# emoji
 if [ "$1" = "emoji" ] ; then
-	echo "emoji..."
+	
+	WorkingDir=~
+	testNode="lcd_set_emoji"
+	nodeDir="$WorkingDir/$testNode"
+	emojiDir="$WorkingDir/LCD"
+	emojiDir2="$WorkingDir/LCD_timeless"
 
-	gst-launch-1.0 videotestsrc ! autovideosink
+	export XDG_RUNTIME_DIR=/run/user/root
+	PID_2kill=`cat $WorkingDir/PID_2kill`
+	PID_last=`cat $WorkingDir/PID_last`
+	run_counter=`cat $WorkingDir/run_counter`
 
-	if [  "$2" = "1" ] ; then
+	if [ "$2" = "kill" ] ; then
+		echo "kill..."
+		# kill -9 $PID_2kill
+		# kill -9 $PID_last
+		pkill gst*
 
-		PID_2kill=12345
-		PID_last=54321
-		echo $PID_2kill > PID_2kill
-		echo $PID_last > PID_last
-	elif [ "$2" = "2" ] ; then
-		PID_2kill=`cat PID_2kill`
-		PID_last=`cat PID_last`
-		echo PID_2kill:$PID_2kill
+	elif [ "$2" = "clean" ] ; then
+		echo "clean..."
+		rm $WorkingDir/PID_*
+		rm run_counter
+		rm -rf lcd_set_emoji
+
+	elif [ "$2" = "git" ] ; then
+		echo "git clone..."
+		cd $WorkingDir
+		rm -rf lcd_set_emoji
+		# git clone http://10.1.7.125:10447/Gray.LIn/lcd_set_emoji.git
+		git clone ssh://git@10.1.7.125:10022/Gray.LIn/lcd_set_emoji.git
+
+	elif [ "$2" = "b" ] ; then
+		echo "========== colcon build =========="
+		cd $nodeDir
+		colcon build
+		# colcon build --packages-select lcd_set_emoji
+
+	elif [  "$2" = "r" ] ; then
+		echo "ros2 run $testNode "$testNode"_node"
+		source $nodeDir/install/setup.sh
+		ros2 run $testNode "$testNode"_node
+
+	elif [ "$2" = "ls" ] ; then
+		echo "list emoji..."
+		ls -al $emojiDir2
+
+	elif [ "$2" = "p" ] ; then
+		echo "param..."
+
+		if [ "$3" = "set" ] ; then
+			echo "set..."
+			ros2 param set /lcd_set_emoji param_emoji_name "$4"
+		elif [ "$3" = "get" ] ; then
+			echo "get..."
+			ros2 param get /lcd_set_emoji param_emoji_name
+		fi
+
+	else
+		echo "Run emoji $2.mp4"
+		if [ -z "$PID_2kill" ] ; then
+			echo "PID_2kill empty"
+		else
+			echo PID_2kill:$PID_2kill
+		fi
+		if [ -z "$PID_last" ] ; then
+			echo "PID_last empty"
+		else
+			echo PID_last:$PID_last
+		fi
+
+		if [ "$3" = "full" ] ; then
+			gst-launch-1.0 multifilesrc location=$emojiDir2/$2.mp4 loop=true ! decodebin ! waylandsink fullscreen=TRUE&
+		elif [ "$3" = "720" ] ; then
+			echo "720P"
+			gst-launch-1.0 multifilesrc location=$emojiDir2/$2.mp4 loop=true ! decodebin ! waylandsink x=20 y=20 width=1280 height=720&
+		elif [ "$3" = "1080" ] ; then
+			echo "1080P"
+			gst-launch-1.0 multifilesrc location=$emojiDir2/$2.mp4 loop=true ! decodebin ! waylandsink x=20 y=20 width=1920 height=1080&
+		else
+			gst-launch-1.0 multifilesrc location=$emojiDir2/$2.mp4 loop=true ! decodebin ! waylandsink&
+		fi
+
+		# if [ -z "$run_counter" ] ; then
+		# 	echo "run_counter empty"
+		# 	$run_counter = "0"
+		# else
+		# 	echo run_counter:$run_counter
+		# 	if [ $run_counter -gt 5 ] ; then
+		# 		run_counter=0
+		# 		pkill gst*
+		# 	else
+		# 		run_counter=$(($run_counter+"1"))
+		# 	fi
+		# fi
+		# echo $run_counter > $WorkingDir/run_counter
+
 		echo PID_last:$PID_last
+		PID_2kill=$PID_last
+		PID_last=$!
+		echo $PID_2kill > $WorkingDir/PID_2kill
+		echo $PID_last > $WorkingDir/PID_last
+		if [ -z "$PID_2kill" ] ; then
+			echo "PID_2kill empty"
+		else
+			sleep 1
+			echo "kill -9 $PID_2kill"
+			kill -9 $PID_2kill
+		fi
 
-		if [[ -z "$PID_2kill" ]]; then
-			echo PID_2kill null
-		fi
-		if [[ -z "$PID_last" ]]; then
-			echo PID_last null
-		fi
 	fi
- 
+
 fi
 
 # ROS

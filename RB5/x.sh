@@ -61,9 +61,28 @@ if [ "$1" = "h" ] ; then
 
 	elif [ "$2" = "tt" ] ; then
 		echo "test..."
-		ros2 param set $testNode ctrl_fixed_action 1&
-		# sleep 0.5
-		ros2 param set $testNode ctrl_fixed_action 2&
+
+		if [ "$3" = "1" ] ; then
+			ros2 param set $testNode ctrl_fixed_action 1
+			ros2 param set $testNode ctrl_fixed_action 2
+			ros2 param set $testNode ctrl_fixed_action 3
+			ros2 param set $testNode ctrl_fixed_action 1
+			ros2 param set $testNode ctrl_fixed_action 2
+			ros2 param set $testNode ctrl_fixed_action 3
+
+		elif [ "$3" = "2" ] ; then
+			ros2 param set $testNode ctrl_fixed_action 1&
+			sleep 0.2
+			ros2 param set $testNode ctrl_fixed_action 2&
+			sleep 0.2
+			ros2 param set $testNode ctrl_fixed_action 3&
+			sleep 0.2
+			ros2 param set $testNode ctrl_fixed_action 1&
+			sleep 0.2
+			ros2 param set $testNode ctrl_fixed_action 2&
+			sleep 0.2
+			ros2 param set $testNode ctrl_fixed_action 3&
+		fi
 
 	elif [ "$2" = "rt" ] ; then
 		echo "reset..."
