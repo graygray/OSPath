@@ -12,7 +12,7 @@ emojiDir="$WorkingDir/LCD"
 emojiDir2="$WorkingDir/LCD_timeless"
 emojiFile="Agree.mp4"
 emojiFile2="Blink.mp4"
-emojiFiles=(Agree Blink Confused Cute Disagree Dizzy Happy_1 Shock SleepLoop Sleep Smile StartSleep Talk Tired WakeUp2)
+emojiFiles=(Agree Blink Confused Cute Disagree Dizzy Happy_1 Shock SleepLoop Sleep Smile StartSleep Talk Tired WakeUp2 LookAround)
 
 rosDir_Home="/opt/ros/galactic"
 testNode="lcd_set_emoji"
@@ -224,8 +224,8 @@ if [ "$1" = "ros" ] ; then
 
 	if [  "$2" = "n" ] ; then
 		echo "========== node =========="
-		cd $nodeDir
 		if [  "$3" = "i" ] ; then
+			cd $nodeDir
 			echo "ros2 node info $4"
 			ros2 node info $4
 		elif [  "$3" = "r" ] ; then
@@ -238,6 +238,7 @@ if [ "$1" = "ros" ] ; then
 			colcon build
 			# colcon build --packages-select $testNode
 		else
+			echo "ros2 node list"
 			ros2 node list
 		fi
 	elif [ "$2" = "env" ] ; then
