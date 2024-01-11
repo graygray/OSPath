@@ -115,7 +115,6 @@ if [ "$1" = "emoji" ] ; then
 	export XDG_RUNTIME_DIR=/run/user/root
 	PID_2kill=`cat $WorkingDir/PID_2kill`
 	PID_last=`cat $WorkingDir/PID_last`
-	run_counter=`cat $WorkingDir/run_counter`
 
 	if [ "$2" = "kill" ] ; then
 		echo "kill..."
@@ -126,7 +125,6 @@ if [ "$1" = "emoji" ] ; then
 	elif [ "$2" = "clean" ] ; then
 		echo "clean..."
 		rm $WorkingDir/PID_*
-		rm run_counter
 		rm -rf lcd_set_emoji
 
 	elif [ "$2" = "git" ] ; then
@@ -186,20 +184,6 @@ if [ "$1" = "emoji" ] ; then
 		else
 			gst-launch-1.0 multifilesrc location=$emojiDir2/$2.mp4 loop=true ! decodebin ! waylandsink&
 		fi
-
-		# if [ -z "$run_counter" ] ; then
-		# 	echo "run_counter empty"
-		# 	$run_counter = "0"
-		# else
-		# 	echo run_counter:$run_counter
-		# 	if [ $run_counter -gt 5 ] ; then
-		# 		run_counter=0
-		# 		pkill gst*
-		# 	else
-		# 		run_counter=$(($run_counter+"1"))
-		# 	fi
-		# fi
-		# echo $run_counter > $WorkingDir/run_counter
 
 		echo PID_last:$PID_last
 		PID_2kill=$PID_last
