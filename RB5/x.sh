@@ -18,6 +18,11 @@ rosDir_Home="/opt/ros/galactic"
 testNode="lcd_set_emoji"
 nodeDir="$WorkingDir/$testNode"
 
+# speed
+if [ "$1" = "s" ] ; then
+	bella_motor_ctl 1000 0 0 $2
+fi
+
 # head
 if [ "$1" = "h" ] ; then
 	WorkingDir=~/"sambashare/head"
@@ -46,10 +51,11 @@ if [ "$1" = "h" ] ; then
 	elif [  "$2" = "r" ] ; then
 		echo "ros2 run $testNode $testNode"
 		source $nodeDir/install/setup.sh
+		sudo killall -SIGTERM $testNode
 		ros2 run $testNode "$testNode"
 
 	elif [ "$2" = "p" ] ; then
-		echo "param..."
+		echo "param ctrl_fixed_action..."
 
 		if [ "$3" = "set" ] ; then
 			echo "ros2 param set $testNode ctrl_fixed_action '$4'"
@@ -58,6 +64,44 @@ if [ "$1" = "h" ] ; then
 			echo "ros2 param get $testNode ctrl_fixed_action"
 			ros2 param get $testNode ctrl_fixed_action
 		fi
+
+	elif [ "$2" = "p1" ] ; then
+		echo "param set_angle..."
+
+		ros2 param set $testNode select_servo_num 1
+		if [ "$3" = "set" ] ; then
+			echo "ros2 param set $testNode set_angle '$4'"
+			ros2 param set $testNode set_angle "$4"
+		elif [ "$3" = "get" ] ; then
+			echo "ros2 param get $testNode set_angle"
+			ros2 param get $testNode set_angle
+		fi
+	elif [ "$2" = "p2" ] ; then
+		echo "param set_angle..."
+
+		ros2 param set $testNode select_servo_num 2
+		if [ "$3" = "set" ] ; then
+			echo "ros2 param set $testNode set_angle '$4'"
+			ros2 param set $testNode set_angle "$4"
+		elif [ "$3" = "get" ] ; then
+			echo "ros2 param get $testNode set_angle"
+			ros2 param get $testNode set_angle
+		fi
+
+	elif [ "$2" = "p3" ] ; then
+		echo "param set_angle..."
+
+		ros2 param set $testNode select_servo_num 3
+		if [ "$3" = "set" ] ; then
+			echo "ros2 param set $testNode set_angle '$4'"
+			ros2 param set $testNode set_angle "$4"
+		elif [ "$3" = "get" ] ; then
+			echo "ros2 param get $testNode set_angle"
+			ros2 param get $testNode set_angle
+		fi
+
+	elif [ "$2" = "p4" ] ; then
+		ros2 param get $testNode is_busy
 
 	elif [ "$2" = "tt" ] ; then
 		echo "test..."
@@ -71,17 +115,30 @@ if [ "$1" = "h" ] ; then
 			ros2 param set $testNode ctrl_fixed_action 3
 
 		elif [ "$3" = "2" ] ; then
-			ros2 param set $testNode ctrl_fixed_action 1&
-			sleep 0.2
-			ros2 param set $testNode ctrl_fixed_action 2&
-			sleep 0.2
-			ros2 param set $testNode ctrl_fixed_action 3&
-			sleep 0.2
-			ros2 param set $testNode ctrl_fixed_action 1&
-			sleep 0.2
-			ros2 param set $testNode ctrl_fixed_action 2&
-			sleep 0.2
-			ros2 param set $testNode ctrl_fixed_action 3&
+			ros2 param set $testNode ctrl_fixed_action 7 &
+			ros2 param get $testNode is_busy &
+			sleep 0.5
+			ros2 param get $testNode is_busy &
+			sleep 0.5
+			ros2 param get $testNode is_busy &
+			sleep 0.5
+			ros2 param get $testNode is_busy &
+
+		elif [ "$3" = "3" ] ; then
+			ros2 param set $testNode ctrl_fixed_action 7 &
+			ros2 param set $testNode ctrl_fixed_action 9 
+			ros2 param set $testNode ctrl_fixed_action 9 
+			ros2 param set $testNode ctrl_fixed_action 9 
+			ros2 param set $testNode ctrl_fixed_action 9 
+			ros2 param set $testNode ctrl_fixed_action 9 
+			sleep 0.5
+			
+		elif [ "$3" = "4" ] ; then
+			ros2 param set $testNode ctrl_fixed_action 5 &
+			ros2 param set $testNode ctrl_fixed_action 5 &
+			ros2 param set $testNode ctrl_fixed_action 5 &
+			ros2 param set $testNode ctrl_fixed_action 5 &
+
 		fi
 
 	elif [ "$2" = "rt" ] ; then
@@ -143,6 +200,7 @@ if [ "$1" = "emoji" ] ; then
 	elif [  "$2" = "r" ] ; then
 		echo "ros2 run $testNode "$testNode"_node"
 		source $nodeDir/install/setup.sh
+		sudo killall -SIGTERM $testNode
 		ros2 run $testNode "$testNode"_node
 
 	elif [ "$2" = "ls" ] ; then
