@@ -61,13 +61,14 @@ if [ "$1" = "h" ] ; then
 	elif [ "$2" = "b" ] ; then
 		echo "========== colcon build =========="
 		cd $nodeDir
+		cp -f lib_OS/lib_ubuntu/* lib/
 		colcon build
-		# colcon build --packages-select lcd_set_emoji
+		cp -f lib_OS/lib_RB5/* lib/
 
 	elif [  "$2" = "r" ] ; then
-		echo "ros2 run $testNode "$testNode"_node"
+		echo "ros2 run $testNode $testNode"
 		source $nodeDir/install/setup.sh
-		ros2 run $testNode "$testNode"_node
+		ros2 run $testNode $testNode
 
 	fi
 fi
@@ -75,17 +76,14 @@ fi
 # Test
 if [ "$1" = "tt" ] ; then
 	cd ~
-	run_counter=`cat run_counter`
-	echo $run_counter
-	if [ $run_counter -gt 5 ] ; then
-		echo "true"
-		run_counter=0
-	else
-		echo "false"
-		run_counter=$(($run_counter+"1"))
-	fi
+	
+	rd=$(($RANDOM % 2))
+	if [ $rd = 0 ] ; then
+		echo "0..."
 
-	echo $run_counter > run_counter
+	elif [ $rd = 1 ] ; then
+		echo "1..."
+	fi
 
 fi
 
@@ -145,6 +143,14 @@ if [ "$1" = "emoji" ] ; then
 		elif [ "$3" = "get" ] ; then
 			echo "get..."
 			ros2 param get /lcd_set_emoji param_emoji_name
+		elif [ "$3" = "t" ] ; then
+			echo "test..."
+			ros2 param set /lcd_set_emoji param_emoji_name "A1" &
+			ros2 param set /lcd_set_emoji param_emoji_name "A2" &
+			ros2 param set /lcd_set_emoji param_emoji_name "A3" &
+			ros2 param set /lcd_set_emoji param_emoji_name "A4" &
+			ros2 param set /lcd_set_emoji param_emoji_name "A5" &
+			ros2 param set /lcd_set_emoji param_emoji_name "A6" &
 		fi
 
 	else
