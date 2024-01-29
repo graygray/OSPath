@@ -19,6 +19,15 @@ rosDir_Home="/opt/ros/galactic"
 testNode="xxx"
 nodeDir="$WorkingDir/$testNode"
 
+
+if [ "$1" = "wpas" ] ; then
+	echo "wpa_supplement..."
+	if [ "$2" = "kill" ] ; then
+		echo "edit wpa_supplement..."
+	fi
+fi
+
+
 # head
 if [ "$1" = "h" ] ; then
 	testNode="ctrl_head"
@@ -372,15 +381,12 @@ fi
 
 # file manager
 if [ "$1" == "cd" ] ; then
-	echo "XDG_CURRENT_DESKTOP:$XDG_CURRENT_DESKTOP" 
-	if [  "$XDG_CURRENT_DESKTOP" == "KDE" ] ; then
-			dolphin $2
-		elif [ "$XDG_CURRENT_DESKTOP" == "ubuntu:GNOME" ] ; then
-			nautilus $2
-		else
-			echo "param 2 not match"
-			exit -1
-		fi
+	if [  "$2" == "wpas " ] ; then
+		cd  $2
+	else
+		echo "param 2 not match"
+		exit -1
+	fi
 fi
 
 # chown
