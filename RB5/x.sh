@@ -23,6 +23,39 @@ if [ "$1" = "s" ] ; then
 	bella_motor_ctl 1000 0 0 $2
 fi
 
+if [ "$1" = "tp" ] ; then
+	testTopic="/chatter"
+	testTopic2="/scan"
+	echo "========== topic:$testTopic =========="
+
+	if [  "$2" = "p" ] ; then
+		echo "publish..."
+		ros2 topic pub $testTopic std_msgs/msg/String 'data: "test"'
+	elif [ "$2" = "e" ] ; then
+		echo "echo..."
+		ros2 topic echo $testTopic2
+	else 
+		echo "ros2 topic list -t"
+		ros2 topic list -t
+	fi
+fi
+
+	if [ "$2" = "tp" ] ; then
+		testTopic="/chatter"
+		testTopic2="/chatter2"
+		echo "========== topic:$testTopic =========="
+
+		if [  "$3" = "p" ] ; then
+			echo "publish..."
+			ros2 topic pub $testTopic std_msgs/msg/String 'data: "test"'
+		elif [ "$3" = "e" ] ; then
+			echo "echo..."
+			ros2 topic echo $testTopic2
+		else 
+			echo "ros2 topic list -t"
+			ros2 topic list -t
+		fi
+
 # head
 if [ "$1" = "h" ] ; then
 	WorkingDir=~/"sambashare/head"

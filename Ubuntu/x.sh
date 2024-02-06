@@ -42,6 +42,44 @@ echo "param 3:"$3
 echo "param 4:"$4
 echo "param 5:"$5
 
+# lidar
+if [ "$1" = "l" ] ; then
+	WorkingDir=~/
+	testNode="lidar_ao_oasab0512"
+	nodeDir="$WorkingDir/$testNode"
+
+	echo "testNode:$testNode..."
+
+	if [ "$2" = "kill" ] ; then
+		echo "kill..."
+		sudo killall -SIGTERM $testNode"_node"
+
+	elif [ "$2" = "clean" ] ; then
+		echo "clean..."
+		# rm -rf $WorkingDir/$testNode
+
+	elif [ "$2" = "git" ] ; then
+		echo "git clone..."
+		cd $WorkingDir
+		rm -rf $testNode
+		git clone ssh://git@10.1.7.125:10022/Gray.LIn/lidar_ao_oasab0512.git
+
+	elif [ "$2" = "b" ] ; then
+		echo "========== colcon build =========="
+		cd $nodeDir
+		colcon build
+		# colcon build --packages-select lidar_ao_oasab0512
+
+	elif [  "$2" = "r" ] ; then
+		echo "ros2 run $testNode $testNode'_node'"
+		sudo chmod 777 /dev/ttyACM0
+		source $nodeDir/install/setup.sh
+		# sudo killall -SIGTERM $testNode
+		ros2 run $testNode $testNode"_node"
+
+	fi
+fi
+
 # head
 if [ "$1" = "h" ] ; then
 
