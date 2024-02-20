@@ -20,7 +20,15 @@ nodeDir="$WorkingDir/$testNode"
 
 # speed
 if [ "$1" = "s" ] ; then
-	bella_motor_ctl 1000 0 0 $2
+
+	if [  "$2" = "1" ] ; then
+		bella_motor_ctl 5000 0 0 5&
+	elif [ "$2" = "2" ] ; then
+		/usr/bin/cansend can0 010#0110011388000000&
+	else 
+		/usr/bin/cansend can0 010#0110011388000000
+	fi	
+
 fi
 
 # LiDAR
