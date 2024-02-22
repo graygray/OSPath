@@ -31,20 +31,48 @@ if [ "$1" = "s" ] ; then
 
 fi
 
-# LiDAR
-if [ "$1" = "tp" ] ; then
-	testTopic="/chatter"
-	testTopic2="/scan"
+# lidar
+if [ "$1" = "l" ] ; then
+	export DISPLAY=192.168.1.150:0
+	WorkingDir="/home/user/sambashare/lidar"
+	testNode="lidar_ao_oasab0512"
+	nodeDir="$WorkingDir/$testNode"
 
-	if [  "$2" = "p" ] ; then
-		echo "publish... ========== topic:$testTopic =========="
-		ros2 topic pub $testTopic std_msgs/msg/String 'data: "test"'
-	elif [ "$2" = "e" ] ; then
-		echo "echo...  ========== topic:$testTopic2 =========="
-		ros2 topic echo $testTopic2
-	else 
-		echo "ros2 topic list -t"
-		ros2 topic list -t
+	echo "testNode:$testNode..."
+
+	if [ "$2" = "kill" ] ; then
+		echo "kill..."
+		sudo killall -SIGTERM $testNode"_node"
+
+	elif [ "$2" = "clean" ] ; then
+		echo "clean..."
+		# rm -rf $WorkingDir/$testNode
+
+	elif [ "$2" = "git" ] ; then
+		echo "git clone..."
+		cd $WorkingDir
+		rm -rf $testNode
+		git clone ssh://git@10.1.7.125:10022/Gray.LIn/lidar_ao_oasab0512.git
+
+	elif [ "$2" = "b" ] ; then
+		echo "========== colcon build =========="
+		cd $nodeDir
+		colcon build
+		# colcon build --packages-select lidar_ao_oasab0512
+
+	elif [  "$2" = "r" ] ; then
+		echo "ros2 run $testNode $testNode'_node'"
+		sudo chmod 777 /dev/ttyACM0
+		source $nodeDir/install/setup.sh
+		rviz2 &
+		# sudo killall -SIGTERM $testNode
+		ros2 run $testNode $testNode"_node"
+
+	elif [  "$2" = "t" ] ; then
+	
+		testTopic="/scan"
+		echo "echo...  ========== topic:$testTopic =========="
+		ros2 topic echo $testTopic
 	fi
 fi
 
