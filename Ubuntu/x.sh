@@ -27,8 +27,8 @@ jksDir_Home="/var/lib/docker/volumes/jenkins_vHome/_data"
 rosDir_Home="/opt/ros/galactic"
 srcDir=~/"ros2-galactic/wheeltec_ros2/src"
 # testNode="lcd_set_emoji"
-testNode="ctrl_head"
-# nodeDir=~/ros2-galactic/wheeltec_ros2/src/"$testNode"
+# testNode="ctrl_head"
+testNode="lidar_ao_oasab0512"
 nodeDir=~/"$testNode"
 
 # NAS
@@ -74,9 +74,19 @@ if [ "$1" = "l" ] ; then
 		echo "ros2 run $testNode $testNode'_node'"
 		sudo chmod 777 /dev/ttyACM0
 		source $nodeDir/install/setup.sh
-		# sudo killall -SIGTERM $testNode
+		rviz2 &
+		sudo killall -SIGTERM $testNode
 		ros2 run $testNode $testNode"_node"
 
+	elif [  "$2" = "kill" ] ; then
+		echo "kill..."
+		killall -SIGTERM $testNode
+
+	elif [  "$2" = "t" ] ; then
+	
+		testTopic="/scan"
+		echo "echo...  ========== topic:$testTopic =========="
+		ros2 topic echo $testTopic
 	fi
 fi
 
@@ -297,14 +307,14 @@ if [ "$1" = "ros" ] ; then
 
 	elif [ "$2" = "tp" ] ; then
 		testTopic="/chatter"
-		testTopic2="/chatter2"
-		echo "========== topic:$testTopic =========="
+		# testTopic2="/chatter2"
+		testTopic2="/scan"
 
 		if [  "$3" = "p" ] ; then
-			echo "publish..."
+			echo "publish... ========== topic:$testTopic =========="
 			ros2 topic pub $testTopic std_msgs/msg/String 'data: "test"'
 		elif [ "$3" = "e" ] ; then
-			echo "echo..."
+			echo "echo...  ========== topic:$testTopic2 =========="
 			ros2 topic echo $testTopic2
 		else 
 			echo "ros2 topic list -t"
