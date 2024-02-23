@@ -33,7 +33,7 @@ fi
 
 # lidar
 if [ "$1" = "l" ] ; then
-	export DISPLAY=192.168.1.150:0
+	export DISPLAY=192.168.100.10:0
 	WorkingDir="/home/user/sambashare/lidar"
 	testNode="lidar_ao_oasab0512"
 	nodeDir="$WorkingDir/$testNode"
@@ -72,7 +72,9 @@ if [ "$1" = "l" ] ; then
 	
 		testTopic="/scan"
 		echo "echo...  ========== topic:$testTopic =========="
-		ros2 topic echo $testTopic
+		# ros2 topic echo $testTopic
+		# ros2 topic echo --no-arr $testTopic
+		ros2 topic echo $testTopic | grep -A 3 ranges
 	fi
 fi
 
