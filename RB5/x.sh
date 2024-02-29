@@ -233,17 +233,17 @@ if [ "$1" = "emoji" ] ; then
 		# kill -9 $PID_2kill
 		# kill -9 $PID_last
 		pkill gst*
+		sudo killall -SIGTERM $testNode
 
 	elif [ "$2" = "clean" ] ; then
 		echo "clean..."
 		rm $WorkingDir/PID_*
-		rm -rf lcd_set_emoji
+		rm -rf $WorkingDir/lcd_set_emoji
 
 	elif [ "$2" = "git" ] ; then
 		echo "git clone..."
 		cd $WorkingDir
 		rm -rf lcd_set_emoji
-		# git clone http://10.1.7.125:10447/Gray.LIn/lcd_set_emoji.git
 		git clone ssh://git@10.1.7.125:10022/Gray.LIn/lcd_set_emoji.git
 
 	elif [ "$2" = "b" ] ; then
