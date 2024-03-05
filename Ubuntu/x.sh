@@ -491,6 +491,33 @@ if [ "$1" = "code" ] ; then
 	fi
 fi
 
+# rename project
+if [ "$1" == "rename" ] ; then
+
+	if [ ! -n "$2" ] || [ ! -n "$3" ] ; then
+		echo "param 3 & 4 shoud not be null"
+		exit -1
+	fi
+
+	if [ "$4" == "1" ] ; then
+		echo "step 1 : rename file content"
+		find . -name "*.*" -type f -exec sed -i "" "s/$2/$3/g" {} \; 
+	elif [ "$4" == "2" ] ; then
+		echo "step 2 : rename file name"
+		find . -name "*$2*" -type f -exec rename "s/$2/$3/g" {} \; 	
+	elif [ "$4" == "3" ] ; then
+		echo "step 3 : rename directory name"
+		find . -name "*$2*" -type d -exec rename "s/$2/$3/g" {} \; 
+	else
+		echo "step 1 : rename file content"
+		find . -name "*.*" -type f -exec sed -i "" "s/$2/$3/g" {} \; 
+		echo "step 2 : rename file name"
+		find . -name "*$2*" -type f -exec rename "s/$2/$3/g" {} \; 
+		echo "step 3 : rename directory name"
+		find . -name "*$2*" -type d -exec rename "s/$2/$3/g" {} \; 
+	fi
+fi
+
 # ftp
 if [ "$1" = "ftp" ] ; then
 	if [ "$2" = "restart" ] ; then
