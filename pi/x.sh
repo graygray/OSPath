@@ -290,10 +290,9 @@ fi
 
 # update x
 if [ "$1" == "ux" ] ; then
-	cd /home/pi/OSPath
+	cd /home/wheeltec/OSPath
 	git pull
 fi
-
 
 # gedit
 if [ "$1" == "ge" ] ; then
