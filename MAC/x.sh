@@ -28,6 +28,10 @@ if [ "$1" == "ssh" ] ; then
 		ssh gray.lin@10.1.13.207
 	elif [ "$2" == "pi" ] ; then
 		ssh pi@raspberrypi.local
+	elif [ "$2" == "wt" ] ; then
+		# wheeltech
+		ssh wheeltec@192.168.1.196
+		# ssh root@192.168.1.196
 	else
 		ssh $2@10.1.13.207
 	fi
