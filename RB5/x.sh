@@ -419,12 +419,18 @@ if [ "$1" = "ros" ] ; then
 	fi
 fi
 
-
-
 # test gst on RB5
 if [ "$1" = "gst" ] ; then
 	echo "gst..." 
 	export XDG_RUNTIME_DIR=/run/user/root
+	WorkingDir=~/"sambashare/lcd"
+	testNode="lcd_set_emoji"
+	nodeDir="$WorkingDir/$testNode"
+	# emojiDir="$WorkingDir/LCD"
+	emojiDir="$WorkingDir/LCD_timeless"
+	emojiFile="Dizzy.mp4"
+
+	echo "$emojiDir/$emojiFile"
 	if [ "$2" = "1" ] ; then
 		echo "1..., OK" 
 		gst-launch-1.0 filesrc location=$emojiDir/$emojiFile ! qtdemux ! decodebin ! videoconvert ! waylandsink
