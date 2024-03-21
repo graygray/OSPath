@@ -35,7 +35,7 @@ if [ "$1" = "l" ] ; then
 	testNode="lidar_ao_oasab0512"
 	nodeDir="$WorkingDir/$testNode"
 	echo $nodeDir
-	mkdir -p $nodeDir
+	mkdir -p $WorkingDir
 	echo "testNode:$testNode..."
 
 	if [ "$2" = "kill" ] ; then
