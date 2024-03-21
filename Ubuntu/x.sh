@@ -259,7 +259,8 @@ fi
 
 # ROS
 if [ "$1" = "ros" ] ; then
-	echo "========== ROS =========="
+	ros_ip="192.168.1.196"
+	echo "========== ROS ($ros_ip) =========="
 
 	if [  "$2" = "n" ] ; then
 		echo "========== node =========="
@@ -282,6 +283,14 @@ if [ "$1" = "ros" ] ; then
 
 	elif [ "$2" = "env" ] ; then
 		source /opt/ros/galactic/setup.bash
+
+	elif [ "$2" = "nfs" ] ; then
+		ros_ip="192.168.1.196"
+		if [  "$3" = "+" ] ; then
+			sudo mount -t nfs $ros_ip:/home/wheeltec/ /mnt
+		elif [  "$3" = "-" ] ; then
+			sudo umount /mnt
+		fi
 
 	elif [ "$2" = "p" ] ; then
 		echo "========== pkg =========="
