@@ -258,6 +258,13 @@ if [ "$1" = "emoji" ] ; then
 		sudo killall -SIGTERM $testNode
 		ros2 run $testNode "$testNode"_node
 
+	elif [  "$2" = "tt" ] ; then
+
+		ros2 param set /lcd_set_emoji param_emoji_name "Confused" &
+		sleep 0.15
+		ros2 param set /lcd_set_emoji param_emoji_name "Smile" &
+		sleep 1
+
 	elif [ "$2" = "ls" ] ; then
 		echo "list emoji..."
 		ls -al $emojiDir2
