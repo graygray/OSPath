@@ -30,7 +30,7 @@ fi
 
 # lidar
 if [ "$1" = "l" ] ; then
-	# export DISPLAY=192.168.100.10:0
+	export DISPLAY=192.168.1.151:0
 	WorkingDir="$WorkingDir/lidar"
 	testNode="lidar_ao_oasab0512"
 	nodeDir="$WorkingDir/$testNode"
@@ -62,7 +62,10 @@ if [ "$1" = "l" ] ; then
 		echo "ros2 run $testNode $testNode'_node'"
 		sudo chmod 777 /dev/ttyACM0
 		source $nodeDir/install/setup.sh
-		rviz2 &
+
+		# view in windows
+		# rviz2 &
+
 		# sudo killall -SIGTERM $testNode
 		ros2 run $testNode $testNode"_node"
 
