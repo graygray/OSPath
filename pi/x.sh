@@ -16,7 +16,7 @@ emojiFile2="Blink.mp4"
 emojiFiles=(Agree Blink Confused Cute Disagree Dizzy Happy_1 Shock SleepLoop Sleep Smile StartSleep Talk Tired WakeUp2)
 
 rosDir_Home="/opt/ros/galactic"
-testNode="xxx"
+testNode="lidar_ao_oasab0512"
 nodeDir="$WorkingDir/$testNode"
 
 
