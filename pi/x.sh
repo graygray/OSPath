@@ -9,7 +9,7 @@ echo "param 4:"$4
 echo "param 5:"$5
 
 # WorkingDir="/home/pi/head"
-WorkingDir="/home/wheeltec/temp"
+WorkingDir="/home/wheeltec/tmp"
 emojiDir="$WorkingDir/LCD"
 emojiDir2="$WorkingDir/LCD_timeless"
 emojiFile="Agree.mp4"
@@ -35,6 +35,7 @@ if [ "$1" = "l" ] ; then
 	testNode="lidar_ao_oasab0512"
 	nodeDir="$WorkingDir/$testNode"
 
+	mkdir -p $nodeDir
 	echo "testNode:$testNode..."
 
 	if [ "$2" = "kill" ] ; then
