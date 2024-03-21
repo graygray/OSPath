@@ -8,7 +8,8 @@ echo "param 3:"$3
 echo "param 4:"$4
 echo "param 5:"$5
 
-WorkingDir="/home/pi/head"
+# WorkingDir="/home/pi/head"
+WorkingDir="/home/wheeltec/temp"
 emojiDir="$WorkingDir/LCD"
 emojiDir2="$WorkingDir/LCD_timeless"
 emojiFile="Agree.mp4"
@@ -30,7 +31,7 @@ fi
 # lidar
 if [ "$1" = "l" ] ; then
 	export DISPLAY=192.168.100.10:0
-	WorkingDir="/home/user/sambashare/lidar"
+	WorkingDir="$WorkingDir/lidar"
 	testNode="lidar_ao_oasab0512"
 	nodeDir="$WorkingDir/$testNode"
 
