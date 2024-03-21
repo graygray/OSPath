@@ -30,11 +30,11 @@ fi
 
 # lidar
 if [ "$1" = "l" ] ; then
-	export DISPLAY=192.168.100.10:0
+	# export DISPLAY=192.168.100.10:0
 	WorkingDir="$WorkingDir/lidar"
 	testNode="lidar_ao_oasab0512"
 	nodeDir="$WorkingDir/$testNode"
-
+	echo $nodeDir
 	mkdir -p $nodeDir
 	echo "testNode:$testNode..."
 
