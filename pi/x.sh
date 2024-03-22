@@ -31,7 +31,7 @@ if [ "$1" = "wt" ] ; then
 		chmod 777 /dev/ttyACM1
 		service udev reload
 		service udev restart
-		ls /dev
+		ls /dev/wheel*
 	elif [ "$2" = "nfs" ] ; then
 		# if [  "$3" = "+" ] ; then
 		# 	sudo mount $wheeltec_ip:/home/wheeltec/ /mnt
