@@ -12,7 +12,7 @@ emojiDir="$WorkingDir/LCD"
 emojiDir2="$WorkingDir/LCD_timeless"
 emojiFile="Agree.mp4"
 emojiFile2="Blink.mp4"
-emojiFiles=(Agree Blink Confused Cute Disagree Dizzy Happy_1 Shock SleepLoop Sleep Smile StartSleep Talk Tired WakeUp2 LookAround)
+emojiFiles=(Agree Blink Confused Cute Disagree Dizzy Happy_1 Shock SleepLoop Sleep Smile StartSleep Talk Tired WakeUp2 LookAround Random)
 
 rosDir_Home="/opt/ros/galactic"
 testNode="lcd_set_emoji"
