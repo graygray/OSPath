@@ -20,6 +20,29 @@ rosDir_Home="/opt/ros/galactic"
 testNode="lidar_ao_oasab0512"
 nodeDir="$WorkingDir/$testNode"
 
+# wheeltec
+if [ "$1" = "wt" ] ; then
+
+	# wheeltec_ip="192.168.1.196"
+	# echo "========== wheeltec ip:($wheeltec_ip) =========="
+
+	if [ "$2" = "ld" ] ; then
+		echo "========== lidar =========="
+		chmod 777 /dev/ttyACM1
+		service udev reload
+		service udev restart
+		ls /dev
+	elif [ "$2" = "nfs" ] ; then
+		# if [  "$3" = "+" ] ; then
+		# 	sudo mount $wheeltec_ip:/home/wheeltec/ /mnt
+		# elif [  "$3" = "-" ] ; then
+		# 	sudo umount /mnt
+		# fi
+		ls -al /mnt
+	fi
+
+fi
+
 
 if [ "$1" = "wpas" ] ; then
 	echo "wpa_supplement..."
@@ -172,7 +195,10 @@ if [ "$1" = "ros" ] ; then
 			ros2 topic echo $4
 		elif [ "$3" = "i" ] ; then
 			echo "ros2 topic info $4"
-			ros2 topic echo $4
+			ros2 topic info $4
+		elif [ "$3" = "hz" ] ; then
+			echo "ros2 topic hz $4"
+			ros2 ros2 topic hz $4
 		else 
 			echo "ros2 topic list -t"
 			ros2 topic list -t

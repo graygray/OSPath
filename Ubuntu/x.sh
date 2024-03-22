@@ -42,6 +42,7 @@ echo "param 3:"$3
 echo "param 4:"$4
 echo "param 5:"$5
 
+# wheeltec
 if [ "$1" = "wt" ] ; then
 
 	wheeltec_ip="192.168.1.196"
@@ -336,7 +337,10 @@ if [ "$1" = "ros" ] ; then
 			ros2 topic echo $4
 		elif [ "$3" = "i" ] ; then
 			echo "ros2 topic info $4"
-			ros2 topic echo $4
+			ros2 topic info $4
+		elif [ "$3" = "hz" ] ; then
+			echo "ros2 topic hz $4"
+			ros2 ros2 topic hz $4
 		else 
 			echo "ros2 topic list -t"
 			ros2 topic list -t
