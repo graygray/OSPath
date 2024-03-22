@@ -117,7 +117,7 @@ if [ "$1" = "ros" ] ; then
 
 	if [  "$2" = "n" ] ; then
 		echo "========== node =========="
-		cd $nodeDir
+		# cd $nodeDir
 		if [  "$3" = "i" ] ; then
 			echo "ros2 node info $4"
 			ros2 node info $4
@@ -127,8 +127,8 @@ if [ "$1" = "ros" ] ; then
 			ros2 run $testNode "$testNode"_node
 		elif [ "$3" = "b" ] ; then
 			echo "========== colcon build =========="
-			cd $nodeDir
-			colcon build
+			# cd $nodeDir
+			# colcon build
 			# colcon build --packages-select lcd_set_emoji
 		else
 			ros2 node list
@@ -167,8 +167,8 @@ if [ "$1" = "ros" ] ; then
 			echo "publish..."
 			ros2 topic pub $testTopic std_msgs/msg/String 'data: "test"'
 		elif [ "$3" = "e" ] ; then
-			echo "echo..."
-			ros2 topic echo $testTopic2
+			echo "echo topic:$4..."
+			ros2 topic echo $4
 		else 
 			echo "ros2 topic list -t"
 			ros2 topic list -t

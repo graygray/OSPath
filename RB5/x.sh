@@ -542,8 +542,6 @@ if [ "$1" = "test" ] ; then
 fi
 
 
-
-
 xDir=~/"Gray"
 
 # docker
