@@ -372,15 +372,15 @@ if [ "$1" = "ros" ] ; then
 
 	elif [ "$2" = "tp" ] ; then
 		testTopic="/chatter"
-		testTopic2="/chatter2"
-		echo "========== topic:$testTopic =========="
+		# testTopic2="/chatter2"
+		testTopic2="/scan"
 
 		if [  "$3" = "p" ] ; then
-			echo "publish..."
+			echo "publish... ========== topic:$testTopic =========="
 			ros2 topic pub $testTopic std_msgs/msg/String 'data: "test"'
 		elif [ "$3" = "e" ] ; then
-			echo "echo..."
-			ros2 topic echo $testTopic2
+			echo "echo...  ========== topic:$4 =========="
+			ros2 topic echo $4
 		else 
 			echo "ros2 topic list -t"
 			ros2 topic list -t
