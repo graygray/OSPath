@@ -131,6 +131,7 @@ if [ "$1" = "ros" ] ; then
 			# colcon build
 			# colcon build --packages-select lcd_set_emoji
 		else
+			echo "ros2 node list"
 			ros2 node list
 		fi
 	elif [ "$2" = "env" ] ; then
@@ -164,10 +165,13 @@ if [ "$1" = "ros" ] ; then
 		testTopic2="/scan"
 
 		if [  "$3" = "p" ] ; then
-			echo "publish... ========== topic:$testTopic =========="
+			echo "ros2 topic pub $testTopic ..."
 			ros2 topic pub $testTopic std_msgs/msg/String 'data: "test"'
 		elif [ "$3" = "e" ] ; then
-			echo "echo...  ========== topic:$4 =========="
+			echo "ros2 topic echo $4"
+			ros2 topic echo $4
+		elif [ "$3" = "i" ] ; then
+			echo "ros2 topic info $4"
 			ros2 topic echo $4
 		else 
 			echo "ros2 topic list -t"
