@@ -46,10 +46,12 @@ echo "param 5:"$5
 if [ "$1" = "wt" ] ; then
 
 	wheeltec_ip="192.168.1.196"
-	echo "========== wheeltec ip:($wheeltec_ip) =========="
 
-	if [ "$2" = "xxx" ] ; then
-		echo "========== xxx =========="
+	if [ "$2" = "i" ] ; then
+		echo "========== wheeltec ip:($wheeltec_ip) =========="
+		echo "========== ls -al /mnt =========="
+		ls -al /mnt
+
 	elif [ "$2" = "nfs" ] ; then
 		if [  "$3" = "+" ] ; then
 			sudo mount $wheeltec_ip:/home/wheeltec/ /mnt

@@ -23,27 +23,23 @@ nodeDir="$WorkingDir/$testNode"
 # wheeltec
 if [ "$1" = "wt" ] ; then
 
-	wheeltec_ip="192.168.1.196"
-	echo "========== wheeltec ip:($wheeltec_ip) =========="
+	# wheeltec_ip="192.168.1.196"
+	# echo "========== wheeltec ip:($wheeltec_ip) =========="
 
 	if [ "$2" = "i" ] ; then
-		ls -al /mnt
-		ls /dev/wheel*
+		echo "========== ls -al /dev/wheel* =========="
+		ls -al /dev/wheel*
+		echo "========== ifconfig/iwconfig wlan0 =========="
+		ifconfig wlan0
+		iwconfig wlan0
 
-	elif [ "$2" = "nfs" ] ; then
-		if [  "$3" = "+" ] ; then
-			sudo mount $wheeltec_ip:/home/wheeltec/ /mnt
-		elif [  "$3" = "-" ] ; then
-			sudo umount /mnt
-		fi
-		ls -al /mnt
 	elif [ "$2" = "ld" ] ; then
 		echo "========== lidar =========="
 		chmod 777 /dev/ttyACM1
 		service udev reload
+		sleep 3
 		service udev restart
-		ls /dev/wheel*
-
+		ls -al /dev/wheel*
 	fi
 
 fi
