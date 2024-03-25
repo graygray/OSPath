@@ -46,10 +46,12 @@ if [ "$1" = "wt" ] ; then
 
 	elif [ "$2" = "cm" ] ; then
 		echo "========== construct map =========="
+		echo ">>>> ros2 launch slam_gmapping slam_gmapping.launch.py"
 		ros2 launch slam_gmapping slam_gmapping.launch.py
 
 	elif [ "$2" = "sm" ] ; then
 		echo "========== save map =========="
+		echo ">>>> ros2 launch wheeltec_nav2 save_map.launch.py"
 		ros2 launch wheeltec_nav2 save_map.launch.py
 
 	fi
