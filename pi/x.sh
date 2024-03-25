@@ -23,8 +23,8 @@ nodeDir="$WorkingDir/$testNode"
 # wheeltec
 if [ "$1" = "wt" ] ; then
 
-	# wheeltec_ip="192.168.1.196"
-	# echo "========== wheeltec ip:($wheeltec_ip) =========="
+	wheeltec_ip="192.168.1.196"
+	echo "========== wheeltec ip:($wheeltec_ip) =========="
 
 	if [ "$2" = "i" ] ; then
 		ls -al /mnt
