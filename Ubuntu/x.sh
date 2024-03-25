@@ -99,6 +99,10 @@ if [ "$1" = "l" ] ; then
 		sudo killall -SIGTERM $testNode
 		ros2 run $testNode $testNode"_node"
 
+	elif [  "$2" = "r2" ] ; then
+		source $nodeDir/install/setup.sh
+		ros2 launch $testNode aolidar_launch.py
+
 	elif [  "$2" = "kill" ] ; then
 		echo "kill..."
 		killall -SIGTERM $testNode
@@ -297,6 +301,7 @@ if [ "$1" = "ros" ] ; then
 			colcon build
 			# colcon build --packages-select $testNode
 		else
+			echo "========== ros2 node list =========="
 			ros2 node list
 		fi
 

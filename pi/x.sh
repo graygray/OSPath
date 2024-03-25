@@ -32,14 +32,26 @@ if [ "$1" = "wt" ] ; then
 		echo "========== ifconfig/iwconfig wlan0 =========="
 		ifconfig wlan0
 		iwconfig wlan0
+		echo "========== pgrep -f lidar_ao_oasab0512 =========="
+		pgrep -f lidar_ao_oasab0512
 
 	elif [ "$2" = "ld" ] ; then
 		echo "========== lidar =========="
+		ls -al /etc/udev/rules.d
 		chmod 777 /dev/ttyACM1
 		service udev reload
 		sleep 3
 		service udev restart
 		ls -al /dev/wheel*
+
+	elif [ "$2" = "cm" ] ; then
+		echo "========== construct map =========="
+		ros2 launch slam_gmapping slam_gmapping.launch.py
+
+	elif [ "$2" = "sm" ] ; then
+		echo "========== save map =========="
+		ros2 launch wheeltec_nav2 save_map.launch.py
+
 	fi
 
 fi
