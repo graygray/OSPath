@@ -26,19 +26,24 @@ if [ "$1" = "wt" ] ; then
 	# wheeltec_ip="192.168.1.196"
 	# echo "========== wheeltec ip:($wheeltec_ip) =========="
 
-	if [ "$2" = "ld" ] ; then
+	if [ "$2" = "i" ] ; then
+		ls -al /mnt
+		ls /dev/wheel*
+
+	elif [ "$2" = "nfs" ] ; then
+		if [  "$3" = "+" ] ; then
+			sudo mount $wheeltec_ip:/home/wheeltec/ /mnt
+		elif [  "$3" = "-" ] ; then
+			sudo umount /mnt
+		fi
+		ls -al /mnt
+	elif [ "$2" = "ld" ] ; then
 		echo "========== lidar =========="
 		chmod 777 /dev/ttyACM1
 		service udev reload
 		service udev restart
 		ls /dev/wheel*
-	elif [ "$2" = "nfs" ] ; then
-		# if [  "$3" = "+" ] ; then
-		# 	sudo mount $wheeltec_ip:/home/wheeltec/ /mnt
-		# elif [  "$3" = "-" ] ; then
-		# 	sudo umount /mnt
-		# fi
-		ls -al /mnt
+
 	fi
 
 fi
