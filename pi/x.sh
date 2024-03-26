@@ -41,8 +41,8 @@ if [ "$1" = "wt" ] ; then
 			echo ">>>> colcon build --packages-select turn_on_wheeltec_robot"
 			colcon build --packages-select turn_on_wheeltec_robot
 		elif [ "$3" = "2" ] ; then
-			echo ">>>> colcon build --packages-select wheeltec_robot_slam"
-			colcon build --packages-select wheeltec_robot_slam
+			echo ">>>> colcon build --packages-select slam_gmapping"
+			colcon build --packages-select slam_gmapping
 		fi
 
 	elif [ "$2" = "ld" ] ; then
