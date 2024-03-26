@@ -23,7 +23,7 @@ nodeDir="$WorkingDir/$testNode"
 # wheeltec
 if [ "$1" = "wt" ] ; then
 
-	wheeltec_home="/home/wheeltec/wheeltec_ros2/src"
+	wheeltec_home="/home/wheeltec/wheeltec_ros2"
 	wheeltec_src="$wheeltec_home/src"
 	
 	# wheeltec_ip="192.168.1.196"
