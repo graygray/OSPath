@@ -35,6 +35,16 @@ if [ "$1" = "wt" ] ; then
 		echo "========== pgrep -f lidar_ao_oasab0512 =========="
 		pgrep -f lidar_ao_oasab0512
 
+	elif [ "$2" = "b" ] ; then
+		echo "========== build node =========="
+		if [ "$3" = "1" ] ; then
+			echo ">>>> colcon build --packages-select turn_on_wheeltec_robot"
+			colcon build --packages-select turn_on_wheeltec_robot
+		elif [ "$3" = "2" ] ; then
+			echo ">>>> colcon build --packages-select wheeltec_robot_slam"
+			colcon build --packages-select wheeltec_robot_slam
+		fi
+
 	elif [ "$2" = "ld" ] ; then
 		echo "========== lidar =========="
 		ls -al /etc/udev/rules.d
