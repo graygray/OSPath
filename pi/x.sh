@@ -54,10 +54,17 @@ if [ "$1" = "wt" ] ; then
 		service udev restart
 		ls -al /dev/wheel*
 
-	elif [ "$2" = "cm" ] ; then
-		echo "========== construct map =========="
-		echo ">>>> ros2 launch slam_gmapping slam_gmapping.launch.py"
-		ros2 launch slam_gmapping slam_gmapping.launch.py
+	elif [ "$2" = "r" ] ; then
+
+		if [ "$3" = "robot" ] ; then
+			echo "========== run robot =========="
+			echo ">>>> ros2 launch turn_on_wheeltec_robot turn_on_wheeltec_robot.launch.py"
+			ros2 launch turn_on_wheeltec_robot turn_on_wheeltec_robot.launch.py
+		elif [ "$3" = "slam" ] ; then
+			echo "========== construct map =========="
+			echo ">>>> ros2 launch slam_gmapping slam_gmapping.launch.py"
+			ros2 launch slam_gmapping slam_gmapping.launch.py
+		fi
 
 	elif [ "$2" = "sm" ] ; then
 		echo "========== save map =========="
