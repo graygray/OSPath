@@ -60,10 +60,15 @@ if [ "$1" = "wt" ] ; then
 			echo "========== run robot =========="
 			echo ">>>> ros2 launch turn_on_wheeltec_robot turn_on_wheeltec_robot.launch.py"
 			ros2 launch turn_on_wheeltec_robot turn_on_wheeltec_robot.launch.py
+		elif [ "$3" = "ld" ] ; then
+			echo "========== run LiDAR =========="
+			echo ">>>> ros2 launch turn_on_wheeltec_robot wheeltec_lidar.launch.py"
+			ros2 launch turn_on_wheeltec_robot wheeltec_lidar.launch.py
 		elif [ "$3" = "slam" ] ; then
 			echo "========== construct map =========="
 			echo ">>>> ros2 launch slam_gmapping slam_gmapping.launch.py"
 			ros2 launch slam_gmapping slam_gmapping.launch.py
+
 		fi
 
 	elif [ "$2" = "sm" ] ; then
