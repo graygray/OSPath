@@ -185,12 +185,16 @@ if [ "$1" = "ros" ] ; then
 			# cd $nodeDir
 			# colcon build
 			# colcon build --packages-select lcd_set_emoji
+		elif [ "$3" = "pid" ] ; then
+			pgrep -f $4
+
 		else
 			echo "ros2 node list"
 			ros2 node list
 		fi
 	elif [ "$2" = "env" ] ; then
 		source /opt/ros/galactic/setup.bash
+
 
 	elif [ "$2" = "p" ] ; then
 		echo "========== pkg =========="
