@@ -54,10 +54,10 @@ if [ "$1" = "wt" ] ; then
 			colcon build
 		fi
 
-	elif [ "$2" = "ld" ] ; then
-		echo "========== lidar =========="
+	elif [ "$2" = "rd" ] ; then
+		echo "========== reload device =========="
 		ls -al /etc/udev/rules.d
-		chmod 777 /dev/ttyACM1
+		# chmod 777 /dev/ttyACM1
 		service udev reload
 		sleep 3
 		service udev restart
@@ -77,7 +77,18 @@ if [ "$1" = "wt" ] ; then
 			echo "========== construct map =========="
 			echo ">>>> ros2 launch slam_gmapping slam_gmapping.launch.py"
 			ros2 launch slam_gmapping slam_gmapping.launch.py
+		fi
 
+	elif [ "$2" = "LH" ] ; then
+		if [ "$3" = "s" ] ; then
+			echo "========== server start =========="
+			ros2 launch bluesea2 LDS-50C-R.launch
+		elif [ "$3" = "c+" ] ; then
+			echo "========== client start =========="
+			ros2 run bluesea2 bluesea_node_client start 
+		elif [ "$3" = "c-" ] ; then
+			echo "========== client stop =========="
+			ros2 run bluesea2 bluesea_node_client stop 
 		fi
 
 	elif [ "$2" = "sm" ] ; then
@@ -233,6 +244,7 @@ if [ "$1" = "ros" ] ; then
 		fi
 
 	elif [ "$2" = "tp" ] ; then
+		echo "========== topic =========="
 		testTopic="/chatter"
 		# testTopic2="/chatter2"
 		testTopic2="/scan"
