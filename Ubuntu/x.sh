@@ -54,7 +54,7 @@ if [ "$1" = "wt" ] ; then
 
 	elif [ "$2" = "nfs" ] ; then
 		if [  "$3" = "+" ] ; then
-			sudo mount $wheeltec_ip:/home/wheeltec/ /mnt
+			sudo mount $wheeltec_ip:/home/wheeltec/wheeltec_ros2/src /mnt
 		elif [  "$3" = "-" ] ; then
 			sudo umount /mnt
 		fi

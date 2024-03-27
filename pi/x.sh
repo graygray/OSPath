@@ -266,7 +266,7 @@ if [ "$1" = "ros" ] ; then
 			ros2 topic list -t
 		fi
 
-	elif [ "$2" = "i" ] ; then
+	elif [ "$2" = "if" ] ; then
 		echo "========== interface =========="
 		if [  "$3" = "p" ] ; then
 			echo "ros2 interface packages"
