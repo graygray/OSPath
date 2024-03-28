@@ -30,8 +30,9 @@ if [ "$1" = "wt" ] ; then
 	# echo "========== wheeltec ip:($wheeltec_ip) =========="
 
 	if [ "$2" = "i" ] ; then
-		echo "========== ls -al /dev/wheel* =========="
+		echo "========== ls -al /dev/** =========="
 		ls -al /dev/wheel*
+		ls -al /dev/LH*
 		echo "========== ifconfig/iwconfig wlan0 =========="
 		ifconfig wlan0
 		iwconfig wlan0
@@ -292,12 +293,12 @@ if [ "$1" = "ros" ] ; then
 
 	elif [ "$2" = "param" ] ; then
 
-		if [  "$3" = "r" ] ; then
-			echo "run service"
-			ros2 run examples_rclpy_minimal_service service
-		elif [ "$3" = "set" ] ; then
+		if [ "$3" = "set" ] ; then
 			echo "set..."
 			ros2 param set /lcd_set_emoji param_emoji_name "$4"
+		elif [ "$3" = "get" ] ; then
+			echo "get..."
+			ros2 param get $4 $5
 		else 
 			echo "ros2 param list"
 			ros2 param list

@@ -305,6 +305,10 @@ if [ "$1" = "ros" ] ; then
 			ros2 node list
 		fi
 
+	elif [ "$2" = "tree" ] ; then
+		echo "========== ros2 run tf2_tools view_frames =========="
+		ros2 run tf2_tools view_frames
+
 	elif [ "$2" = "env" ] ; then
 		source /opt/ros/galactic/setup.bash
 
@@ -353,7 +357,7 @@ if [ "$1" = "ros" ] ; then
 			ros2 topic list -t
 		fi
 
-	elif [ "$2" = "i" ] ; then
+	elif [ "$2" = "if" ] ; then
 		echo "========== interface =========="
 		if [  "$3" = "p" ] ; then
 			echo "ros2 interface packages"
@@ -378,8 +382,18 @@ if [ "$1" = "ros" ] ; then
 		fi
 
 	elif [ "$2" = "param" ] ; then
-		echo "rros2 param list"
-		ros2 param list
+
+		if [ "$3" = "set" ] ; then
+			echo "set..."
+			ros2 param set /lcd_set_emoji param_emoji_name "$4"
+		elif [ "$3" = "get" ] ; then
+			echo "get..."
+			ros2 param get $4 $5
+		else 
+			echo "ros2 param list"
+			ros2 param list
+		fi
+
 	fi
 fi
 
