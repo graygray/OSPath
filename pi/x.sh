@@ -33,8 +33,9 @@ if [ "$1" = "wt" ] ; then
 		echo "========== ls -al /dev/** =========="
 		ls -al /dev/wheel*
 		ls -al /dev/LH*
-		echo "========== ifconfig/iwconfig wlan0 =========="
+		echo "========== ifconfig wlan0 =========="
 		ifconfig wlan0
+		echo "========== iwconfig wlan0 =========="
 		iwconfig wlan0
 		echo "========== pgrep -f lidar_ao_oasab0512 =========="
 		pgrep -f lidar_ao_oasab0512
@@ -293,12 +294,15 @@ if [ "$1" = "ros" ] ; then
 
 	elif [ "$2" = "param" ] ; then
 
-		if [ "$3" = "set" ] ; then
+		if [ "$3" = "s" ] ; then
 			echo "set..."
 			ros2 param set /lcd_set_emoji param_emoji_name "$4"
-		elif [ "$3" = "get" ] ; then
-			echo "get..."
+		elif [ "$3" = "g" ] ; then
+			echo "ros2 param get $4 $5"
 			ros2 param get $4 $5
+		elif [ "$3" = "ln" ] ; then
+			echo "ros2 param list $4"
+			ros2 param list $4
 		else 
 			echo "ros2 param list"
 			ros2 param list
