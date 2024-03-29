@@ -96,7 +96,10 @@ if [ "$1" = "wt" ] ; then
 			ros2 run bluesea2 bluesea_node_client start 
 		elif [ "$3" = "c-" ] ; then
 			echo "========== client stop =========="
-			ros2 run bluesea2 bluesea_node_client stop 
+			ros2 run bluesea2 bluesea_node_client stop
+		elif [ "$3" = "git" ] ; then
+			echo "git clone https://github.com/BlueSeaLidar/bluesea-ros2.git"
+			git clone https://github.com/BlueSeaLidar/bluesea-ros2.git
 		fi
 
 	elif [ "$2" = "sm" ] ; then

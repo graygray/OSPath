@@ -1,0 +1,12 @@
+export ROS_MASTER_IP=192.168.1.196
+export ROS_MASTER_URI=http://$ROS_MASTER_IP:11311
+export ROS_HOSTNAME=$ROS_MASTER_IP
+cd /home/wheeltec/
+PATH=/home/wheeltec/OSPath/pi:$PATH
+alias x='x.sh'
+alias rr='x ros'
+alias wt='x wt'
+alias erc='nano ~/.bashrc'
+alias dwt='cd /home/wheeltec/' # wheeltec home
+alias dwts='cd /home/wheeltec/wheeltec_ros2/src' # wheeltec ros2 src
+alias dld='cd /home/wheeltec/wheeltec_ros2/src/wheeltec_lidar_ros2' # wheeltec lidar src
