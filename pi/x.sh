@@ -31,6 +31,7 @@ if [ "$1" = "wt" ] ; then
 
 	if [ "$2" = "i" ] ; then
 		echo "========== ls -al /dev/** =========="
+		ls -al /etc/udev/rules.d
 		ls -al /dev/wheel*
 		ls -al /dev/LH*
 		echo "========== ifconfig wlan0 =========="
@@ -63,7 +64,9 @@ if [ "$1" = "wt" ] ; then
 		service udev reload
 		sleep 3
 		service udev restart
+		sleep 3
 		ls -al /dev/wheel*
+		ls -al /dev/LH*
 
 	elif [ "$2" = "r" ] ; then
 
@@ -273,8 +276,9 @@ if [ "$1" = "ros" ] ; then
 		if [  "$3" = "p" ] ; then
 			echo "ros2 interface packages"
 			ros2 interface packages
-		elif [ "$3" = "x" ] ; then
-			echo "xxx..."
+		elif [ "$3" = "show" ] ; then
+			echo "ros2 interface show $4"
+			ros2 interface show $4
 		else 
 			echo "ros2 interface list"
 			ros2 ros2 interface list

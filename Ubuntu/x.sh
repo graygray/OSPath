@@ -305,13 +305,14 @@ if [ "$1" = "ros" ] ; then
 			ros2 node list
 		fi
 
-	elif [ "$2" = "tree" ] ; then
+	elif [ "$2" = "g" ] ; then
+		echo "========== rqt_graph =========="
+		rqt_graph
+	elif [ "$2" = "tf" ] ; then
 		echo "========== ros2 run tf2_tools view_frames =========="
 		ros2 run tf2_tools view_frames
-
 	elif [ "$2" = "env" ] ; then
 		source /opt/ros/galactic/setup.bash
-
 	elif [ "$2" = "p" ] ; then
 		echo "========== pkg =========="
 		if [  "$3" = "exe" ] ; then
@@ -362,8 +363,9 @@ if [ "$1" = "ros" ] ; then
 		if [  "$3" = "p" ] ; then
 			echo "ros2 interface packages"
 			ros2 interface packages
-		elif [ "$3" = "x" ] ; then
-			echo "xxx..."
+		elif [ "$3" = "show" ] ; then
+			echo "ros2 interface show $4"
+			ros2 interface show $4
 		else 
 			echo "ros2 interface list"
 			ros2 ros2 interface list
