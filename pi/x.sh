@@ -59,7 +59,8 @@ if [ "$1" = "wt" ] ; then
 			# colcon build --packages-select slam_gmapping
 			colcon build
 		fi
-
+	elif [ "$2" = "env" ] ; then
+		source ~/.bashrc
 	elif [ "$2" = "rd" ] ; then
 		echo "========== reload device =========="
 		ls -al /etc/udev/rules.d
