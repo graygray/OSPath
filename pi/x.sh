@@ -31,9 +31,11 @@ if [ "$1" = "wt" ] ; then
 
 	if [ "$2" = "i" ] ; then
 		echo "========== ls -al /dev/** =========="
-		ls -al /etc/udev/rules.d
 		ls -al /dev/wheel*
 		ls -al /dev/LH*
+		echo "========== lsusb =========="
+		lsusb
+		ls -al /etc/udev/rules.d
 		echo "========== ifconfig wlan0 =========="
 		ifconfig wlan0
 		echo "========== iwconfig wlan0 =========="
