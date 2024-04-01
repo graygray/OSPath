@@ -33,8 +33,9 @@ if [ "$1" = "wt" ] ; then
 		echo "========== ls -al /dev/** =========="
 		ls -al /dev/wheel*
 		ls -al /dev/LH*
-		echo "========== lsusb =========="
+		echo "========== ls /etc/udev/rules.d =========="
 		ls /etc/udev/rules.d
+		echo "========== lsusb =========="
 		lsusb
 		echo "========== udevadm info --query=all --name=/dev/bus/usb/Bus/Device =========="
 		echo "========== ifconfig wlan0 =========="
