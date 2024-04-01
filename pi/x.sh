@@ -55,10 +55,10 @@ if [ "$1" = "wt" ] ; then
 			# colcon build
 		elif [ "$3" = "2" ] ; then
 			echo ">>>> colcon build --packages-select slam_gmapping"
-			targetNode="wheeltec_robot_slam/slam_gmapping"
-			cd $wheeltec_src/$targetNode
-			# colcon build --packages-select slam_gmapping
-			colcon build
+			colcon build --packages-select slam_gmapping
+			# targetNode="wheeltec_robot_slam/slam_gmapping"
+			# cd $wheeltec_src/$targetNode
+			# colcon build
 		fi
 	elif [ "$2" = "env" ] ; then
 		source ~/.bashrc
