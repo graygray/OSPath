@@ -49,10 +49,10 @@ if [ "$1" = "wt" ] ; then
 		echo "========== build node =========="
 		if [ "$3" = "1" ] ; then
 			echo ">>>> colcon build --packages-select turn_on_wheeltec_robot"
-			targetNode="turn_on_wheeltec_robot"
-			cd $wheeltec_src/$targetNode
-			# colcon build --packages-select turn_on_wheeltec_robot
-			colcon build
+			colcon build --packages-select turn_on_wheeltec_robot
+			# targetNode="turn_on_wheeltec_robot"
+			# cd $wheeltec_src/$targetNode
+			# colcon build
 		elif [ "$3" = "2" ] ; then
 			echo ">>>> colcon build --packages-select slam_gmapping"
 			targetNode="wheeltec_robot_slam/slam_gmapping"
