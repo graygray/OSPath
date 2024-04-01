@@ -13,4 +13,4 @@ alias dld='cd /home/wheeltec/wheeltec_ros2/src/wheeltec_lidar_ros2' # wheeltec l
 #source /home/wheeltec/wheeltec_ros2/src/turn_on_wheeltec_robot/install/setup.bash
 #source /home/wheeltec/wheeltec_ros2/src/wheeltec_robot_slam/slam_gmapping/install/setup.bash
 #source /home/wheeltec/wheeltec_ros2/src/wheeltec_lidar_ros2/lidar_ao_oasab0512/install/setup.bash
-#source /home/wheeltec/wheeltec_ros2/src/wheeltec_lidar_ros2/bluesea-ros2/install/setup.bash
+source /home/wheeltec/wheeltec_ros2/src/wheeltec_lidar_ros2/bluesea-ros2/install/setup.bash
