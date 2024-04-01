@@ -451,6 +451,7 @@ fi
 # update x
 if [ "$1" == "ux" ] ; then
 	cd /home/wheeltec/OSPath
+	git reset --hard HEAD
 	git pull
 fi
 
