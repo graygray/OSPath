@@ -1,8 +1,11 @@
 export ROS_MASTER_IP=192.168.1.196
 export ROS_MASTER_URI=http://$ROS_MASTER_IP:11311
 export ROS_HOSTNAME=$ROS_MASTER_IP
-cd /home/wheeltec/
+export wheeltec_workspace="/home/wheeltec/wheeltec_ros2"
+cd $wheeltec_workspace
+
 PATH=/home/wheeltec/OSPath/pi:$PATH
+
 alias x='x.sh'
 alias rr='x ros'
 alias wt='x wt'
