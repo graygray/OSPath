@@ -23,8 +23,8 @@ nodeDir="$WorkingDir/$testNode"
 # wheeltec
 if [ "$1" = "wt" ] ; then
 
-	wheeltec_home="/home/wheeltec/wheeltec_ros2"
-	wheeltec_src="$wheeltec_home/src"
+	wheeltec_workspace="/home/wheeltec/wheeltec_ros2/"
+	wheeltec_src="$wheeltec_workspace/src"
 	
 	# wheeltec_ip="192.168.1.196"
 	# echo "========== wheeltec ip:($wheeltec_ip) =========="
@@ -47,18 +47,13 @@ if [ "$1" = "wt" ] ; then
 
 	elif [ "$2" = "b" ] ; then
 		echo "========== build node =========="
-		if [ "$3" = "1" ] ; then
+		cd $wheeltec_workspace
+		if [ "$3" = "robot" ] ; then
 			echo ">>>> colcon build --packages-select turn_on_wheeltec_robot"
 			colcon build --packages-select turn_on_wheeltec_robot
-			# targetNode="turn_on_wheeltec_robot"
-			# cd $wheeltec_src/$targetNode
-			# colcon build
-		elif [ "$3" = "2" ] ; then
+		elif [ "$3" = "slam" ] ; then
 			echo ">>>> colcon build --packages-select slam_gmapping"
 			colcon build --packages-select slam_gmapping
-			# targetNode="wheeltec_robot_slam/slam_gmapping"
-			# cd $wheeltec_src/$targetNode
-			# colcon build
 		fi
 	elif [ "$2" = "env" ] ; then
 		source ~/.bashrc
