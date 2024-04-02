@@ -10,8 +10,5 @@ alias erc='nano ~/.bashrc'
 alias dwh='cd /home/wheeltec/' # dir wheeltec home
 alias dww='cd /home/wheeltec/wheeltec_ros2/' # dir ros workspace
 alias dld='cd /home/wheeltec/wheeltec_ros2/src/wheeltec_lidar_ros2' # wheeltec lidar src
-alias uenv='source /home/wheeltec/wheeltec_ros2/install/setup.bash' # update env
-#source /home/wheeltec/wheeltec_ros2/src/turn_on_wheeltec_robot/install/setup.bash
-#source /home/wheeltec/wheeltec_ros2/src/wheeltec_robot_slam/slam_gmapping/install/setup.bash
-#source /home/wheeltec/wheeltec_ros2/src/wheeltec_lidar_ros2/lidar_ao_oasab0512/install/setup.bash
-# source /home/wheeltec/wheeltec_ros2/src/wheeltec_lidar_ros2/bluesea-ros2/install/setup.bash
+alias ue='source /home/wheeltec/wheeltec_ros2/install/setup.bash' # update env
+alias ux='x ux' # update x.sh
