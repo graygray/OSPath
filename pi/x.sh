@@ -68,6 +68,7 @@ if [ "$1" = "wt" ] ; then
 		sleep 3
 		service udev restart
 		sleep 3
+		echo "========== ls -al /dev/** =========="
 		ls -al /dev/wheel*
 		ls -al /dev/LH*
 
