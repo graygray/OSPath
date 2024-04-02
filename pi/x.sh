@@ -25,6 +25,7 @@ if [ "$1" = "wt" ] ; then
 
 	wheeltec_workspace="/home/wheeltec/wheeltec_ros2/"
 	wheeltec_src="$wheeltec_workspace/src"
+
 	cd $wheeltec_workspace
 
 	# wheeltec_ip="192.168.1.196"
@@ -39,12 +40,12 @@ if [ "$1" = "wt" ] ; then
 		echo "========== lsusb =========="
 		lsusb
 		echo "========== udevadm info --query=all --name=/dev/bus/usb/Bus/Device =========="
-		echo "========== ifconfig wlan0 =========="
-		ifconfig wlan0
-		echo "========== iwconfig wlan0 =========="
-		iwconfig wlan0
-		echo "========== pgrep -f lidar_ao_oasab0512 =========="
-		pgrep -f lidar_ao_oasab0512
+		# echo "========== ifconfig wlan0 =========="
+		# ifconfig wlan0
+		# echo "========== iwconfig wlan0 =========="
+		# iwconfig wlan0
+		# echo "========== pgrep -f lidar_ao_oasab0512 =========="
+		# pgrep -f lidar_ao_oasab0512
 
 	elif [ "$2" = "b" ] ; then
 		echo "========== build node =========="
@@ -55,8 +56,7 @@ if [ "$1" = "wt" ] ; then
 			echo ">>>> colcon build --packages-select slam_gmapping"
 			colcon build --packages-select slam_gmapping
 		fi
-	elif [ "$2" = "env" ] ; then
-		source $wheeltec_workspace/install/setup.bash
+
 	elif [ "$2" = "rd" ] ; then
 		echo "========== reload device =========="
 		ls -al /etc/udev/rules.d
