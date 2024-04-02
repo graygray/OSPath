@@ -9,10 +9,16 @@ PATH=/home/wheeltec/OSPath/pi:$PATH
 alias x='x.sh'
 alias rr='x ros'
 alias wt='x wt'
+
+# edit
 alias erc='nano ~/.bashrc'
+
+# dir
 alias dwh='cd /home/wheeltec/' # dir wheeltec home
 alias dww='cd /home/wheeltec/wheeltec_ros2/' # dir ros workspace
-alias dld='cd /home/wheeltec/wheeltec_ros2/src/wheeltec_lidar_ros2' # wheeltec lidar src
+alias dld="cd $wheeltec_workspace/src/wheeltec_lidar_ros2" # wheeltec lidar src
+
+# update
 alias ue='source /home/wheeltec/wheeltec_ros2/install/setup.bash' # update env
 alias ue2='source /home/wheeltec/.bashrc' # update env
 alias ux='x ux' # update x.sh
