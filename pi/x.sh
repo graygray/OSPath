@@ -69,7 +69,7 @@ if [ "$1" = "wt" ] ; then
 		ls -al /dev/LH*
 
 	elif [ "$2" = "r" ] ; then
-
+		cd $wheeltec_workspace
 		if [ "$3" = "robot" ] ; then
 			echo "========== run robot =========="
 			echo ">>>> ros2 launch turn_on_wheeltec_robot turn_on_wheeltec_robot.launch.py"
