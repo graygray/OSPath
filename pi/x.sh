@@ -25,7 +25,8 @@ if [ "$1" = "wt" ] ; then
 
 	wheeltec_workspace="/home/wheeltec/wheeltec_ros2/"
 	wheeltec_src="$wheeltec_workspace/src"
-	
+	cd $wheeltec_workspace
+
 	# wheeltec_ip="192.168.1.196"
 	# echo "========== wheeltec ip:($wheeltec_ip) =========="
 
@@ -47,7 +48,6 @@ if [ "$1" = "wt" ] ; then
 
 	elif [ "$2" = "b" ] ; then
 		echo "========== build node =========="
-		cd $wheeltec_workspace
 		if [ "$3" = "robot" ] ; then
 			echo ">>>> colcon build --packages-select turn_on_wheeltec_robot"
 			colcon build --packages-select turn_on_wheeltec_robot
@@ -56,7 +56,7 @@ if [ "$1" = "wt" ] ; then
 			colcon build --packages-select slam_gmapping
 		fi
 	elif [ "$2" = "env" ] ; then
-		source ~/.bashrc
+		source $wheeltec_workspace/install/setup.bash
 	elif [ "$2" = "rd" ] ; then
 		echo "========== reload device =========="
 		ls -al /etc/udev/rules.d
@@ -69,7 +69,6 @@ if [ "$1" = "wt" ] ; then
 		ls -al /dev/LH*
 
 	elif [ "$2" = "r" ] ; then
-		cd $wheeltec_workspace
 		if [ "$3" = "robot" ] ; then
 			echo "========== run robot =========="
 			echo ">>>> ros2 launch turn_on_wheeltec_robot turn_on_wheeltec_robot.launch.py"

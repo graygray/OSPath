@@ -8,7 +8,7 @@ alias rr='x ros'
 alias wt='x wt'
 alias erc='nano ~/.bashrc'
 alias dwh='cd /home/wheeltec/' # dir wheeltec home
-alias drw='cd /home/wheeltec/wheeltec_ros2/' # dir ros workspace
+alias dww='cd /home/wheeltec/wheeltec_ros2/' # dir ros workspace
 alias dld='cd /home/wheeltec/wheeltec_ros2/src/wheeltec_lidar_ros2' # wheeltec lidar src
 #source /home/wheeltec/wheeltec_ros2/src/turn_on_wheeltec_robot/install/setup.bash
 #source /home/wheeltec/wheeltec_ros2/src/wheeltec_robot_slam/slam_gmapping/install/setup.bash
