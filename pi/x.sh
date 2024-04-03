@@ -56,8 +56,10 @@ if [ "$1" = "wt" ] ; then
 			echo ">>>> colcon build --packages-select slam_gmapping"
 			colcon build --packages-select slam_gmapping
 		elif [ "$3" = "ld" ] ; then
-			echo ">>>> colcon build --packages-select bluesea2"
-			colcon build --packages-select bluesea2
+			# selectLiDAR="bluesea2"
+			selectLiDAR="lidar_ao_oasab0512"
+			echo ">>>> colcon build --packages-select $selectLiDAR"
+			colcon build --packages-select $selectLiDAR
 		fi
 
 	elif [ "$2" = "rd" ] ; then
