@@ -12,10 +12,11 @@ alias wt='x wt'
 
 # edit
 alias erc='nano ~/.bashrc'
+alias ewifi='nano /etc/netplan/01-network-manager-all.yaml'
 
 # dir
 alias dwh='cd /home/wheeltec/' # dir wheeltec home
-alias dww='cd /home/wheeltec/wheeltec_ros2/' # dir ros workspace
+alias dww="cd $wheeltec_workspace" # dir ros workspace
 alias dld="cd $wheeltec_workspace/src/wheeltec_lidar_ros2" # wheeltec lidar src
 
 # update

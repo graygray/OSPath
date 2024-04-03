@@ -89,7 +89,8 @@ if [ "$1" = "wt" ] ; then
 			ros2 launch turn_on_wheeltec_robot wheeltec_lidar.launch.py
 		fi
 
-	elif [ "$2" = "LH" ] ; then
+	elif [ "$2" = "lh" ] ; then
+		echo "========== Lanhai LiDAR =========="
 		if [ "$3" = "s" ] ; then
 			echo "========== server start =========="
 			ros2 launch bluesea2 LDS-50C-R.launch
