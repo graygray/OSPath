@@ -57,7 +57,6 @@ if [ "$1" = "wt" ] ; then
 			echo ">>>> colcon build --packages-select $selectLiDAR"
 			colcon build --packages-select $selectLiDAR
 		elif [ "$3" = "f" ] ; then
-			simple_follower_ros2
 			echo ">>>> colcon build --packages-select simple_follower_ros2"
 			colcon build --packages-select simple_follower_ros2
 		fi
