@@ -420,7 +420,7 @@ if [ "$1" == "sys" ] ; then
 
 	elif [ "$2" == "user" ] ; then
 		id -nG $3
-	elif [ "$2" == "rt" ] ; then
+	elif [ "$2" == "restart" ] ; then
 		echo "========== restart service =========="
 		if [ "$3" == "d" ] ; then
 			echo "========== udev =========="
@@ -429,6 +429,10 @@ if [ "$1" == "sys" ] ; then
 			sleep 3
 			service udev restart
 			sleep 3
+		elif [ "$2" == "wifi" ] ; then
+			echo "========== wifi =========="
+			netplan apply
+			systemctl restart network-manager
 		fi
 	else
 		echo "param 3 not match"
