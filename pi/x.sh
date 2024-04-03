@@ -201,11 +201,6 @@ if [ "$1" = "ros" ] ; then
 			echo "ros2 run $testNode "$testNode"_node"
 			source install/setup.sh
 			ros2 run $testNode "$testNode"_node
-		elif [ "$3" = "b" ] ; then
-			echo "========== colcon build =========="
-			# cd $nodeDir
-			# colcon build
-			# colcon build --packages-select lcd_set_emoji
 		elif [ "$3" = "pid" ] ; then
 			pgrep -f $4
 
@@ -213,9 +208,10 @@ if [ "$1" = "ros" ] ; then
 			echo "ros2 node list"
 			ros2 node list
 		fi
-	elif [ "$2" = "env" ] ; then
-		source /opt/ros/galactic/setup.bash
 
+	elif [ "$2" = "b" ] ; then
+			echo "========== colcon build --packages-select $3 =========="
+			colcon build --packages-select $3
 
 	elif [ "$2" = "p" ] ; then
 		echo "========== pkg =========="
