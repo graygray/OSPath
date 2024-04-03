@@ -429,7 +429,7 @@ if [ "$1" == "sys" ] ; then
 			sleep 3
 			service udev restart
 			sleep 3
-		elif [ "$2" == "wifi" ] ; then
+		elif [ "$3" == "wifi" ] ; then
 			echo "========== wifi =========="
 			netplan apply
 			systemctl restart network-manager
