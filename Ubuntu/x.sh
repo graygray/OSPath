@@ -54,11 +54,14 @@ if [ "$1" = "wt" ] ; then
 
 	elif [ "$2" = "nfs" ] ; then
 		if [  "$3" = "+" ] ; then
-			sudo mount $wheeltec_ip:/home/wheeltec/wheeltec_ros2/src /mnt
+			sudo mount $wheeltec_ip:/home/wheeltec/wheeltec_ros2 /mnt
 		elif [  "$3" = "-" ] ; then
 			sudo umount /mnt
 		fi
 		ls -al /mnt
+
+	elif [ "$2" = "map" ] ; then
+		nautilus /mnt/install/wheeltec_nav2/share/wheeltec_nav2/map
 	fi
 
 fi
