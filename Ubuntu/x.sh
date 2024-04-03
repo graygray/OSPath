@@ -507,6 +507,9 @@ if [ "$1" = "sys" ] ; then
 
 	elif [ "$2" = "user" ] ; then
 		id -nG $3
+	elif [ "$2" = "net" ] ; then
+		echo "========== nmblookup -A 192.168.1.* =========="
+		nmblookup -A 192.168.1.*
 	else
 		echo "param 3 not match"
 		exit -1

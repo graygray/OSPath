@@ -56,6 +56,10 @@ if [ "$1" = "wt" ] ; then
 			selectLiDAR="lidar_ao_oasab0512"
 			echo ">>>> colcon build --packages-select $selectLiDAR"
 			colcon build --packages-select $selectLiDAR
+		elif [ "$3" = "f" ] ; then
+			simple_follower_ros2
+			echo ">>>> colcon build --packages-select simple_follower_ros2"
+			colcon build --packages-select simple_follower_ros2
 		fi
 
 	elif [ "$2" = "r" ] ; then
@@ -69,6 +73,17 @@ if [ "$1" = "wt" ] ; then
 		elif [ "$3" = "ld" ] ; then
 			echo ">>>> ros2 launch turn_on_wheeltec_robot wheeltec_lidar.launch.py"
 			ros2 launch turn_on_wheeltec_robot wheeltec_lidar.launch.py
+		elif [ "$3" = "f" ] ; then
+			follower="laser_follower"
+			if [ "$4" = "laser" ] ; then
+				follower="laser_follower"
+			elif [ "$4" = "line" ] ; then
+				follower="line_follower"
+			elif [ "$4" = "visual" ] ; then
+				follower="visual_follower"
+			fi
+			echo ">>>> ros2 launch simple_follower_ros2 $follower.launch.py"
+			ros2 launch simple_follower_ros2 $follower.launch.py
 		fi
 
 	elif [ "$2" = "lh" ] ; then
