@@ -25,16 +25,12 @@ if [ "$1" = "wt" ] ; then
 
 	wheeltec_workspace="/home/wheeltec/wheeltec_ros2/"
 	wheeltec_src="$wheeltec_workspace/src"
-
 	cd $wheeltec_workspace
-
-	# wheeltec_ip="192.168.1.196"
-	# echo "========== wheeltec ip:($wheeltec_ip) =========="
 
 	if [ "$2" = "i" ] ; then
 		echo "========== ls -al /dev/** =========="
 		ls -al /dev/wheel*
-		ls -al /dev/LH*
+		# ls -al /dev/LH*
 		echo "========== ls /etc/udev/rules.d =========="
 		ls /etc/udev/rules.d
 		echo "========== lsusb =========="
@@ -62,35 +58,21 @@ if [ "$1" = "wt" ] ; then
 			colcon build --packages-select $selectLiDAR
 		fi
 
-	elif [ "$2" = "rd" ] ; then
-		echo "========== reload device =========="
-		ls -al /etc/udev/rules.d
-		# chmod 777 /dev/ttyACM1
-		service udev reload
-		sleep 3
-		service udev restart
-		sleep 3
-		echo "========== ls -al /dev/** =========="
-		ls -al /dev/wheel*
-		ls -al /dev/LH*
-
 	elif [ "$2" = "r" ] ; then
+		echo "========== run node =========="
 		if [ "$3" = "robot" ] ; then
-			echo "========== run robot =========="
 			echo ">>>> ros2 launch turn_on_wheeltec_robot turn_on_wheeltec_robot.launch.py"
 			ros2 launch turn_on_wheeltec_robot turn_on_wheeltec_robot.launch.py
 		elif [ "$3" = "slam" ] ; then
-			echo "========== construct map =========="
 			echo ">>>> ros2 launch slam_gmapping slam_gmapping.launch.py"
 			ros2 launch slam_gmapping slam_gmapping.launch.py
 		elif [ "$3" = "ld" ] ; then
-			echo "========== run LiDAR =========="
 			echo ">>>> ros2 launch turn_on_wheeltec_robot wheeltec_lidar.launch.py"
 			ros2 launch turn_on_wheeltec_robot wheeltec_lidar.launch.py
 		fi
 
 	elif [ "$2" = "lh" ] ; then
-		echo "========== Lanhai LiDAR =========="
+		echo "========== test Lanhai LiDAR =========="
 		if [ "$3" = "s" ] ; then
 			echo "========== server start =========="
 			ros2 launch bluesea2 LDS-50C-R.launch
@@ -413,7 +395,6 @@ if [ "$1" = "emoji" ] ; then
 
 fi
 
-
 # system related 
 if [ "$1" == "sys" ] ; then
 	if [ "$2" == "service" ] ; then
@@ -443,6 +424,16 @@ if [ "$1" == "sys" ] ; then
 
 	elif [ "$2" == "user" ] ; then
 		id -nG $3
+	elif [ "$2" == "rt" ] ; then
+		echo "========== restart service =========="
+		if [ "$3" == "d" ] ; then
+			echo "========== udev =========="
+			ls -al /etc/udev/rules.d
+			service udev reload
+			sleep 3
+			service udev restart
+			sleep 3
+		fi
 	else
 		echo "param 3 not match"
 		exit -1
