@@ -1,0 +1,19 @@
+IP_ADDRESS=$(hostname -I | cut -d' ' -f1)
+
+PATH=~/OSPath/Ubuntu:$PATH
+
+alias x='x.sh'
+
+# edit
+alias ex='x code x'
+alias erc='nano ~/.bashrc'
+alias ewifi='nano /etc/netplan/01-network-manager-all.yaml'
+
+# dir
+alias dwh='cd /home/wheeltec/' # dir wheeltec home
+alias dww="cd $wheeltec_workspace" # dir ros workspace
+alias dld="cd $wheeltec_workspace/src/wheeltec_lidar_ros2" # wheeltec lidar src
+
+# update
+alias ue='source ~/.bashrc' # update env
+alias ux='x ux' # update x.sh
