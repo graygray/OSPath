@@ -656,7 +656,7 @@ fi
 
 # tar
 if [ "$1" = "zip" ] ; then
-		echo ">>>> zip src dst"
+		echo ">>>> zip $2 to $3.tar.gz"
 		tar -czvf $3.tar.gz $2
 fi
 if [ "$1" = "unzip" ] ; then
