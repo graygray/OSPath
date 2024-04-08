@@ -2,7 +2,7 @@ IP_ADDRESS=$(hostname -I | cut -d' ' -f1)
 
 export ROS_MASTER_IP=192.168.1.196
 export ROS_MASTER_URI=http://$ROS_MASTER_IP:11311
-export ROS_HOSTNAME=192.168.1.193
+export ROS_HOSTNAME=192.168.1.158
 
 PATH=~/OSPath/Ubuntu:$PATH
 

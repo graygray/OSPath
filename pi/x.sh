@@ -106,6 +106,8 @@ if [ "$1" = "wt" ] ; then
 		echo ">>>> ros2 launch wheeltec_nav2 save_map.launch.py"
 		ros2 launch wheeltec_nav2 save_map.launch.py
 
+	elif [ "$2" = "go" ] ; then
+		ros2 topic pub /cmd_vel geometry_msgs/Twist "{linear: {x: $3, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: $4}}"
 	fi
 
 fi

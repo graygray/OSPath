@@ -61,7 +61,12 @@ if [ "$1" = "wt" ] ; then
 		ls -al /mnt
 
 	elif [ "$2" = "map" ] ; then
-		nautilus /mnt/install/wheeltec_nav2/share/wheeltec_nav2/map
+		nautilus /mnt/install/wheeltec_nav2/share/wheeltec_nav2/map\
+
+	elif [ "$2" = "go" ] ; then
+		ros2 topic pub /cmd_vel geometry_msgs/Twist "{linear: {x: $3, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: $4}}" --once
+		sleep 3
+		ros2 topic pub /cmd_vel geometry_msgs/Twist "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}" --once
 	fi
 
 fi
