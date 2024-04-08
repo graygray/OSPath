@@ -601,7 +601,7 @@ if [ "$1" = "ftp" ] ; then
 			elif [ "$4" = "sidsw" ] ; then
 				# SAC SW team group for default
 				sudo useradd  -m $3 -g "SAC_SW" -s /bin/bash
-sudo usermod -aG docker $3
+				sudo usermod -aG docker $3
 			else
 				# CCPSW team group for default
 				sudo useradd  -m $3 -g "CCP" -s /bin/bash
