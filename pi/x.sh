@@ -43,10 +43,6 @@ if [ "$1" = "wt" ] ; then
 		# echo "========== pgrep -f lidar_ao_oasab0512 =========="
 		# pgrep -f lidar_ao_oasab0512
 
-	elif [ "$2" = "f" ] ; then
-		echo "========== simple follower =========="
-		echo ">>>> ros2 launch simple_follower_ros2 laser_follower.launch.py"
-		ros2 launch simple_follower_ros2 laser_follower.launch.py
 	elif [ "$2" = "b" ] ; then
 		echo "========== build node =========="
 		if [ "$3" = "robot" ] ; then

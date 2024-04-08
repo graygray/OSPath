@@ -319,8 +319,6 @@ if [ "$1" = "ros" ] ; then
 	elif [ "$2" = "tf" ] ; then
 		echo "========== ros2 run tf2_tools view_frames =========="
 		ros2 run tf2_tools view_frames
-	elif [ "$2" = "env" ] ; then
-		source /opt/ros/galactic/setup.bash
 	elif [ "$2" = "p" ] ; then
 		echo "========== pkg =========="
 		if [  "$3" = "exe" ] ; then
@@ -335,9 +333,12 @@ if [ "$1" = "ros" ] ; then
 		elif [ "$3" = "xml" ] ; then
 			echo "ros2 pkg xml <package-name>"
 			ros2 pkg xml $4
-		elif [ "$3" = "c" ] ; then
+		elif [ "$3" = "cc" ] ; then
 			echo "ros2 pkg create $4"
 			ros2 pkg create $4 --build-type ament_cmake --dependencies rclcpp
+		elif [ "$3" = "cp" ] ; then
+			echo "ros2 pkg create $4"
+			ros2 pkg create $4 --build-type ament_python --dependencies rclpy --license Apache-2.0
 		else 
 			echo "ros2 pkg list"
 			ros2 pkg list
@@ -376,7 +377,7 @@ if [ "$1" = "ros" ] ; then
 			ros2 interface show $4
 		else 
 			echo "ros2 interface list"
-			ros2 ros2 interface list
+			ros2 interface list
 		fi
 
 	elif [ "$2" = "s" ] ; then
