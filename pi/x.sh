@@ -51,7 +51,7 @@ if [ "$1" = "wt" ] ; then
 		elif [ "$3" = "slam" ] ; then
 			echo ">>>> colcon build --packages-select slam_gmapping"
 			colcon build --packages-select slam_gmapping
-		elif [ "$3" = "ld" ] ; then
+		elif [ "$3" = "lidar" ] ; then
 			# selectLiDAR="bluesea2"
 			selectLiDAR="lidar_ao_oasab0512"
 			echo ">>>> colcon build --packages-select $selectLiDAR"
@@ -69,7 +69,7 @@ if [ "$1" = "wt" ] ; then
 		elif [ "$3" = "slam" ] ; then
 			echo ">>>> ros2 launch slam_gmapping slam_gmapping.launch.py"
 			ros2 launch slam_gmapping slam_gmapping.launch.py
-		elif [ "$3" = "ld" ] ; then
+		elif [ "$3" = "lidar" ] ; then
 			echo ">>>> ros2 launch turn_on_wheeltec_robot wheeltec_lidar.launch.py"
 			ros2 launch turn_on_wheeltec_robot wheeltec_lidar.launch.py
 		elif [ "$3" = "f" ] ; then
