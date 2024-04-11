@@ -312,7 +312,10 @@ if [ "$1" = "ros" ] ; then
 			echo "========== ros2 node list =========="
 			ros2 node list
 		fi
-
+		
+	elif [ "$2" = "i" ] ; then
+		echo "========== ROS version =========="
+		echo $ROS_DISTRO
 	elif [ "$2" = "g" ] ; then
 		echo "========== rqt_graph =========="
 		rqt_graph
@@ -445,14 +448,14 @@ if [ "$1" = "wd" ] ; then
 
 	elif [ "$XDG_CURRENT_DESKTOP" = "GNOME" ] || [ "$XDG_CURRENT_DESKTOP" = "ubuntu:GNOME" ] ; then
 		if [ "$2" = "git" ] ; then
-			gnome-terminal --geometry=160x40 \
+			gnome-terminal --geometry=140x40 \
 			--tab -t "Docker_Gitlab" --working-directory=$gitDir \
 			--tab -t "Docker_Gitlab2" --working-directory=$gitDir \
 			--tab -t "Gitlab_Data" --working-directory=$gitDir_Data \
 			--tab -t "gitDir_Config" --working-directory=$gitDir_Config \
 			--tab -t "Home/Gray" --working-directory=$xDir
 		elif [ "$2" = "red" ] ; then
-			gnome-terminal --geometry=160x40 \
+			gnome-terminal --geometry=150x40 \
 			--tab -t "Docker_Redmine" --working-directory=$redDir \
 			--tab -t "Docker_Redmine2" --working-directory=$redDir \
 			--tab -t "Redmine_Home" --working-directory=$redDir_Home \
@@ -460,17 +463,17 @@ if [ "$1" = "wd" ] ; then
 			--tab -t "Redmine_Config" --working-directory=$redDir_Config \
 			--tab -t "Postgres" --working-directory=$redDir_Postgres
 		elif [ "$2" = "ftp" ] ; then
-			gnome-terminal --geometry=160x40 \
+			gnome-terminal --geometry=150x40 \
 			--tab -t "FTP Data" --working-directory="/home/test/FTP/" \
 			--tab -t "FTP /etc" --working-directory="/etc" \
 			--tab -t "FTP /etc/vsftpd" --working-directory="/etc/vsftpd"
 		elif [ "$2" = "jks" ] ; then
-			gnome-terminal --geometry=160x40 \
+			gnome-terminal --geometry=150x40 \
 			--tab -t "Docker_Jenkins" --working-directory=$jksDir \
 			--tab -t "Docker_Jenkins2" --working-directory=$jksDir \
 			--tab -t "Jenkins_Home" --working-directory=$jksDir_Home 
 		elif [ "$2" = "ros" ] ; then
-			xfce4-terminal --geometry=160x40 \
+			xfce4-terminal --geometry=150x40 \
 			--tab -T "home" --working-directory=~ \
 			--tab -T "ROS node" --working-directory=$nodeDir \
 			--tab -T "ROS install dir" --working-directory=$rosDir_Home

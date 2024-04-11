@@ -9,6 +9,7 @@ PATH=~/OSPath/Ubuntu:$PATH
 alias x='x.sh'
 alias rr='x ros'
 alias wt='x wt'
+alias p3='python3'
 
 # edit
 alias ex='x code x'
