@@ -312,10 +312,9 @@ if [ "$1" = "ros" ] ; then
 			echo "========== ros2 node list =========="
 			ros2 node list
 		fi
-		
+
 	elif [ "$2" = "i" ] ; then
-		echo "========== ROS version =========="
-		echo $ROS_DISTRO
+		echo "echo ROS_DISTRO:$ROS_DISTRO"
 	elif [ "$2" = "g" ] ; then
 		echo "========== rqt_graph =========="
 		rqt_graph
