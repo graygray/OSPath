@@ -314,6 +314,7 @@ if [ "$1" = "ros" ] ; then
 		fi
 
 	elif [ "$2" = "i" ] ; then
+		echo "========== ROS version =========="
 		echo "echo ROS_DISTRO:$ROS_DISTRO"
 	elif [ "$2" = "g" ] ; then
 		echo "========== rqt_graph =========="

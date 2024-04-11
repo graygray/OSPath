@@ -226,7 +226,7 @@ if [ "$1" = "ros" ] ; then
 		fi
 	elif [ "$2" = "i" ] ; then
 		echo "========== ROS version =========="
-		echo $ROS_DISTRO
+		echo "echo ROS_DISTRO:$ROS_DISTRO"
 	elif [ "$2" = "b" ] ; then
 			echo "========== colcon build --packages-select $3 =========="
 			colcon build --packages-select $3
