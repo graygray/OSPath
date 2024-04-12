@@ -30,7 +30,7 @@ if [ "$1" = "wt" ] ; then
 	if [ "$2" = "i" ] ; then
 		echo "========== ls -al /dev/** =========="
 		ls -al /dev/wheel*
-		# ls -al /dev/LH*
+		ls -al /dev/LH*
 		echo "========== ls /etc/udev/rules.d =========="
 		ls /etc/udev/rules.d
 		echo "========== lsusb =========="
