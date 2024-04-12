@@ -375,7 +375,7 @@ if [ "$1" = "ros" ] ; then
 		if [  "$3" = "p" ] ; then
 			echo "ros2 interface packages"
 			ros2 interface packages
-		elif [ "$3" = "show" ] ; then
+		elif [ "$3" = "s" ] ; then
 			echo "ros2 interface show $4"
 			ros2 interface show $4
 		else 
