@@ -83,6 +83,8 @@ if [ "$1" = "wt" ] ; then
 			fi
 			echo ">>>> ros2 launch simple_follower_ros2 $follower.launch.py"
 			ros2 launch simple_follower_ros2 $follower.launch.py
+		elif [ "$3" = "cam" ] ; then
+			ros2 launch turn_on_wheeltec_robot wheeltec_camera.launch.py
 		fi
 
 	elif [ "$2" = "lh" ] ; then
