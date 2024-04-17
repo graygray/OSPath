@@ -1,3 +1,4 @@
+# at /etc/netplan
 # Let NetworkManager manage all devices on this system
 
 network:

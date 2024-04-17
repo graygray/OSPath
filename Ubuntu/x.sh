@@ -24,8 +24,7 @@ jksDir="$dockderDir/jenkins"
 jksDir_Home="/var/lib/docker/volumes/jenkins_vHome/_data"
 
 # ROS
-rosDir_Home="/opt/ros/galactic"
-srcDir=~/"ros2-galactic/wheeltec_ros2/src"
+rosDir_Home="/opt/ros/humble"
 # testNode="lcd_set_emoji"
 # testNode="ctrl_head"
 testNode="lidar_ao_oasab0512"
@@ -73,52 +72,42 @@ fi
 
 # lidar
 if [ "$1" = "l" ] ; then
-	WorkingDir=~/
+	WorkingDir=~/git
 	testNode="lidar_ao_oasab0512"
 	nodeDir="$WorkingDir/$testNode"
-
-	echo "testNode:$testNode..."
-
+	cd $nodeDir
+	echo "testNode:$testNode:$nodeDir"
 	if [ "$2" = "kill" ] ; then
 		echo "kill..."
 		sudo killall -SIGTERM $testNode"_node"
-
 	elif [ "$2" = "clean" ] ; then
 		echo "clean..."
-		# rm -rf $WorkingDir/$testNode
-
+		rm -r build
+		rm -r install
+		rm -r log
 	elif [ "$2" = "git" ] ; then
 		echo "git clone..."
-		cd $WorkingDir
 		rm -rf $testNode
 		git clone ssh://git@10.1.7.125:10022/Gray.LIn/lidar_ao_oasab0512.git
-
 	elif [ "$2" = "b" ] ; then
 		echo "========== colcon build =========="
-		cd $nodeDir
 		colcon build
-		# colcon build --packages-select lidar_ao_oasab0512
-
 	elif [  "$2" = "r" ] ; then
 		echo "ros2 run $testNode $testNode'_node'"
 		sudo chmod 777 /dev/ttyACM0
-		source $nodeDir/install/setup.sh
-		rviz2 &
+		source install/setup.sh
+		# rviz2 &
 		sudo killall -SIGTERM $testNode
 		ros2 run $testNode $testNode"_node"
-
 	elif [  "$2" = "r2" ] ; then
-		source $nodeDir/install/setup.sh
+		source install/setup.sh
 		ros2 launch $testNode aolidar_launch.py
-
 	elif [  "$2" = "kill" ] ; then
 		echo "kill..."
 		killall -SIGTERM $testNode
-
-	elif [  "$2" = "t" ] ; then
-	
+	elif [  "$2" = "tp" ] ; then
 		testTopic="/scan"
-		echo "echo...  ========== topic:$testTopic =========="
+		echo "ros2 topic echo $testTopic"
 		ros2 topic echo $testTopic
 	fi
 fi
@@ -170,7 +159,7 @@ fi
 
 if [ "$1" = "emoji" ] ; then
 	
-	WorkingDir=~
+	WorkingDir=~/git
 	testNode="lcd_set_emoji"
 	nodeDir="$WorkingDir/$testNode"
 	emojiDir="$WorkingDir/LCD"

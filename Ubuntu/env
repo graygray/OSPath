@@ -17,9 +17,7 @@ alias erc='nano ~/.bashrc'
 alias ewifi='nano /etc/netplan/01-network-manager-all.yaml'
 
 # dir
-alias dwh='cd /home/wheeltec/' # dir wheeltec home
-alias dww="cd $wheeltec_workspace" # dir ros workspace
-alias dld="cd $wheeltec_workspace/src/wheeltec_lidar_ros2" # wheeltec lidar src
+alias dh='cd ~' # dir home
 
 # update
 alias ue='source ~/.bashrc' # update env
