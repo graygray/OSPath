@@ -31,6 +31,7 @@ if [ "$1" = "wt" ] ; then
 		echo "========== ls -al /dev/** =========="
 		ls -al /dev/wheel*
 		ls -al /dev/LH*
+		ls -al /dev/as*
 		echo "========== ls /etc/udev/rules.d =========="
 		ls /etc/udev/rules.d
 		echo "========== lsusb =========="
