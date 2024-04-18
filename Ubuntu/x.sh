@@ -170,6 +170,9 @@ if [ "$1" = "emoji" ] ; then
 	PID_last=`cat $WorkingDir/PID_last`
 	run_counter=`cat $WorkingDir/run_counter`
 
+	cd $nodeDir
+	echo "testNode:$testNode:$nodeDir"
+
 	if [ "$2" = "kill" ] ; then
 		echo "kill..."
 		# kill -9 $PID_2kill
@@ -178,9 +181,11 @@ if [ "$1" = "emoji" ] ; then
 
 	elif [ "$2" = "clean" ] ; then
 		echo "clean..."
-		rm $WorkingDir/PID_*
+		rm PID_*
 		rm run_counter
-		rm -rf lcd_set_emoji
+		rm -r build
+		rm -r install
+		rm -r log
 
 	elif [ "$2" = "git" ] ; then
 		echo "git clone..."
@@ -191,9 +196,7 @@ if [ "$1" = "emoji" ] ; then
 
 	elif [ "$2" = "b" ] ; then
 		echo "========== colcon build =========="
-		cd $nodeDir
 		colcon build
-		# colcon build --packages-select lcd_set_emoji
 
 	elif [  "$2" = "r" ] ; then
 		echo "ros2 run $testNode "$testNode"_node"
