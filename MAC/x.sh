@@ -21,6 +21,9 @@ adkPath="/Users/graylin/Work/MFi-HomeKit/HomeKit ADK 5.3"
 
 currentDateTime=`date "+%m%d%H%M"`
 
+# wheeltec
+wheeltec_ip="192.168.1.196"
+
 # SSH
 if [ "$1" == "ssh" ] ; then
 
@@ -30,8 +33,12 @@ if [ "$1" == "ssh" ] ; then
 		ssh pi@raspberrypi.local
 	elif [ "$2" == "wt" ] ; then
 		# wheeltech
-		ssh wheeltec@192.168.1.196
-		# ssh root@192.168.1.196
+		if [ "$3" = "r" ] ; then
+			ssh -Y root@$wheeltec_ip
+		else
+			echo "ssh -Y wheeltec@$wheeltec_ip"
+			ssh -Y wheeltec@$wheeltec_ip
+		fi
 	else
 		ssh $2@10.1.13.207
 	fi

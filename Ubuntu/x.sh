@@ -33,6 +33,9 @@ nodeDir=~/"$testNode"
 # NAS
 nasDir="$dockderDir/nas"
 
+# wheeltec
+wheeltec_ip="192.168.1.196"
+
 echo xDir		= $xDir
 echo "param 0:"$0
 echo "param 1:"$1
@@ -44,7 +47,6 @@ echo "param 5:"$5
 # wheeltec
 if [ "$1" = "wt" ] ; then
 
-	wheeltec_ip="192.168.1.196"
 
 	if [ "$2" = "i" ] ; then
 		echo "========== wheeltec ip:($wheeltec_ip) =========="
@@ -467,6 +469,7 @@ if [ "$1" = "wd" ] ; then
 		elif [ "$2" = "ros" ] ; then
 			xfce4-terminal --geometry=150x40 \
 			--tab -T "home" --working-directory=~ \
+			--tab -T "wheeltec" --working-directory=~ \
 			--tab -T "ROS node" --working-directory=$nodeDir \
 			--tab -T "ROS install dir" --working-directory=$rosDir_Home
 		else
@@ -499,8 +502,10 @@ if [ "$1" = "sys" ] ; then
 		df -h --total
 	elif [ "$2" = "users" ] ; then
 		# awk -F: '{ print $1}' /etc/passwd
+		echo "========== online User =========="
+		w
 
-		# list  normal users
+		# list normal users
 		echo "========== User range =========="
 		grep -E '^UID_MIN|^UID_MAX' /etc/login.defs
 		echo "========== User info =========="
@@ -509,8 +514,8 @@ if [ "$1" = "sys" ] ; then
 	elif [ "$2" = "user" ] ; then
 		id -nG $3
 	elif [ "$2" = "net" ] ; then
-		echo "========== nmap -A 192.168.1.* =========="
-		nmap -A 192.168.1.*
+		echo "========== nmap -A 192.168.100.* =========="
+		nmap -A 192.168.100.*
 	else
 		echo "param 3 not match"
 		exit -1
@@ -693,11 +698,14 @@ if [ "$1" = "ssh" ] ; then
 	if [ "$2" = "status" ] ; then
 		service sshd status
 
-# 	elif [ "$2" = "status" ] ; then
-
-# 	elif [ "$2" = "stop" ] ; then
-
-# 	elif [ "$2" = "files" ] ; then
+	elif [ "$2" == "wt" ] ; then
+		# wheeltech
+		if [ "$3" = "r" ] ; then
+			ssh -Y root@$wheeltec_ip
+		else
+			echo "ssh -Y wheeltec@$wheeltec_ip"
+			ssh -Y wheeltec@$wheeltec_ip
+		fi
 		
 	else
 		echo "param 2 not match"
@@ -1094,17 +1102,6 @@ if [ "$1" = "chrome" ] ; then
  			sudo systemctl start chrome-remote-desktop
 		else
  			sudo systemctl status chrome-remote-desktop
-		fi
-
-fi
-
-# sigmarstar
-if [ "$1" = "ss" ] ; then
-			echo "========== sigmarstar related ========== " 
-		if [ "$2" = "rd" ] ; then
-			echo "========== run docker env ========== " 
-			docker run -v `pwd`/dockerVolume:/tmp:Z --name gray-sav530 -i -t --rm graygray/sav530 bash
-
 		fi
 
 fi
