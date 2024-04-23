@@ -1,7 +1,8 @@
 IP_ADDRESS=$(hostname -I | cut -d' ' -f1)
-export ROS_MASTER_IP=$IP_ADDRESS
-export ROS_MASTER_URI=http://$ROS_MASTER_IP:11311
-export ROS_HOSTNAME=$ROS_MASTER_IP
+# export ROS_MASTER_IP=$IP_ADDRESS
+# export ROS_MASTER_URI=http://$ROS_MASTER_IP:11311
+# export ROS_HOSTNAME=$ROS_MASTER_IP
+export ROS_DOMAIN_ID=7
 export wheeltec_workspace="/home/wheeltec/wheeltec_ros2"
 cd $wheeltec_workspace
 
