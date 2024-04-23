@@ -231,9 +231,16 @@ if [ "$1" = "ros" ] ; then
 		echo "========== ROS version =========="
 		echo "echo ROS_DISTRO:$ROS_DISTRO"
 	elif [ "$2" = "b" ] ; then
-			echo "========== colcon build --packages-select $3 =========="
-			colcon build --packages-select $3
-
+		echo "========== colcon build --packages-select $3 =========="
+		colcon build --packages-select $3
+	elif [ "$2" = "r" ] ; then
+		if [  "$3" = "talker" ] ; then
+			echo "========== ros2 run demo_nodes_cpp talker =========="
+			ros2 run demo_nodes_cpp talker
+		elif [ "$3" = "listener" ] ; then
+			echo "========== ros2 run demo_nodes_cpp listener =========="
+			ros2 run demo_nodes_cpp listener
+		fi
 	elif [ "$2" = "p" ] ; then
 		echo "========== pkg =========="
 		if [  "$3" = "exe" ] ; then

@@ -289,7 +289,7 @@ if [ "$1" = "ros" ] ; then
 
 	if [  "$2" = "n" ] ; then
 		echo "========== node =========="
-		cd $nodeDir
+		# cd $nodeDir
 		if [  "$3" = "i" ] ; then
 			echo "ros2 node info $4"
 			ros2 node info $4
@@ -297,19 +297,27 @@ if [ "$1" = "ros" ] ; then
 			echo "ros2 run $testNode "$testNode"_node"
 			source install/setup.sh
 			ros2 run $testNode "$testNode"_node
-		elif [ "$3" = "b" ] ; then
-			echo "========== colcon build =========="
-			cd $nodeDir
-			colcon build
-			# colcon build --packages-select $testNode
+		elif [ "$3" = "pid" ] ; then
+			pgrep -f $4
+
 		else
-			echo "========== ros2 node list =========="
+			echo "ros2 node list"
 			ros2 node list
 		fi
-
 	elif [ "$2" = "i" ] ; then
 		echo "========== ROS version =========="
 		echo "echo ROS_DISTRO:$ROS_DISTRO"
+	elif [ "$2" = "b" ] ; then
+		echo "========== colcon build --packages-select $3 =========="
+		colcon build --packages-select $3
+	elif [ "$2" = "r" ] ; then
+		if [  "$3" = "talker" ] ; then
+			echo "========== ros2 run demo_nodes_cpp talker =========="
+			ros2 run demo_nodes_cpp talker
+		elif [ "$3" = "listener" ] ; then
+			echo "========== ros2 run demo_nodes_cpp listener =========="
+			ros2 run demo_nodes_cpp listener
+		fi
 	elif [ "$2" = "g" ] ; then
 		echo "========== rqt_graph =========="
 		rqt_graph
