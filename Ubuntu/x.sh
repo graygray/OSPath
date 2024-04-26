@@ -26,8 +26,8 @@ jksDir_Home="/var/lib/docker/volumes/jenkins_vHome/_data"
 # ROS
 rosDir_Home="/opt/ros/humble"
 # testNode="lcd_set_emoji"
-# testNode="ctrl_head"
-testNode="lidar_ao_oasab0512"
+testNode="ctrl_head"
+# testNode="lidar_ao_oasab0512"
 nodeDir=~/"$testNode"
 
 # NAS
@@ -116,6 +116,10 @@ fi
 
 # head
 if [ "$1" = "h" ] ; then
+
+	testNode="ctrl_head"
+	WorkingDir=~
+	nodeDir="$WorkingDir/$testNode"
 
 	if [ "$2" = "kill" ] ; then
 		echo "kill..."
