@@ -713,6 +713,8 @@ if [ "$1" == "ux" ] ; then
 	cd /home/ubuntu/sambashare/OSPath
 	git reset --hard HEAD
 	git pull
+	chmod 777 /home/ubuntu/sambashare/OSPath/MTK_G2/x.sh
+
 fi
 
 # reboot
