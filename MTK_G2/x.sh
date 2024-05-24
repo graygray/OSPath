@@ -58,13 +58,11 @@ fi
 # speed
 if [ "$1" = "s" ] ; then
 	if [  "$2" = "1" ] ; then
-		bella_motor_ctl 1000 0 0 5 0 &
+		motor_ctl 100 0 0 5 0 &
 	elif [ "$2" = "2" ] ; then
-		bella_motor_ctl -1000 0 0 5 0 &
+		motor_ctl -100 0 0 5 0 &
 	elif [ "$2" = "3" ] ; then
-		bella_motor_ctl 0 0 0 5 0 &
-	else 
-		echo "else"
+		motor_ctl 0 0 0 5 0 &
 	fi	
 fi
 
