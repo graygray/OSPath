@@ -19,7 +19,7 @@ rosDir_Home="/opt/ros/galactic"
 testNode="lcd_set_emoji"
 nodeDir="$WorkingDir/$testNode"
 
-# speed
+# test
 if [ "$1" = "t" ] ; then
 	if [  "$2" = "1" ] ; then
 		ros2 param set /ctrl_led welcome straight_flow
@@ -61,6 +61,8 @@ if [ "$1" = "s" ] ; then
 		bella_motor_ctl 1000 0 0 5 0 &
 	elif [ "$2" = "2" ] ; then
 		bella_motor_ctl -1000 0 0 5 0 &
+	elif [ "$2" = "3" ] ; then
+		bella_motor_ctl 0 0 0 5 0 &
 	else 
 		echo "else"
 	fi	
