@@ -7,6 +7,7 @@ echo "param 4:"$4
 echo "param 5:"$5
 
 WorkingDir="/home/user/sambashare"
+ProjectDir=~"/primax/ros2-galactic/wheeltec_ros2"
 
 emojiDir="$WorkingDir/LCD"
 emojiDir2="$WorkingDir/LCD_timeless"
@@ -19,16 +20,50 @@ testNode="lcd_set_emoji"
 nodeDir="$WorkingDir/$testNode"
 
 # speed
-if [ "$1" = "s" ] ; then
-
+if [ "$1" = "t" ] ; then
 	if [  "$2" = "1" ] ; then
-		bella_motor_ctl 1000 0 0 5&
+		ros2 param set /ctrl_led welcome straight_flow
 	elif [ "$2" = "2" ] ; then
-		/usr/bin/cansend can0 010#0110011388000000&
-	else 
-		/usr/bin/cansend can0 010#0110011388000000
+		ros2 param set /ctrl_led welcome turn_flow
+	elif [ "$2" = "3" ] ; then 
+		ros2 param set /ctrl_led welcome abort_action_and_reset
 	fi	
+fi
 
+if [ "$1" = "date" ] ; then
+	timedatectl set-ntp yes
+	date
+fi
+
+# run
+if [ "$1" = "run" ] ; then
+	if [  "$2" = "led" ] ; then
+		cd ~/primax/ros2-galactic/wheeltec_ros2   
+		./build_james.sh run led
+	elif [ "$2" = "can" ] ; then
+		cd ~/primax/ros2-galactic/wheeltec_ros2  
+		./build_james.sh run can
+	fi	
+fi
+
+# wifi
+if [ "$1" = "wifi" ] ; then
+	if [  "$2" = "3f" ] ; then
+		cd ~/network_param
+		cp primax_param.conf_3f primax_param.conf
+		# sudo reboot
+	fi
+fi
+
+# speed
+if [ "$1" = "s" ] ; then
+	if [  "$2" = "1" ] ; then
+		bella_motor_ctl 1000 0 0 5 0 &
+	elif [ "$2" = "2" ] ; then
+		bella_motor_ctl -1000 0 0 5 0 &
+	else 
+		echo "else"
+	fi	
 fi
 
 # lidar
@@ -80,7 +115,8 @@ fi
 
 # head
 if [ "$1" = "h" ] ; then
-	WorkingDir=~/"sambashare/head"
+	WorkingDir="/root/sambashare/head"
+	ProjectDir="/root/primax/ros2-galactic/wheeltec_ros2"
 	testNode="ctrl_head"
 	nodeDir="$WorkingDir/$testNode"
 
@@ -101,7 +137,10 @@ if [ "$1" = "h" ] ; then
 		echo "========== colcon build =========="
 		cd $nodeDir
 		colcon build
-		# colcon build --packages-select lcd_set_emoji
+	
+	elif [ "$2" = "cp" ] ; then
+		rm "$ProjectDir"/install/ctrl_head/lib/ctrl_head/ctrl_head
+		cp "$nodeDir"/install/ctrl_head/lib/ctrl_head/ctrl_head "$ProjectDir"/install/ctrl_head/lib/ctrl_head
 
 	elif [  "$2" = "r" ] ; then
 		echo "ros2 run $testNode $testNode"
@@ -153,47 +192,6 @@ if [ "$1" = "h" ] ; then
 		elif [ "$3" = "get" ] ; then
 			echo "ros2 param get $testNode set_angle"
 			ros2 param get $testNode set_angle
-		fi
-
-	elif [ "$2" = "p4" ] ; then
-		ros2 param get $testNode is_busy
-
-	elif [ "$2" = "tt" ] ; then
-		echo "test..."
-
-		if [ "$3" = "1" ] ; then
-			ros2 param set $testNode ctrl_fixed_action 1
-			ros2 param set $testNode ctrl_fixed_action 2
-			ros2 param set $testNode ctrl_fixed_action 3
-			ros2 param set $testNode ctrl_fixed_action 1
-			ros2 param set $testNode ctrl_fixed_action 2
-			ros2 param set $testNode ctrl_fixed_action 3
-
-		elif [ "$3" = "2" ] ; then
-			ros2 param set $testNode ctrl_fixed_action 7 &
-			ros2 param get $testNode is_busy &
-			sleep 0.5
-			ros2 param get $testNode is_busy &
-			sleep 0.5
-			ros2 param get $testNode is_busy &
-			sleep 0.5
-			ros2 param get $testNode is_busy &
-
-		elif [ "$3" = "3" ] ; then
-			ros2 param set $testNode ctrl_fixed_action 7 &
-			ros2 param set $testNode ctrl_fixed_action 9 
-			ros2 param set $testNode ctrl_fixed_action 9 
-			ros2 param set $testNode ctrl_fixed_action 9 
-			ros2 param set $testNode ctrl_fixed_action 9 
-			ros2 param set $testNode ctrl_fixed_action 9 
-			sleep 0.5
-			
-		elif [ "$3" = "4" ] ; then
-			ros2 param set $testNode ctrl_fixed_action 5 &
-			ros2 param set $testNode ctrl_fixed_action 5 &
-			ros2 param set $testNode ctrl_fixed_action 5 &
-			ros2 param set $testNode ctrl_fixed_action 5 &
-
 		fi
 
 	elif [ "$2" = "rt" ] ; then
@@ -317,9 +315,7 @@ if [ "$1" = "emoji" ] ; then
 			echo "kill -9 $PID_2kill"
 			kill -9 $PID_2kill
 		fi
-
 	fi
-
 fi
 
 # ROS
@@ -340,7 +336,6 @@ if [ "$1" = "ros" ] ; then
 			echo "========== colcon build =========="
 			cd $nodeDir
 			colcon build
-			# colcon build --packages-select $testNode
 		else
 			echo "ros2 node list"
 			ros2 node list
@@ -714,7 +709,7 @@ if [ "$1" = "chmod" ] ; then
 fi
 
 # reboot
-if [ "$1" = "r" ] ; then
-	echo "========== reboot ========== " 
-	reboot
-fi
+# if [ "$1" = "r" ] ; then
+# 	echo "========== reboot ========== " 
+# 	reboot
+# fi
