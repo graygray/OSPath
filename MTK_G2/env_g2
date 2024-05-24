@@ -6,7 +6,7 @@ export ROS_DOMAIN_ID=77
 export wheeltec_workspace="/home/wheeltec/wheeltec_ros2"
 # cd $wheeltec_workspace
 
-PATH=/home/ubuntu/OSPath/MTK_G2:$PATH
+PATH=/home/ubuntu/sambashare/OSPath/MTK_G2:$PATH
 
 alias x='x.sh'
 alias rr='x ros'
