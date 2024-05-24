@@ -710,6 +710,13 @@ if [ "$1" = "chmod" ] ; then
 	fi
 fi
 
+# update x
+if [ "$1" == "ux" ] ; then
+	cd /home/ubuntu/sambashare/OSPath
+	git reset --hard HEAD
+	git pull
+fi
+
 # reboot
 # if [ "$1" = "r" ] ; then
 # 	echo "========== reboot ========== " 
