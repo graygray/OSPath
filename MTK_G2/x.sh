@@ -58,9 +58,9 @@ fi
 # speed
 if [ "$1" = "s" ] ; then
 	if [  "$2" = "1" ] ; then
-		motor_ctrl 100 0 0 5 0 &
+		motor_ctrl 1000 0 0 5 0 &
 	elif [ "$2" = "2" ] ; then
-		motor_ctrl -100 0 0 5 0 &
+		motor_ctrl -1000 0 0 5 0 &
 	elif [ "$2" = "3" ] ; then
 		motor_ctrl 0 0 0 5 0 &
 	fi	
