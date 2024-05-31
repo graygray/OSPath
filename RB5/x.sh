@@ -52,6 +52,10 @@ if [ "$1" = "wifi" ] ; then
 		cd ~/network_param
 		cp primax_param.conf_3f primax_param.conf
 		# sudo reboot
+	elif [ "$2" = "b1" ] ; then
+		cd ~/network_param	
+		cp primax_param.conf_b1 primax_param.conf
+		# sudo reboot
 	fi
 fi
 

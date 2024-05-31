@@ -53,6 +53,7 @@ if [ "$1" = "wifi" ] ; then
 		cp primax_param.conf_3f primax_param.conf
 		# sudo reboot
 	fi
+
 fi
 
 # speed
