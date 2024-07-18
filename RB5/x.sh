@@ -56,6 +56,8 @@ if [ "$1" = "wifi" ] ; then
 		cd ~/network_param	
 		cp primax_param.conf_b1 primax_param.conf
 		# sudo reboot
+	elif [ "$2" = "hostap" ] ; then
+		sudo systemctl restart hostapd.service
 	fi
 fi
 
