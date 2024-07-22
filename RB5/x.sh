@@ -202,21 +202,34 @@ if [ "$1" = "h" ] ; then
 
 	elif [ "$2" = "rt" ] ; then
 		echo "reset..."
-		ros2 param set ctrl_head select_servo_num 1
-		ros2 param set ctrl_head set_servo_en 0
-		ros2 param set ctrl_head select_servo_num 2
-		ros2 param set ctrl_head set_servo_en 0
-		ros2 param set ctrl_head select_servo_num 3
-		ros2 param set ctrl_head set_servo_en 0
+		ros2 param set $testNode select_servo_num 1
+		ros2 param set $testNode set_servo_en 0
+		ros2 param set $testNode select_servo_num 2
+		ros2 param set $testNode set_servo_en 0
+		ros2 param set $testNode select_servo_num 3
+		ros2 param set $testNode set_servo_en 0
 
-		ros2 param set ctrl_head select_servo_num 1
-		ros2 param set ctrl_head reset_mid_pos 1
-		ros2 param set ctrl_head select_servo_num 2
-		ros2 param set ctrl_head reset_mid_pos 1
-		ros2 param set ctrl_head select_servo_num 3
-		ros2 param set ctrl_head reset_mid_pos 1
+		ros2 param set $testNode select_servo_num 1
+		ros2 param set $testNode reset_mid_pos 1
+		ros2 param set $testNode select_servo_num 2
+		ros2 param set $testNode reset_mid_pos 1
+		ros2 param set $testNode select_servo_num 3
+		ros2 param set $testNode reset_mid_pos 1
+
+	elif [ "$2" = "ttt" ] ; then
+		echo "test..."
+		ros2 param set $testNode select_servo_num 3
+
+		while true
+		do
+			ros2 param set $testNode set_angle 30
+			ros2 param set $testNode ctrl_fixed_action 0
+			ros2 param set $testNode set_angle -30
+			ros2 param set $testNode ctrl_fixed_action 0
+		done
+
 	else
-		ros2 node list
+		echo "not a case..."
 	fi
 fi
 
