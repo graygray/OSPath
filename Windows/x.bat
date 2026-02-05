@@ -1,212 +1,247 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal EnableExtensions EnableDelayedExpansion
 
-:: -----------------------------
-:: Parse all command-line args
-:: -----------------------------
+REM =====================================================
+REM =============== Argument Parsing ====================
+REM =====================================================
 set count=0
 for %%A in (%*) do (
     set /a count+=1
     set "arg!count!=%%~A"
     echo Argument !count!: %%A
 )
-
 echo.
 echo Total arguments: !count!
+echo.
 
-:: -----------------------------
-:: IQ Command Section
-:: Usage: script.bat iq s1|s2|ob1|ob2
-:: -----------------------------
-if /i "!arg1!"=="iq" (
-    set "dir_cct=D:\project\MediaToolKit_IoTYocto_240522"
-    set "dir_cct_dumpraw=!dir_cct!\svn\install\DataSet\CamCaliTool\SensorCalibrationDumpRaw"
-    set "dir_cct_db=!dir_cct!\svn\install\DataSet\SQLiteModule"
-    set "dir_dev_db=/mnt/reserved/10.1.13.207/IQ_DB/"
+REM =====================================================
+REM =============== Main Dispatcher =====================
+REM =====================================================
+if /i "!arg1!"=="iq"   goto :cmd_iq
+if /i "!arg1!"=="stm"  goto :cmd_stm
+if /i "!arg1!"=="code" goto :cmd_code
+if /i "!arg1!"=="cd"   goto :cmd_cd
 
-    if /i "!arg2!"=="init" (
-        echo Running init batch...
-        cd /d "!dir_cct!"
-        call 01_cct_setup.bat
-        call 02_NDD_preview_8395.bat
-        echo to Run Streaming on device...
-    )
+goto :usage
 
-    if /i "!arg2!"=="dump" (
-        echo To do dump...
-        adb shell rm -r /data/vendor/raw /data/vendor/camera_dump/
-        adb shell mkdir -p /data/vendor/raw
-        adb shell setprop vendor.debug.camera.pipemgr.bufdump 1
-        echo to Run Streaming on device...
-    )
+REM =====================================================
+REM ===================== IQ ============================
+REM =====================================================
+:cmd_iq
+set "dir_cct=D:\project\MediaToolKit_IoTYocto_240522"
+@REM set "dir_cct=D:\project\MediaToolKit_0129"
+set "dir_cct_dumpraw=!dir_cct!\svn\install\DataSet\CamCaliTool\SensorCalibrationDumpRaw"
+set "dir_cct_db=!dir_cct!\svn\install\DataSet\SQLiteModule"
+set "dir_dev_db=/mnt/reserved/10.1.13.207/IQ_DB/"
 
-    if /i "!arg2!"=="ndd1" (
-        echo NDD dump step1...
-        cd /d D:\project\Genio700_NDD_ODT\MCNR\NDD
-        adb shell rm -r /data/vendor/camera_dump/ /data/vendor/raw
-        adb shell mkdir -p /data/vendor/camera_dump/
-        call 01-NDD_init.bat
-        call 02_NDD_preview_L2.bat
-
-        echo to Run ndd2 on device...
-    )
-    if /i "!arg2!"=="ndd3" (
-        echo NDD dump step3...
-        cd /d D:\project\Genio700_NDD_ODT\MCNR\NDD
-        call 03_Save_dump.bat
-    )
-
-    if /i "!arg2!"=="rui" (
-        echo Running ui...
-        cd /d "!dir_cct!\svn\install"
-        call 4.0.MTKToolCustom.bat
-    )
-
-    if /i "!arg2!"=="drinit" (
-        echo Dump raw init...
-        cd /d "!dir_cct_dumpraw!"
-        call 01_init_ISP7_IoTYocto.bat
-        echo to Run Streaming on device...
-    )
-
-    if /i "!arg2!"=="drob" (
-        echo Dump raw ob...
-        cd /d "!dir_cct_dumpraw!"
-        call 03_Dump_raw_ob_ISP7_IoTYocto.bat
-    )
-    if /i "!arg2!"=="driso" (
-        echo Dump raw iso...
-        cd /d "!dir_cct_dumpraw!"
-        call 03_Dump_raw_miniso_ISP7_IoTYocto.bat
-    )
-    if /i "!arg2!"=="drsat" (
-        echo Dump raw saturation...
-        cd /d "!dir_cct_dumpraw!"
-        call 03_Dump_raw_minsatgain_ISP7_IoTYocto.bat
-    )
-
-    if /i "!arg2!"=="2raw" (
-        echo [IQ:OB2] convert packed_word to raw...
-        cd /d "!dir_cct!\Packedword2Raw_IoT_v250307
-        python BatchRun.py
-    )
-
-    if /i "!arg2!"=="ftp" (
-        echo Preparing to upload DB to FTP...
-        call :zipFolder "!dir_cct_db!\db" "db_new.zip"
-
-        echo Uploading db_new.zip to FTP server...
-        > "%temp%\ftp_commands.txt" (
-            echo open 10.1.13.207
-            echo gray.lin
-            echo Zx03310331
-            echo binary
-            echo cd /Public/gray/aicamera/IQ_DB/
-            echo put "!dir_cct_db!\db_new.zip"
-            echo bye
-        )
-
-        ftp -s:"%temp%\ftp_commands.txt"
-        del "%temp%\ftp_commands.txt"
-
-        echo Upload complete.
-    )
-
-    if /i "!arg2!"=="mae" (
-
-        if /i "!arg3!"=="on" (
-            echo Manual AE On
-            rem === Put your AE ON logic here ===
-            adb shell setprop vendor.debug.ae_mgr.enable 1
-            adb shell setprop vendor.debug.ae_mgr.lock 1
-            adb shell setprop vendor.debug.ae_mgr.preview.update 1
-            adb shell setprop vendor.debug.ae_mgr.capture.update 1
-            adb shell setprop vendor.debug.ae_mgr.shutter 16666
-            adb shell setprop vendor.debug.ae_mgr.ispgain 4096
-            adb shell setprop vendor.debug.ae_mgr.sensorgain 1024
-        ) else if /i "!arg3!"=="off" (
-            echo Manual AE Off
-            rem === Put your AE OFF logic here ===
-            adb shell setprop vendor.debug.ae_mgr.preview.update 0
-            adb shell setprop vendor.debug.ae_mgr.capture.update 0
-            adb shell setprop vendor.debug.ae_mgr.lock 0
-            adb shell setprop vendor.debug.ae_mgr.enable 0
-        ) else (
-            adb shell setprop vendor.debug.ae_mgr.shutter !arg3!
-        )
-    )
-
-    if /i "!arg2!"=="db" (
-        
-        call :zipFolder "!dir_cct_db!\db" "db_new.zip"
-
-        echo Pushing IQ database to device...
-        adb shell rm -f "!dir_dev_db!/db_new.zip"
-        adb push "!dir_cct_db!\db_new.zip" "!dir_dev_db!/db_new.zip"
-    )
-
+if /i "!arg2!"=="init" (
+    cd /d "!dir_cct!"
+    call 01_cct_setup.bat
+    call 02_NDD_preview_8395.bat
+    goto :eof
 )
 
-endlocal
+if /i "!arg2!"=="dump" (
+    adb shell rm -r /data/vendor/raw /data/vendor/camera_dump/
+    adb shell mkdir -p /data/vendor/raw
+    adb shell setprop vendor.debug.camera.pipemgr.bufdump 1
+    goto :eof
+)
 
-:: -----------------------------
-:: STM Section (after endlocal)
-:: -----------------------------
-set "live_current=C:\Users\gray.lin\STM32CubeIDE\workspace_1.13.2\.metadata\.plugins\com.st.stm32cube.ide.mcu.livewatch\saved_expr.dat"
-set "live_backup=D:\prj\STM\liveview\saved_expr_%4%.dat"
+if /i "!arg2!"=="rui" (
+    cd /d "!dir_cct!\svn\install"
+    call 4.0.MTKToolCustom.bat
+    goto :eof
+)
 
-if /i "%1"=="stm" (
-    if /i "%2"=="live" (
-        if /i "%3"=="load" (
-            echo [STM] Loading backup...
-            copy "%live_backup%" "%live_current%"
-        )
+if /i "!arg2!"=="ftp" (
+    call :zipFolder "!dir_cct_db!\db" "db_new.zip"
 
-        if /i "%3"=="save" (
-            echo [STM] Saving backup...
-            copy "%live_current%" "%live_backup%"
-        )
+    > "%temp%\ftp_commands.txt" (
+        echo open 10.1.13.207
+        echo gray.lin
+        echo Zx03310331
+        echo binary
+        echo cd /Public/gray/aicamera/IQ_DB/
+        echo put "!dir_cct_db!\db_new.zip"
+        echo bye
+    )
+    ftp -s:"%temp%\ftp_commands.txt"
+    del "%temp%\ftp_commands.txt"
+    goto :eof
+)
+
+if /i "!arg2!"=="db" (
+    call :zipFolder "!dir_cct_db!\db" "db_new.zip"
+    adb shell rm -f "!dir_dev_db!/db_new.zip"
+    adb push "!dir_cct_db!\db_new.zip" "!dir_dev_db!/db_new.zip"
+    goto :eof
+)
+
+goto :iq_usage
+
+REM =====================================================
+REM ===================== STM ===========================
+REM =====================================================
+:cmd_stm
+call :init_timestamp
+
+set "live_current=C:\Users\gray.lin\STM32CubeIDE\workspace_2.0.0\.metadata\.plugins\com.st.stm32cube.ide.mcu.livewatch\saved_expr.dat"
+set "live_dir=D:\prj\STM\liveview"
+set "TAG=!arg4!"
+
+if /i "!arg2!"=="live" (
+
+    if /i "!arg3!"=="list" (
+        call :stm_list
+        goto :eof
+    )
+
+    if /i "!arg3!"=="save" (
+        call :stm_save
+        goto :eof
+    )
+
+    if /i "!arg3!"=="load" (
+        call :stm_load
+        goto :eof
     )
 )
 
-:: -----------------------------
-:: VSCode Section
-:: -----------------------------
-if /i "%1"=="code" (
-    if /i "%2"=="stmlive" (
-        echo [CODE] Opening saved_expr.dat in VSCode...
-        code "C:\Users\gray.lin\STM32CubeIDE\workspace_1.13.2\.metadata\.plugins\com.st.stm32cube.ide.mcu.livewatch\saved_expr.dat"
-    )
+goto :stm_usage
+
+REM =====================================================
+REM ==================== CODE ===========================
+REM =====================================================
+:cmd_code
+if /i "!arg2!"=="stmlive" (
+    code "%live_current%"
+    goto :eof
 )
+goto :usage
 
-if /i "%1"=="cd" (
-    explorer %2
+REM =====================================================
+REM ===================== CD ============================
+REM =====================================================
+:cmd_cd
+explorer "!arg2!"
+goto :eof
+
+REM =====================================================
+REM ================== STM Helpers ======================
+REM =====================================================
+:init_timestamp
+for /f "tokens=1-3 delims=/- " %%a in ("%date%") do (
+    set yyyy=%%a
+    set mm=%%b
+    set dd=%%c
 )
+for /f "tokens=1-3 delims=:." %%a in ("%time%") do (
+    set hh=%%a
+    set nn=%%b
+    set ss=%%c
+)
+set hh=%hh: =0%
+set "TS=%yyyy%%mm%%dd%_%hh%%nn%%ss%"
+goto :eof
 
-exit /b
+:stm_list
+echo ===============================
+echo STM LiveWatch Backups
+echo Dir: %live_dir%
+echo ===============================
+if "!TAG!"=="" (
+    dir /b /o:-d "%live_dir%\saved_expr_*.dat"
+) else (
+    dir /b /o:-d "%live_dir%\saved_expr_!TAG!_*.dat"
+)
+goto :eof
 
-REM =====================================
-REM ========== Function section =========
-REM =====================================
+:stm_save
+if "!TAG!"=="" (
+    echo [ERROR] Missing TAG
+    goto :eof
+)
+set "live_backup=%live_dir%\saved_expr_!TAG!_%TS%.dat"
+echo [STM] Saving backup...
+echo   FROM: "%live_current%"
+echo   TO  : "%live_backup%"
+if not exist "%live_current%" (
+    echo [ERROR] LiveWatch file not found!
+    goto :eof
+)
+copy /y "%live_current%" "%live_backup%"
+goto :eof
+
+:stm_load
+if "!TAG!"=="" (
+    echo [ERROR] Missing TAG
+    goto :eof
+)
+for /f "delims=" %%f in ('
+    dir /b /o:-d "%live_dir%\saved_expr_!TAG!_*.dat" 2^>nul
+') do (
+    set "LATEST=%%f"
+    goto :stm_found
+)
+echo [ERROR] No backup found for TAG=!TAG!
+goto :eof
+
+:stm_found
+set "live_backup=%live_dir%\!LATEST!"
+echo [STM] Loading latest backup...
+echo   FROM: "%live_backup%"
+echo   TO  : "%live_current%"
+copy /y "%live_backup%" "%live_current%"
+goto :eof
+
+REM =====================================================
+REM ================== ZIP Helper =======================
+REM =====================================================
 :zipFolder
 set "Z_DIR=%~1"
 set "Z_ZIP=%~2"
 
-echo Zipping folder "%Z_DIR%" to "%Z_ZIP%"...
 pushd "%Z_DIR%"
 cd ..
 
 del "%Z_ZIP%" 2>nul
-
-:: Create temp folder
 rmdir /s /q "%Z_DIR%_tmp" 2>nul
 xcopy db "%Z_DIR%_tmp" /e /i /y >nul
 
-:: Compress the temp directory
 powershell -Command "Compress-Archive -Path %Z_DIR%_tmp -DestinationPath '%Z_ZIP%' -Force"
 
-:: Cleanup temp folder
 rmdir /s /q "%Z_DIR%_tmp"
-
 popd
 goto :eof
+
+REM =====================================================
+REM ===================== Usage =========================
+REM =====================================================
+:stm_usage
+echo.
+echo STM Usage:
+echo   x stm live save TAG
+echo   x stm live load TAG
+echo   x stm live list [TAG]
+goto :eof
+
+:iq_usage
+echo.
+echo IQ Usage:
+echo   x iq init
+echo   x iq dump
+echo   x iq rui
+echo   x iq ftp
+echo   x iq db
+goto :eof
+
+:usage
+echo.
+echo Usage:
+echo   x iq ...
+echo   x stm live ...
+echo   x code stmlive
+echo   x cd PATH
+echo.
+exit /b 1
