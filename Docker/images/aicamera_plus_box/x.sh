@@ -1,7 +1,8 @@
 xDir=~/"OSPath/Ubuntu"
 
 # docker
-dockderDir=~/"Docker"
+dockderDir=~/"OSPath/Docker"
+# dockderDir=~/"Docker"
 
 # redmine
 redDir="$dockderDir/redmine"
@@ -23,147 +24,23 @@ gitBackupFile="1588961756_2020_05_08_12.9.3"
 jksDir="$dockderDir/jenkins"
 jksDir_Home="/var/lib/docker/volumes/jenkins_vHome/_data"
 
-# ROS
-rosDir_Home="/opt/ros/humble"
-# testNode="lcd_set_emoji"
-testNode="ctrl_head"
-# testNode="lidar_ao_oasab0512"
-nodeDir=~/"$testNode"
+# Loop through all parameters passed to the script
+echo "xDir = $xDir"
+echo "param 0: $0"
+i=1
+for arg in "$@"; do
+    echo "param $i: $arg"
+    ((i++))
+done
 
-# NAS
-nasDir="$dockderDir/nas"
+echo "PROJ_ROOT:"$PROJ_ROOT
+echo "BUILD_DIR:"$BUILD_DIR
 
-# wheeltec
-wheeltec_ip="192.168.1.196"
-
-echo xDir		= $xDir
-echo "param 0:"$0
-echo "param 1:"$1
-echo "param 2:"$2
-echo "param 3:"$3
-echo "param 4:"$4
-echo "param 5:"$5
-
-# AI Camera
-if [ "$1" = "aic" ] ; then
-	echo "========== AI Camera =========="
-	DellServer_ip="10.1.13.207"
-	if [ "$2" = "nfs" ] ; then
-		# nfs mount dir
-		dir_nfs_remote="/home/gray.lin/iot-yocto-mtk"
-		dir_nfs="/home/gray/nfs-share"
-
-		if [  "$3" = "+" ] ; then
-			sudo mount $DellServer_ip:$dir_nfs_remote $dir_nfs
-		elif [  "$3" = "-" ] ; then
-			sudo umount $dir_nfs
-		fi
-
-	fi
+if [ -f ~/tmp/p1 ]; then
+	echo "p1:$p1"
 fi
-
-# wheeltec
-if [ "$1" = "wt" ] ; then
-
-	if [ "$2" = "i" ] ; then
-		echo "========== wheeltec ip:($wheeltec_ip) =========="
-		echo "========== ls -al /mnt =========="
-		ls -al /mnt
-
-	elif [ "$2" = "nfs" ] ; then
-		if [  "$3" = "+" ] ; then
-			sudo mount $wheeltec_ip:/home/wheeltec/wheeltec_ros2 /mnt
-		elif [  "$3" = "-" ] ; then
-			sudo umount /mnt
-		fi
-		ls -al /mnt
-
-	elif [ "$2" = "map" ] ; then
-		nautilus /mnt/install/wheeltec_nav2/share/wheeltec_nav2/map\
-
-	elif [ "$2" = "go" ] ; then
-		ros2 topic pub /cmd_vel geometry_msgs/Twist "{linear: {x: $3, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: $4}}" --once
-		sleep 3
-		ros2 topic pub /cmd_vel geometry_msgs/Twist "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}" --once
-	fi
-
-fi
-
-# lidar
-if [ "$1" = "l" ] ; then
-	WorkingDir=~/git
-	testNode="lidar_ao_oasab0512"
-	nodeDir="$WorkingDir/$testNode"
-	cd $nodeDir
-	echo "testNode:$testNode:$nodeDir"
-	if [ "$2" = "kill" ] ; then
-		echo "kill..."
-		sudo killall -SIGTERM $testNode"_node"
-	elif [ "$2" = "clean" ] ; then
-		echo "clean..."
-		rm -r build
-		rm -r install
-		rm -r log
-	elif [ "$2" = "git" ] ; then
-		echo "git clone..."
-		rm -rf $testNode
-		git clone ssh://git@10.1.7.125:10022/Gray.LIn/lidar_ao_oasab0512.git
-	elif [ "$2" = "b" ] ; then
-		echo "========== colcon build =========="
-		colcon build
-	elif [  "$2" = "r" ] ; then
-		echo "ros2 run $testNode $testNode'_node'"
-		sudo chmod 777 /dev/ttyACM0
-		source install/setup.sh
-		# rviz2 &
-		sudo killall -SIGTERM $testNode
-		ros2 run $testNode $testNode"_node"
-	elif [  "$2" = "r2" ] ; then
-		source install/setup.sh
-		ros2 launch $testNode aolidar_launch.py
-	elif [  "$2" = "kill" ] ; then
-		echo "kill..."
-		killall -SIGTERM $testNode
-	elif [  "$2" = "tp" ] ; then
-		testTopic="/scan"
-		echo "ros2 topic echo $testTopic"
-		ros2 topic echo $testTopic
-	fi
-fi
-
-# head
-if [ "$1" = "h" ] ; then
-
-	testNode="ctrl_head"
-	WorkingDir=~
-	nodeDir="$WorkingDir/$testNode"
-
-	if [ "$2" = "kill" ] ; then
-		echo "kill..."
-
-	elif [ "$2" = "clean" ] ; then
-		echo "clean..."
-		rm -rf $WorkingDir/$testNode
-
-	elif [ "$2" = "git" ] ; then
-		echo "git clone..."
-		cd $WorkingDir
-		rm -rf $testNode
-		git clone ssh://git@10.1.7.125:10022/Gray.LIn/ctrl_head.git
-
-	elif [ "$2" = "b" ] ; then
-		echo "========== colcon build =========="
-		cd $nodeDir
-		cp -f lib_OS/lib_ubuntu/* lib/
-		colcon build
-		cp -f lib_OS/lib_RB5/* lib/
-
-	elif [  "$2" = "r" ] ; then
-		echo "ros2 run $testNode $testNode"
-		source $nodeDir/install/setup.sh
-		ros2 run $testNode $testNode
-
-	fi
+if [ -f ~/tmp/p2 ]; then
+	echo "p2:$p2"
 fi
 
 # Test
@@ -180,258 +57,251 @@ if [ "$1" = "tt" ] ; then
 
 fi
 
-if [ "$1" = "emoji" ] ; then
-	
-	WorkingDir=~/git
-	testNode="lcd_set_emoji"
-	nodeDir="$WorkingDir/$testNode"
-	emojiDir="$WorkingDir/LCD"
-	emojiDir2="$WorkingDir/LCD_timeless"
-
-	export XDG_RUNTIME_DIR=/run/user/root
-	PID_2kill=`cat $WorkingDir/PID_2kill`
-	PID_last=`cat $WorkingDir/PID_last`
-	run_counter=`cat $WorkingDir/run_counter`
-
-	cd $nodeDir
-	echo "testNode:$testNode:$nodeDir"
-
-	if [ "$2" = "kill" ] ; then
-		echo "kill..."
-		# kill -9 $PID_2kill
-		# kill -9 $PID_last
-		pkill gst*
-
-	elif [ "$2" = "clean" ] ; then
-		echo "clean..."
-		rm PID_*
-		rm run_counter
-		rm -r build
-		rm -r install
-		rm -r log
-
-	elif [ "$2" = "git" ] ; then
-		echo "git clone..."
-		cd $WorkingDir
-		rm -rf lcd_set_emoji
-		# git clone http://10.1.7.125:10447/Gray.LIn/lcd_set_emoji.git
-		git clone ssh://git@10.1.7.125:10022/Gray.LIn/lcd_set_emoji.git
-
+# BitBake
+if [ "$1" = "bb" ] ; then
+	echo "BitBake..."
+	if [  "$2" = "c" ] ; then
+		echo "clean recipe... $3"
+		# bitbake -c cleansstate $3
+		bitbake -c cleanall $3
+		
 	elif [ "$2" = "b" ] ; then
-		echo "========== colcon build =========="
-		colcon build
+		echo "build recipe... $3"
+		bitbake $3
 
-	elif [  "$2" = "r" ] ; then
-		echo "ros2 run $testNode "$testNode"_node"
-		source $nodeDir/install/setup.sh
-		ros2 run $testNode "$testNode"_node
+	elif [ "$2" = "ocv" ] ; then
+		echo "only compile recipe... $3, bitbake $3 -c compile"
+	    # make build tag
+		WORKDIR="$BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0"
+		touch "$WORKDIR/temp/tag_ignoreBuild_test"
 
-	elif [ "$2" = "ls" ] ; then
-		echo "list emoji..."
-		ls -al $emojiDir2
+		bitbake $3 -c compile
 
-	elif [ "$2" = "p" ] ; then
-		echo "param..."
+		rm "$WORKDIR/temp/tag_ignoreBuild"*
 
-		if [ "$3" = "set" ] ; then
-			echo "set..."
-			ros2 param set /lcd_set_emoji param_emoji_name "$4"
-		elif [ "$3" = "get" ] ; then
-			echo "get..."
-			ros2 param get /lcd_set_emoji param_emoji_name
-		elif [ "$3" = "t" ] ; then
-			echo "test..."
-			ros2 param set /lcd_set_emoji param_emoji_name "A1" &
-			ros2 param set /lcd_set_emoji param_emoji_name "A2" &
-			ros2 param set /lcd_set_emoji param_emoji_name "A3" &
-			ros2 param set /lcd_set_emoji param_emoji_name "A4" &
-			ros2 param set /lcd_set_emoji param_emoji_name "A5" &
-			ros2 param set /lcd_set_emoji param_emoji_name "A6" &
+	elif [ "$2" = "oct" ] ; then
+		echo "only compile recipe... $3, bitbake $3 -c compile"
+	    # make build tag
+		WORKDIR="$BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0"
+		touch "$WORKDIR/temp/tag_ignoreBuild_visionBox"
+
+		bitbake $3 -c compile
+
+		rm "$WORKDIR/temp/tag_ignoreBuild"*
+
+	elif [ "$2" = "i" ] ; then
+		echo "check recipe info... $3"
+		bitbake -e $3 | grep -E "^SRC_URI=|^FILE=|^PV="
+	
+	elif [ "$2" = "l" ] ; then
+		echo "layer..."
+		if [  "$3" = "sl" ] ; then
+			echo "bitbake-layers show-layers"
+			bitbake-layers show-layers
+
+		elif [  "$3" = "sr" ] ; then
+			echo "show-recipe..."
+			if [ "$4" != "" ] ; then
+				bitbake-layers show-recipes | grep $4
+			else
+				bitbake-layers show-recipes
+			fi
+
+		elif [  "$3" = "cl" ] ; then
+			echo "bitbake-layers create-layer $4"
+			bitbake-layers create-layer $4
+
+		elif [  "$3" = "cr" ] ; then
+			echo "bitbake-layers create-recipe $4"
+			bitbake-layers create-recipe $4
 		fi
-
-	else
-		echo "Run emoji $2.mp4"
-		if [ -z "$PID_2kill" ] ; then
-			echo "PID_2kill empty"
-		else
-			echo PID_2kill:$PID_2kill
-		fi
-		if [ -z "$PID_last" ] ; then
-			echo "PID_last empty"
-		else
-			echo PID_last:$PID_last
-		fi
-
-		if [ "$3" = "full" ] ; then
-			gst-launch-1.0 multifilesrc location=$emojiDir2/$2.mp4 loop=true ! decodebin ! waylandsink fullscreen=TRUE&
-		elif [ "$3" = "720" ] ; then
-			echo "720P"
-			gst-launch-1.0 multifilesrc location=$emojiDir2/$2.mp4 loop=true ! decodebin ! waylandsink x=20 y=20 width=1280 height=720&
-		elif [ "$3" = "1080" ] ; then
-			echo "1080P"
-			gst-launch-1.0 multifilesrc location=$emojiDir2/$2.mp4 loop=true ! decodebin ! waylandsink x=20 y=20 width=1920 height=1080&
-		else
-			gst-launch-1.0 multifilesrc location=$emojiDir2/$2.mp4 loop=true ! decodebin ! waylandsink&
-		fi
-
-		# if [ -z "$run_counter" ] ; then
-		# 	echo "run_counter empty"
-		# 	$run_counter = "0"
-		# else
-		# 	echo run_counter:$run_counter
-		# 	if [ $run_counter -gt 5 ] ; then
-		# 		run_counter=0
-		# 		pkill gst*
-		# 	else
-		# 		run_counter=$(($run_counter+"1"))
-		# 	fi
-		# fi
-		# echo $run_counter > $WorkingDir/run_counter
-
-		echo PID_last:$PID_last
-		PID_2kill=$PID_last
-		PID_last=$!
-		echo $PID_2kill > $WorkingDir/PID_2kill
-		echo $PID_last > $WorkingDir/PID_last
-		if [ -z "$PID_2kill" ] ; then
-			echo "PID_2kill empty"
-		else
-			sleep 1
-			echo "kill -9 $PID_2kill"
-			kill -9 $PID_2kill
-		fi
-
 	fi
-
 fi
 
-# ROS
-if [ "$1" = "ros" ] ; then
+# AI Camera
+if [ "$1" = "aic" ] ; then
 
-	if [  "$2" = "n" ] ; then
-		echo "========== node =========="
-		# cd $nodeDir
-		if [  "$3" = "i" ] ; then
-			echo "ros2 node info $4"
-			ros2 node info $4
-		elif [  "$3" = "r" ] ; then
-			echo "ros2 run $testNode "$testNode"_node"
-			source install/setup.sh
-			ros2 run $testNode "$testNode"_node
-		elif [ "$3" = "pid" ] ; then
-			pgrep -f $4
+	echo "========== PROJ_ROOT:$PROJ_ROOT =========="
+
+	if [ "$2" = "dk" ] ; then
+		prjString="aicamera_plus_box"
+		prjService="build_aicamera"
+		prjDockderDir="$dockderDir/$prjString"
+		echo "========== docker cmd =========="
+
+		if [ "$3" = "up" ] ; then
+			echo "docker-compose -f "$prjDockderDir/docker-compose-$prjString.yml" up -d"
+			docker-compose -f "$prjDockderDir/docker-compose-$prjString.yml" up -d
+		elif [ "$3" = "down" ] ; then
+			echo "docker-compose -f "$prjDockderDir/docker-compose-$prjString.yml" down"
+			docker-compose -f "$prjDockderDir/docker-compose-$prjString.yml" down
+		elif [ "$3" = "bash" ] ; then
+			echo "========== docker exec -it -u root $prjService /bin/bash =========="
+			docker exec -it $prjService /bin/bash
+		elif [ "$3" = "log" ] ; then
+			echo "========== docker logs -tf jenkins =========="
+			docker logs -tf $prjService
+		fi
+
+	elif [ "$2" = "ust" ] ; then
+		echo "========== update Test_C_yocto src =========="
+		cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/src/Test_C_yocto
+		# git reset --hard HEAD
+		git pull
+
+	elif [ "$2" = "usv" ] ; then
+		echo "========== update vision_box_DualCam src =========="
+		cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/src/vision_box_DualCam
+		# git reset --hard HEAD
+		git pull
+
+	elif [ "$2" = "v++" ]; then
+		echo "version ++ ..."
+		primax_version_file="$PROJ_ROOT/src/meta-primax/recipes-primax/primax-version/files/primax_version"
+		ver=$(cat "$primax_version_file")
+		prefix=$(echo "$ver" | cut -d. -f1-2)
+		patch=$(echo "$ver" | cut -d. -f3)
+		new_patch=$(printf "%02d" $((10#$patch + 1)))
+		echo "$prefix.$new_patch" > "$primax_version_file"
+		echo "Updated version: $prefix.$new_patch"
+
+	elif [ "$2" = "v--" ]; then
+		echo "version -- ..."
+		primax_version_file="$PROJ_ROOT/src/meta-primax/recipes-primax/primax-version/files/primax_version"
+		ver=$(cat "$primax_version_file")
+		prefix=$(echo "$ver" | cut -d. -f1-2)
+		patch=$(echo "$ver" | cut -d. -f3)
+		new_patch=$(printf "%02d" $((10#$patch - 1)))
+		echo "$prefix.$new_patch" > "$primax_version_file"
+		echo "Updated version: $prefix.$new_patch"
+
+	elif [ "$2" = "ftp" ] ; then
+		echo "========== update files to FTP =========="
+		dir_ftp="/mnt/disk2/FTP/Public/gray"
+
+		targetPlatform="armv8a-poky-linux"
+		# targetPlatform="genio_700_evk-poky-linux"
+
+		dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0-r0"
+		cp -f $dir_work/temp/log.do_compile $dir_ftp/
+		cp -f $dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam "$dir_ftp/aicamera/"
+		cp -f $dir_work/primax-1.0/src/Test_C_yocto/fw_daemon "$dir_ftp/aicamera/"
+
+	else
+		primax_version_file="$PROJ_ROOT/src/meta-primax/recipes-primax/primax-version/files/primax_version"
+		echo "primax_version : $(cat "$primax_version_file")"
+	fi
+fi
+
+# Yocto
+if [ "$1" = "yt" ] ; then
+	echo "Yocto..."
+	
+	if [  "$2" = "b" ] ; then
+		echo "build whole image..."
+		echo "DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image"
+		DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image
+
+	elif [  "$2" = "bk" ] ; then
+		echo "build kernel..."
+		echo "MACHINE=genio-700-evk bitbake linux-mtk"
+		MACHINE=genio-700-evk bitbake linux-mtk
+
+	elif [  "$2" = "kconf" ] ; then
+		echo "kernel config..."
+		echo "bitbake virtual/kernel -c menuconfig"
+		bitbake virtual/kernel -c menuconfig
+
+	elif [ "$2" = "f" ] ; then
+
+		dtbos_ai="--load-dtbo gpu-mali.dtbo --load-dtbo apusys.dtbo"
+		dtbos_codec="--load-dtbo video.dtbo"
+		dtbos_cam="--load-dtbo camera-imx214-csi0.dtbo"
+		dtbos_dp="--load-dtbo display-dp.dtbo"		
+
+		if [ "$3" = "cam" ] ; then
+			echo "===== genio-flash $dtbos_cam $dtbos_codec ====="
+			genio-flash $dtbos_cam $dtbos_codec
+		elif [ "$3" = "dp" ] ; then
+			echo "===== genio-flash $dtbos_dp ====="
+			genio-flash $dtbos_dp
+		elif [ "$3" = "k" ] ; then
+			if [ "$4" = "dp" ] ; then
+				echo "genio-flash --load-dtbo display-dp.dtbo kernel mmc0boot1..."
+				genio-flash --load-dtbo display-dp.dtbo kernel mmc0boot1
+			else 
+				echo "genio-flash kernel..."
+				genio-flash kernel
+			fi
+		elif [ "$3" = "all" ] ; then
+			echo "===== genio-flash $dtbos_ai $dtbos_codec $dtbos_cam $dtbos_dp ====="
+			genio-flash $dtbos_ai $dtbos_codec $dtbos_cam $dtbos_dp
+		else
+			echo "===== genio-flash ====="
+			genio-flash
+			#aiot-flash
+		fi
+
+	elif [ "$2" = "repo" ] ; then
+		echo "repo..."
+		repo init -u https://gitlab.com/mediatek/aiot/bsp/manifest.git -b rity/kirkstone -m default.xml
+ 		repo sync
+
+	elif [ "$2" = "git" ] ; then
+		echo "========== git clone org-169115935@github.com:PMX-CTC/C_AI-Camera-G2_FW.git =========="
+		git clone org-169115935@github.com:PMX-CTC/C_AI-Camera-G2_FW.git
+
+	elif [ "$2" = "us" ] ; then
+		echo "========== update yocto project =========="
+		cd ~/C_AI-Camera-G2_FW
+		git reset --hard HEAD
+		git pull
+
+	elif [ "$2" = "dtb2dts" ] ; then
+		echo "========== dtc -I dtb -O dts -o $3.dts $3.dtb =========="
+		dtc -I dtb -O dts -o $3.dts $3.dtb
+
+	elif [ "$2" = "dts2dtb" ] ; then
+		echo "========== dtc -I dts -O dtb -o $3.dtb $3.dts =========="
+		dtc -I dts -O dtb -o $3.dtb $3.dts
+
+	else
+		echo "project env vars..."
+		echo "PROJ_ROOT:${PROJ_ROOT}"
+		echo "TEMPLATECONF:${TEMPLATECONF}"
+		echo "BUILD_DIR:${BUILD_DIR}"
+		echo "BB_NUMBER_THREADS:${BB_NUMBER_THREADS}"
+		echo "PARALLEL_MAKE:${PARALLEL_MAKE}"
+	fi
+fi
+
+if [ "$1" = "vb" ] ; then
+	echo "VisionHub..."
+	if [ "$2" = "f" ] ; then
+		echo "flash image..."
+		cd /mnt/disk2/FTP/joe_handover/3_VisionHub_AICamera/3_11_images
+
+		if [ "$3" = "barcode" ] ; then
+			echo "barcode..."
+			image2Flash="vb_barcode_ocr_release_20240709.img"
+			sudo dd if=$image2Flash of=/dev/sdd bs=1G status=progress && sync
+
+		elif [ "$3" = "barcode" ] ; then
+			echo "glue..."
+			image2Flash="vb_dualcam_20240908.img"
+			sudo dd if=$image2Flash of=/dev/sdd bs=1G status=progress && sync
+
+		elif [ "$3" = "g1" ] ; then
+			image2Flash="vs_g1_s004_testok_20231013.img"
+			sudo dd if=$image2Flash of=/dev/sdd bs=1G status=progress && sync
 
 		else
-			echo "ros2 node list"
-			ros2 node list
+			lsblk | grep "sd"
 		fi
-	elif [ "$2" = "i" ] ; then
-		echo "========== ROS version =========="
-		echo "echo ROS_DISTRO:$ROS_DISTRO"
-	elif [ "$2" = "b" ] ; then
-		echo "========== colcon build --packages-select $3 =========="
-		colcon build --packages-select $3
-	elif [ "$2" = "r" ] ; then
-		if [  "$3" = "talker" ] ; then
-			echo "========== ros2 run demo_nodes_cpp talker =========="
-			ros2 run demo_nodes_cpp talker
-		elif [ "$3" = "listener" ] ; then
-			echo "========== ros2 run demo_nodes_cpp listener =========="
-			ros2 run demo_nodes_cpp listener
-		fi
-	elif [ "$2" = "g" ] ; then
-		echo "========== rqt_graph =========="
-		rqt_graph
-	elif [ "$2" = "tf" ] ; then
-		echo "========== ros2 run tf2_tools view_frames =========="
-		ros2 run tf2_tools view_frames
-	elif [ "$2" = "p" ] ; then
-		echo "========== pkg =========="
-		if [  "$3" = "exe" ] ; then
-			if [ -z "$4" ] ; then
-				ros2 pkg executables
-			else
-				ros2 pkg executables $4
-			fi
-		elif [ "$3" = "prefix" ] ; then
-			echo "ros2 pkg prefix <package-name>"
-			ros2 pkg prefix $4
-		elif [ "$3" = "xml" ] ; then
-			echo "ros2 pkg xml <package-name>"
-			ros2 pkg xml $4
-		elif [ "$3" = "cc" ] ; then
-			echo "ros2 pkg create $4"
-			ros2 pkg create $4 --build-type ament_cmake --dependencies rclcpp
-		elif [ "$3" = "cp" ] ; then
-			echo "ros2 pkg create $4"
-			ros2 pkg create $4 --build-type ament_python --dependencies rclpy --license Apache-2.0
-		else 
-			echo "ros2 pkg list"
-			ros2 pkg list
-		fi
-
-	elif [ "$2" = "tp" ] ; then
-		echo "========== topic =========="
-		testTopic="/chatter"
-		# testTopic2="/chatter2"
-		testTopic2="/scan"
-
-		if [  "$3" = "p" ] ; then
-			echo "ros2 topic pub $testTopic ..."
-			ros2 topic pub $testTopic std_msgs/msg/String 'data: "test"'
-		elif [ "$3" = "e" ] ; then
-			echo "ros2 topic echo $4"
-			ros2 topic echo $4
-		elif [ "$3" = "i" ] ; then
-			echo "ros2 topic info $4"
-			ros2 topic info $4
-		elif [ "$3" = "hz" ] ; then
-			echo "ros2 topic hz $4"
-			ros2 ros2 topic hz $4
-		else 
-			echo "ros2 topic list -t"
-			ros2 topic list -t
-		fi
-
-	elif [ "$2" = "if" ] ; then
-		echo "========== interface =========="
-		if [  "$3" = "p" ] ; then
-			echo "ros2 interface packages"
-			ros2 interface packages
-		elif [ "$3" = "s" ] ; then
-			echo "ros2 interface show $4"
-			ros2 interface show $4
-		else 
-			echo "ros2 interface list"
-			ros2 interface list
-		fi
-
-	elif [ "$2" = "s" ] ; then
-		echo "========== service =========="
-		if [  "$3" = "r" ] ; then
-			echo "run service"
-			ros2 run examples_rclpy_minimal_service service
-		elif [ "$3" = "x" ] ; then
-			echo "xxx..."
-		else 
-			echo "ros2 service list"
-			ros2 service list
-		fi
-
-	elif [ "$2" = "param" ] ; then
-
-		if [ "$3" = "set" ] ; then
-			echo "set..."
-			ros2 param set /lcd_set_emoji param_emoji_name "$4"
-		elif [ "$3" = "get" ] ; then
-			echo "get..."
-			ros2 param get $4 $5
-		else 
-			echo "ros2 param list"
-			ros2 param list
-		fi
-
+	else
+		echo "else..."
 	fi
+
 fi
 
 # working directory 
@@ -519,16 +389,17 @@ if [ "$1" = "sys" ] ; then
 		#ls /etc/init.d
 	elif [ "$2" = "info" ] ; then
 		echo "========== System info =========="
-		echo "==== Ubuntu version ===="
+		echo "==== Ubuntu version ( cat /etc/os-release )===="
 		cat /etc/os-release
-		echo "==== Kernel version ===="
+		echo "==== Kernel version ( uname -a )===="
 		uname -a
-		echo "==== CPU info ===="
+		echo "==== CPU info ( lscpu )===="
 		lscpu
-		echo "==== Memory info ===="
+		echo "==== Memory info ( free -mh )===="
 		free -mh
-		echo "==== Disk info ===="
-		df -h --total
+		echo "==== Disk info ( df -h --total ) ===="
+		# df -h --total
+		df -h --total | grep sd
 	elif [ "$2" = "users" ] ; then
 		# awk -F: '{ print $1}' /etc/passwd
 		echo "========== online User =========="
@@ -548,6 +419,29 @@ if [ "$1" = "sys" ] ; then
 	else
 		echo "param 3 not match"
 		exit -1
+	fi
+fi
+
+# copy to
+if [ "$1" = "cp" ] ; then
+
+	if [ "$2" = "h" ] ; then
+		path="$HOME"
+	elif [ "$2" = "ftp" ] ; then
+		path="/mnt/disk2/FTP/Public/gray"
+	elif [ "$2" = "aic" ] ; then
+		path="/mnt/disk2/FTP/Public/gray/aicamera"
+	elif [ "$2" = "ccm" ] ; then
+		path="/mnt/disk2/FTP/Public/gray/aicamera/ccm_db"
+	fi
+	echo "cp -rf $3 $path"
+	cp -rf $3 $path 
+fi
+
+if [ "$1" = "ps" ]; then
+	if [ "$2" != "" ]; then
+		echo "ps aux | grep $2"
+		ps aux | grep $2
 	fi
 fi
 
@@ -622,41 +516,66 @@ if [ "$1" = "ftp" ] ; then
 		echo "ex : sudo setfacl -Rdm g:SAC_EE:rwx DirName/"
 		echo "sudo setfacl -Rdm g:$4:rwx $3"
 		sudo setfacl -Rdm g:$4:rwx $3
-	elif [ "$2" = "user+" ] ; then
+	elif [ "$2" = "config" ] ; then
+		code /etc/vsftpd.conf
+	else
+		echo "param 2 not match"
+		exit -1
+	fi
+fi
+
+# user
+if [ "$1" = "user" ] ; then
+	mainGroup="CCP"
+	subGroup="docker"
+
+	if [ "$2" = "+" ] ; then
 		if [ -n "$3" ] ; then
-			if [ "$4" = "sidee" ] ; then
-				# SAC EE team group
-				sudo useradd  -m $3 -g "SAC_EE" -s /bin/bash
-			elif [ "$4" = "sidme" ] ; then
-				# SAC ME team group
-				sudo useradd  -m $3 -g "SAC_ME" -s /bin/bash
-			elif [ "$4" = "all" ] ; then
-				# all ftp available group
-				sudo useradd  -m $3 -G "SAC_EE,SAC_ME,SAC_SW,docker" -s /bin/bash
-			elif [ "$4" = "sidsw" ] ; then
-				# SAC SW team group for default
-				sudo useradd  -m $3 -g "SAC_SW" -s /bin/bash
-				sudo usermod -aG docker $3
-			else
-				# CCPSW team group for default
-				sudo useradd  -m $3 -g "CCP" -s /bin/bash
-				sudo usermod -aG docker $3
+
+			if [ "$4" = "all" ] ; then
+				subGroup="sudo,adm,lpadm,docker"
 			fi
+
+			sudo useradd -m $3 -g $mainGroup -G $subGroup -s /bin/bash
+			
 			echo "$3:$3" | sudo chpasswd
 			sudo chage -d 0 $3
 			sudo chage -l $3 | head -n 3
 		else
 			echo "param 3 needed"
 		fi
-	elif [ "$2" = "user-" ] ; then
+	elif [ "$2" = "-" ] ; then
 		sudo userdel -r $3
-elif [ "$2" = "user+g" ] ; then
+
+	elif [ "$2" = "+g" ] ; then
 		sudo usermod -aG $3 $4
-	elif [ "$2" = "config" ] ; then
-		code /etc/vsftpd.conf
-	else
-		echo "param 2 not match"
-		exit -1
+
+	elif [ "$2" = "+yt" ] ; then
+
+		if [ -n "$3" ] ; then
+			# make a yocto build dir & user link
+			buildfolder="/mnt/disk2/yocto_build_folder"
+			mkdir $buildfolder/$3
+			cp $buildfolder/misc/step* $buildfolder/$3
+			sudo chown $3:$mainGroup $buildfolder/$3
+			sudo chown $3:$mainGroup $buildfolder/$3/step*
+			cd /home/$3
+			sudo ln -s /mnt/disk2/yocto_build_folder/$3 yocto_build_folder
+			sudo chown $3:$mainGroup yocto_build_folder
+		else 
+			echo "param 3 needed"
+		fi
+
+	elif [ "$2" = "-yt" ] ; then
+
+		if [ -n "$3" ] ; then
+			# make a yocto build dir & user link
+			buildfolder="/mnt/disk2/yocto_build_folder"
+			sudo rm -r $buildfolder/$3
+		else 
+			echo "param 3 needed"
+		fi
+
 	fi
 fi
 
@@ -692,11 +611,21 @@ fi
 # tar
 if [ "$1" = "zip" ] ; then
 		echo ">>>> zip $2 to $3.tar.gz"
-		tar -czvf $3.tar.gz $2
+		echo "tar -zcvf $3.tar.gz $2"
+		tar -zcvf $3.tar.gz $2
 fi
 if [ "$1" = "unzip" ] ; then
-		echo ">>>> unzip file"
-		tar -xzvf $2
+    echo ">>>> unzip file: $2"
+
+    if [[ "$2" == *.tar.gz || "$2" == *.tgz ]]; then
+		echo "tar -zxvf "$2""
+        tar -zxvf "$2"
+    elif [[ "$2" == *.tar.bz2 || "$2" == *.tbz || "$2" == *.tbz2 ]]; then
+		echo "tar -jxvf "$2""
+        tar -jxvf "$2"
+    else
+        echo "Unsupported file format: $2"
+    fi
 fi
 
 # chmod
@@ -704,12 +633,16 @@ if [ "$1" = "chmod" ] ; then
 	if [ -n "$2" ] ; then
 		if [ "$2" = "all" ] ; then
 			if [ "$3" = "4" ] ; then
-				sudo chmod  -R 444 .
+				sudo chmod -R 444 .
 			elif [ "$3" = "6" ] ; then
 				sudo chmod -R 666 .
 			else
 				sudo chmod -R 777 .
 			fi
+		elif [ "$2" = "dir" ] ; then
+			echo "change only dir..."
+			echo "find $3 -type d -exec sudo chmod 777 {} \;"
+			find $3 -type d -exec sudo chmod 777 {} \;
 		else
 			if [ "$3" = "4" ] ; then
 				sudo chmod -R 444 $2
@@ -1032,7 +965,8 @@ if [ "$1" = "dk" ] ; then
 		else
 			# list containers
 			echo "========== docker container ls ========== " 
-			docker container ls
+			#docker container ls
+			docker container ls --format "table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}"
 		fi
 		
 	elif [ "$2" = "v" ] ; then
@@ -1122,16 +1056,40 @@ if [ "$1" = "dkc" ] ; then
 	fi
 fi
 
-# chrome-remote-desktop
-if [ "$1" = "chrome" ] ; then
+# nfs
+if [ "$1" == "nfs" ] ; then
+	echo "========== NFS "==========
+	if [ "$2" = "e" ] ; then
+		echo "========== edit conf file ========== " 
+		sudo nano /etc/exports
 
-		if [ "$2" = "r" ] ; then
-			echo "========== restart  chrome-remote-desktop ========== " 
- 			sudo systemctl stop chrome-remote-desktop
- 			sudo systemctl start chrome-remote-desktop
-		else
- 			sudo systemctl status chrome-remote-desktop
-		fi
+	elif [ "$2" = "mkdir" ] ; then
+		echo "========== make nfs dir ========== " 
+		sudo mkdir -p $3
+		sudo chown nobody:nogroup /srv/nfs/data
+		sudo chmod 777 /srv/nfs/data
+
+	elif [ "$2" = "r" ] ; then
+		sudo exportfs -ra
+		sudo systemctl restart nfs-kernel-server
+
+	elif [ "$2" = "start" ] ; then
+
+		sudo systemctl start nfs-kernel-server
+
+	elif [ "$2" = "stop" ] ; then
+		sudo systemctl stop nfs-kernel-server
+
+	elif [ "$2" = "port" ] ; then
+		sudo ufw allow from 10.0.0.0/8 to any port 111
+		sudo ufw allow from 10.0.0.0/8 to any port 2049
+		sudo ufw allow from 10.0.0.0/8 to any port 13025
+
+	else
+		sudo exportfs -v
+		sudo systemctl status nfs-kernel-server
+		rpcinfo -p
+	fi
 
 fi
 
@@ -1140,6 +1098,23 @@ if [ "$1" == "ux" ] ; then
 	cd ~/OSPath
 	git reset --hard HEAD
 	git pull
-	sudo chmod 777 Ubuntu/x.sh
+	sudo chmod 777 Ubuntu_DellServer/x.sh
+fi
+
+# find content
+if [ "$1" == "grep" ] ; then
+	grep -r $2 .
+fi
+
+# find file
+if [ "$1" == "find" ] ; then
+	echo "find . -name $2"
+	find . -name $2
+fi
+
+# file / folder size
+if [ "$1" == "size" ] ; then
+	echo "du -sh $2"
+	sudo du -sh $2
 fi
 

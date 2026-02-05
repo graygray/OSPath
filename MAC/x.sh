@@ -1,36 +1,79 @@
-echo "param 0:"$0
-echo "param 1:"$1
-echo "param 2:"$2
-echo "param 3:"$3
-echo "param 4:"$4
-echo "param 5:"$5
+
+# Loop through all parameters passed to the script
+echo "xDir = $xDir"
+echo "param 0: $0"
+i=1
+for arg in "$@"; do
+    echo "param $i: $arg"
+    ((i++))
+done
 
 xDir=~/OSPath/MAC
-RNFolder=~/Work/Prj_RN
-piDir=~/Work/pi4
-
-dockderDir=~/"Docker"
-u18dir=$dockderDir/Ubuntu1804
-BCTTestDir=~/Work/MFi-HomeKit/BCT
-# echo "u18dir:$u18dir"
-
-# adkPath="/Users/graylin/Work/MFi-HomeKit/HomeKit ADK 4.0"
-# adkPath="/Users/graylin/Work/MFi-HomeKit/HomeKit ADK 5.1"
-# adkPath="/Users/graylin/Work/MFi-HomeKit/HomeKit ADK 5.2"
-adkPath="/Users/graylin/Work/MFi-HomeKit/HomeKit ADK 5.3"
 
 currentDateTime=`date "+%m%d%H%M"`
 
 # wheeltec
 wheeltec_ip="192.168.1.196"
 
-# SSH
+# dell server
+DellServer_ip="10.1.13.207"
+
+# ai camera
+# AICamera_ip="192.168.2.99"
+AICamera_ip="aicamera-0687.local"
+# AICamera_ip="visionhub-0687.local"
+# AICamera_ip="aibox-0791.local"
+# AICamera_ip="192.168.1.186"
+
+# nfs
+if [ "$1" == "nfs" ] ; then
+	echo "========== NFS "==========
+	cd ~
+	if [ "$2" = "+" ] ; then
+		mount -t nfs -o nolock 10.1.13.207:/mnt/disk2/yocto_build_folder/gray DellServer/yocto_build_folder
+		mount -t nfs -o nolock 10.1.13.207:/home/gray.lin DellServer/home
+	
+	elif [ "$2" = "-" ] ; then
+		umount DellServer/yocto_build_folder
+		umount DellServer/home
+	fi
+
+fi
+
+# ssh
 if [ "$1" == "ssh" ] ; then
 
-	if [ "$2" == "gray" ] ; then
-		ssh gray.lin@10.1.13.207
+	if [ "$2" == "dell" ] ; then
+
+		## ctcfw/Primax1234
+		if [ "$3" != "" ] ; then
+			ssh $3@$DellServer_ip
+		else
+			sshpass -p 'Zx03310331' ssh gray.lin@$DellServer_ip
+			# ssh gray.lin@$DellServer_ip
+		fi
+
 	elif [ "$2" == "pi" ] ; then
 		ssh pi@raspberrypi.local
+	
+	elif [ "$2" == "aic" ] ; then
+		if [ "$3" == "r" ] ; then
+			echo "ssh-keygen -R $AICamera_ip"
+			ssh-keygen -R $AICamera_ip
+		fi
+		echo "ssh root@$AICamera_ip"
+		ssh root@$AICamera_ip
+
+	elif [ "$2" == "usb" ] ; then
+		# device_ip="192.168.1.190"
+		device_ip="192.168.1.127"
+		if [ "$3" == "r" ] ; then
+			echo "ssh-keygen -R $device_ip"
+			ssh-keygen -R $device_ip
+		fi
+		echo "ssh root@$device_ip"
+		ssh root@$device_ip
+
 	elif [ "$2" == "wt" ] ; then
 		# wheeltech
 		if [ "$3" = "r" ] ; then
@@ -40,160 +83,98 @@ if [ "$1" == "ssh" ] ; then
 			ssh -Y wheeltec@$wheeltec_ip
 		fi
 	else
-		ssh $2@10.1.13.207
+		if [ "$2" == "r" ] ; then
+			echo "ssh-keygen -R $3"
+			ssh-keygen -R $3
+		fi
+
 	fi
 fi
 
-# ADK
-if [ "$1" == "adk" ] ; then
-
-	buildType=Debug
-	# buildType=Test
-	# buildType=Release
-
-	if [ "$2" == "update" ] ; then
-		rsync -av --delete -e "ssh" "/Users/graylin/Work/MFi-HomeKit/adk_pi/" "pi@raspberrypi.local:/home/pi/x_adk/"
-		# rsync -av --delete -e "ssh" "pi@raspberrypi.local:/home/pi/x_adk/" "/Users/graylin/Work/MFi-HomeKit/adk_pi/"
-	elif [ "$2" == "b" ] ; then
-		# build
-		echo "build path : $adkPath"
-		cd "$adkPath"
-		if [ "$3" == "app" ] ; then
-			echo "build app >>>>"
-			make USE_WAC=1 BUILD_TYPE=$buildType TARGET=Raspi apps
-			# make USE_WAC=1 USE_HW_AUTH=1 BUILD_TYPE=$buildType TARGET=Raspi apps
-		elif [ "$3" == "sc" ] ; then
-			echo "build setup code >>>>"
-			# setup code
-			# 5 >> Lighting
-			# 6 >> Locks *
-			# 17 >> IP Cameras *
-			# 18 >> Video Doorbells *
-			accCategory=0
-			if [ -n "$4" ] ; then
-				accCategory=$4
-			else 
-				accCategory=18
-			fi
-			echo "build setup code >>>> category $accCategory"
-
-			# deploy to device via ssh
-			# ./Tools/provision_raspi.sh --wac --category $accCategory pi@raspberrypi.local:~/.HomeKitStore
-
-			# generate local
-			# 4.0
-			# ./Tools/provision_raspi.sh --wac --category $accCategory ~/.HomeKitStore
-			# ./Tools/provision_raspi.sh --wac --nfc --category $accCategory ~/.HomeKitStore
-
-			# 5.1, 5.2
-			./Tools/provision_posix.sh --wac --nfc --category $accCategory --product-data 1E903F6D20F2B2D8 \
-			--mfi-token DF0DBBE5-F6F1-4786-8E6E-DFC0EB764B28 MYGrME4CAQECAQEERjBEAiBq/VghvdwObWRuSlmevmhldF4vfcjq/ZbXKxJftw5P/wIgVGBjfiN/8YOZs9Hb40AIoUkWMMrrVFQggVoXW5L9wWUwWQIBAgIBAQRRMU8wCQIBZgIBAQQBATAQAgFlAgEBBAjL5CdgeAEAADAWAgIAyQIBAQQNMTAwMjc3LTczMDU0MjAYAgFnAgEBBBDUP3MGTj1OCZ88goIKcYPs \
-			pi@raspberrypi.local:~/.HomeKitStore
-
-		elif [ "$3" == "c" ] ; then
-			echo "clean >>>>"
-			make TARGET=Raspi clean
-		else
-			echo "param 3 not match"
-			exit -1
+# scp
+if [ "$1" == "scp" ] ; then
+	echo "copy files..."
+	if [ "$2" == "aic" ] ; then
+		# user="ubuntu"
+		# pass="primax1234"
+		user="root"
+		pass=""
+		remoteFolder=""
+		# remoteFolder="~/primax/apps"
+		if [ "$3" == "up" ] ; then
+			echo "scp ./$4 $user@$AICamera_ip:$remoteFolder$5"
+			scp ./$4 $user@$AICamera_ip:$remoteFolder$5
+			# sshpass scp ./$4 $user@$AICamera_ip:$remoteFolder/$5
+		elif [ "$3" == "down" ] ; then
+			echo "sshpass scp $user@$AICamera_ip:$remoteFolder$4 ."
+			sshpass scp $user@$AICamera_ip:$remoteFolder$4 .
 		fi
-
-	elif [ "$2" == "cp" ] ; then
-
-		cd "$adkPath"
-		exefile=""
-		if [ -z "$3"  ] ; then
-			echo "param 3 empty"
-			exit -1
-		elif [ "$3" == "lb" ] ; then
-			exefile="Lightbulb"
-		elif [ "$3" == "vd" ] ; then
-			exefile="VideoDoorbell"
-		elif [ "$3" == "ipc" ] ; then
-			exefile="IPCamera"
-		elif [ "$3" == "ipcer" ] ; then
-			exefile="IPCameraEventRecorder"	
-		elif [ "$3" == "sl" ] ; then
-			exefile="SeaLion"	
-		else
-			echo "param 3 not match"
-			exit -1
-		fi
-
-		echo "install $exefile.OpenSSL >>>>"
-
-		# adk's script
-		# ./Tools/install.sh \
-		# -d raspi \
-		# -a Output/Raspi-armv6k-unknown-linux-gnueabihf/$buildType/IP/Applications/$exefile.OpenSSL \
-		# -n raspberrypi \
-		# -p raspberry
-
-		# also work, but need password input
-		# scp Output/Raspi-armv6k-unknown-linux-gnueabihf/$buildType/IP/Applications/$exefile.OpenSSL pi@raspberrypi.local:~
-
-  expect <<EOF
-  set timeout -1
-  spawn scp Output/Raspi-armv6k-unknown-linux-gnueabihf/$buildType/IP/Applications/$exefile.OpenSSL pi@raspberrypi.local:~
-  expect {
-      "password:"  { send "raspberry\n"; exp_continue }
-      eof
-  }
-  lassign [wait] pid spawnID osError value
-  exit \$value
-EOF
-
-	elif [ "$2" == "ux" ] ; then
-  expect <<EOF
-  set timeout -1
-  spawn scp /Users/graylin/Work/MFi-HomeKit/RaspberryPi/x.sh pi@raspberrypi.local:~/Gray
-  expect {
-      "password:"  { send "raspberry\n"; exp_continue }
-      eof
-  }
-  lassign [wait] pid spawnID osError value
-  exit \$value
-EOF
-
-	elif [ "$2" == "bct" ] ; then
-
-		workingDirString="BCT-Belkin-Sealion-WiFi-$currentDateTime"
-
-		if [ "$3" == "" ] ; then
-			interface="en0"
-		else 
-			interface="$3"
-		fi
-
-		# if [ "$4" == "" ] ; then
-		# 	interface="en0"
-		# else 
-		# 	interface="$3"
-		# fi
-
-		echo "run BCT Test... -I $interface"
-
-		cd $BCTTestDir
-		mkdir $workingDirString
-		cp BonjourConformanceTest ./$workingDirString/
-		cd $workingDirString
-		sudo ./BonjourConformanceTest -I $interface -D -F Result-Belkin-Sealion-WiFi.txt -Aip 169.254.90.249 -Amac 6C:70:9F:D7:54:04
-		rm BonjourConformanceTest
-	else
-		echo "param 2 not match"
-		exit -1
 	fi
-		
+fi
+
+if [ "$1" == "lan" ] ; then
+	if [ "$2" == "scan" ] ; then
+		lan="192.168.$3.0/24"
+		echo "nmap -sn "$lan""
+		nmap -sn "$lan"
+	fi
+fi
+
+# system related 
+if [ "$1" = "sys" ] ; then
+	if [ "$2" = "service" ] ; then
+		echo "========== Service info =========="
+		echo "(macOS doesn't use 'service --status-all')"
+		echo "Listing loaded LaunchDaemons and LaunchAgents..."
+		echo "---- System Services ----"
+		launchctl list | head -n 30
+		echo "---- User Services ----"
+		launchctl list gui/$(id -u) | head -n 30
+
+	elif [ "$2" = "info" ] ; then
+		echo "========== System info =========="
+		echo "==== macOS version ( sw_vers ) ===="
+		sw_vers
+		echo "==== Kernel version ( uname -a ) ===="
+		uname -a
+		echo "==== CPU info ( sysctl -n machdep.cpu.* ) ===="
+		sysctl -n machdep.cpu.brand_string
+		sysctl -n machdep.cpu.core_count
+		sysctl -n machdep.cpu.thread_count
+		echo "==== Memory info ( vm_stat ) ===="
+		vm_stat | grep "free\|active\|inactive\|speculative"
+		echo "==== Disk info ( df -h ) ===="
+		df -h | grep /dev/
+
+	elif [ "$2" = "users" ] ; then
+		echo "========== Logged-in Users =========="
+		who
+		echo "========== All Local Users =========="
+		dscl . list /Users | grep -v '^_'
+
+	elif [ "$2" = "user" ] ; then
+		echo "========== User Groups =========="
+		id -Gn $3
+
+	elif [ "$2" = "net" ] ; then
+		echo "========== Network Scan =========="
+		echo "nmap is not preinstalled on macOS, use 'brew install nmap' first."
+		if command -v nmap >/dev/null 2>&1; then
+			nmap -A 192.168.100.*
+		else
+			echo "nmap not found."
+		fi
+
+	else
+		echo "param 3 not match"
+		exit 1
+	fi
 fi
 
 # vs code
 if [ "$1" == "code" ] ; then
 	if [ "$2" == "x" ] ; then
-		if [ "$3" == "pi" ] ; then
-			code "$piDir/x.sh"
-		else
-			code "$xDir/x.sh"
-		fi
+		code "$xDir/x.sh"
 	elif [ "$2" == ".rc" ] ; then
 		echo "edit ~/.zshrc"
 		code ~/.zshrc
@@ -235,6 +216,10 @@ if [ "$1" == "gst" ] ; then
 		code build/sources/ios_universal/arm64/gstreamer-1.0/subprojects/gst-plugins-bad/sys/applemedia/avfvideosrc.h
 		code build/sources/ios_universal/arm64/gstreamer-1.0/subprojects/gst-plugins-bad/sys/applemedia/avfvideosrc.m
 
+	elif [ "$2" == "udp" ] ; then
+		echo "GStreamer start udp stream server"
+		gst-launch-1.0 -v udpsrc port=5000 caps="application/x-rtp,media=video,encoding-name=H264" ! rtph264depay ! avdec_h264 ! videoconvert ! autovideosink
+
 	elif [ "$2" == "b" ] ; then
 		echo "build GStreamer..."
 		cd $cerberoFolder
@@ -274,6 +259,9 @@ if [ "$1" == "f" ] ; then
 	if [ "$2" == "code" ] ; then
 		# vs code snippet folders
 		open ~/"Library/Application Support/Code/User/snippets"
+
+	else
+		open .
 	fi
 fi
 
@@ -362,45 +350,6 @@ if [ "$1" == "patch" ] ; then
 		echo "diff -uN originFile newFile > patchFile"
 		
 	fi 
-
-fi
-
-# restore code
-if [ "$1" == "rs" ] ; then
-
-	echo "restore code"
-	echo "RNFolder:"$RNFolder
-	SrcFolder=$RNFolder/backup
-	DstFolder=$RNFolder/PmxHome/node_modules
-
-	echo "SrcFolder:"$SrcFolder
-	echo "DstFolder:"$DstFolder
-
-	# vlcplayer
-	cp -f -r $SrcFolder/react-native-yz-vlcplayer $DstFolder
-
-	# pjsip
-	cp -f -r $SrcFolder/react-native-pjsip $DstFolder
-	rm $DstFolder/react-native-pjsip/ios/VialerPJSIP.framework
-
-fi
-
-# backup code
-if [ "$1" == "bk" ] ; then
-
-	echo "backup code"
-	echo "RNFolder:"$RNFolder
-	SrcFolder=$RNFolder/PmxHome/node_modules
-	DstFolder=$RNFolder/backup
-
-	echo "SrcFolder:"$SrcFolder
-	echo "DstFolder:"$DstFolder
-
-	# vlcplayer
-	cp -f -r $SrcFolder/react-native-yz-vlcplayer $DstFolder
-
-	# pjsip
-	cp -f -r $SrcFolder/react-native-pjsip $DstFolder
 
 fi
 
@@ -544,25 +493,6 @@ if [ "$1" == "rn" ] ; then
 		fi
 	fi
 
-fi
-
-# ubuntu 18.04 in docker
-if [ "$1" == "u18" ] ; then
-
-	if [ "$2" == "up" ] ; then
-		docker-compose -f "$u18dir/docker-compose.yml" up -d
-	elif [ "$2" == "down" ] ; then
-		docker-compose -f "$u18dir/docker-compose.yml" down
-	elif [ "$2" == "bash" ] ; then
-		echo "========== docker exec -it -u root jenkins /bin/bash =========="
-		docker exec -it -u root Ubuntu18 /bin/bash
-	elif [ "$2" == "log" ] ; then
-		echo "========== docker logs -tf jenkins =========="
-		docker logs -tf Ubuntu18
-	else
-		echo "param 2 not match"
-		exit -1
-	fi
 fi
 
 # docker
@@ -822,89 +752,64 @@ if [ "$1" == "pj" ] ; then
 	
 fi
 
-# RB5
-if [ "$1" == "pi" ] ; then
+# zip
+if [ "$1" = "zip" ] ; then
+    # $2 must exist
+    if [ -z "$2" ]; then
+        echo "❗ Missing target path (arg 2)"
+        echo "Usage: $0 zip <folder/file> [output_name] [bz2|zip|gz]"
+        exit 1
+    fi
 
-	if [ "$2" == "ux" ] ; then
-		echo "update x.sh...."
+    # default output name if $3 is empty
+    if [ -z "$3" ]; then
+        # strip trailing slash & extract base name
+        out="$(basename "${2%/}")"
+    else
+        out="$3"
+    fi
 
-expect <<EOF
-  set timeout -1
-  spawn scp $piDir/x.sh pi@raspberrypi.local:~/Gray
-  expect {
-      "password:"  { send "raspberry\n"; exp_continue }
-      eof
-  }
-  lassign [wait] pid spawnID osError value
-  exit \$value
-EOF
+    # default type = gzip if no $4
+    type="$4"
 
+    # === bz2 ===
+    if [ "$type" = "bz2" ]; then
+        echo ">>>> bz2 $2 to $out.tar.bz2"
+        echo "tar -jcvf $out.tar.bz2 \"$2\""
+        tar -jcvf "$out.tar.bz2" "$2"
+
+    # === zip ===
+    elif [ "$type" = "zip" ]; then
+        echo ">>>> zip $2 to $out.zip"
+        echo "zip -r $out.zip \"$2\""
+        zip -r "$out.zip" "$2"
+
+    # === default: gzip ===
+    else
+        echo ">>>> gzip $2 to $out.tar.gz"
+        echo "tar -zcvf $out.tar.gz \"$2\""
+        tar -zcvf "$out.tar.gz" "$2"
+    fi
+fi
+if [ "$1" = "unzip" ] ; then
+    echo ">>>> unzip file: $2"
+
+    if [[ "$2" == *.tar.gz || "$2" == *.tgz ]]; then
+		echo "tar -zxvf "$2""
+        tar -zxvf "$2"
+    elif [[ "$2" == *.tar.bz2 || "$2" == *.tbz || "$2" == *.tbz2 ]]; then
+		echo "tar -jxvf "$2""
+        tar -jxvf "$2"
+    else
+        echo "Unsupported file format: $2"
+    fi
+fi
+
+if [ "$1" == "ping" ] ; then
+	if [ "$2" == "aic" ] ; then
+		echo "ping $AICamera_ip ..."
+		ping $AICamera_ip
 	fi
-fi
-
-# Raspberry pi
-if [ "$1" == "pi" ] ; then
-
-	if [ "$2" == "ux" ] ; then
-		echo "update x.sh...."
-
-expect <<EOF
-  set timeout -1
-  spawn scp $piDir/x.sh pi@raspberrypi.local:~/Gray
-  expect {
-      "password:"  { send "raspberry\n"; exp_continue }
-      eof
-  }
-  lassign [wait] pid spawnID osError value
-  exit \$value
-EOF
-
-	elif [ "$2" == "wpas" ] ; then
-		echo "wpas...."
-		if [ "$3" == "fd" ] ; then	
-			echo "file download...."
-
-# expect <<EOF
-#   set timeout -1
-#   spawn scp pi@raspberrypi.local:/etc/wpa_supplicant/wpa_supplicant.conf $piDir/ 
-#   expect {
-#       "password:"  { send "raspberry\n"; exp_continue }
-#       eof
-#   }
-#   lassign [wait] pid spawnID osError value
-#   exit \$value
-# EOF			
-
-		elif [ "$3" == "fu" ] ; then
-			echo "file upload...."
-
-		else 
-			echo "...."
-		fi
-
-	else
-		echo "...."
-  	fi
-
-fi
-
-# Old ==========================================================================
-
-#build related command
-if [ "$1" == "b" ] ; then
-	echo "build...."
-	
-
-	echo "build....done"
-	
-fi
-
-# flash related command
-if [ "$1" == "f" ] ; then
-	echo "flash...."
-	
- 
-	echo "flash....done"
 fi
 
 # edit x
@@ -915,10 +820,31 @@ if [ "$1" == "ex" ] ; then
 	echo "edit x....done"
 fi
 
-# reboot
-if [ "$1" == "r" ] ; then
-	echo "reboot...."
-	adb shell reboot
-	echo "reboot....done"
+if [ "$1" == "size" ] ; then
+    
+    # must have a target path
+    if [ -z "$2" ]; then
+        echo "❗ No target specified!"
+        echo "Usage: $0 size <path> [d|m <depth>]"
+        exit 1
+    fi
+    
+    # === List directory size (one level) ===
+    if [ "$3" == "d" ]; then
+        echo "sudo du -h --max-depth=1 \"$2\" | sort -h"
+        sudo du -h --max-depth=1 "$2" | sort -h
+        exit 0
+    fi
+    
+    # === Max depth mode (m) ===
+    if [ "$3" == "m" ] && [ -n "$4" ] && [[ "$4" =~ ^[0-9]+$ ]]; then
+        echo "sudo du -h --max-depth=$4 \"$2\" | sort -h"
+        sudo du -h --max-depth="$4" "$2" | sort -h
+        exit 0
+    fi
+    
+    # === Default: summary only (file or folder size) ===
+    echo "sudo du --no-dereference -sh \"$2\""
+    sudo du --no-dereference -sh "$2"
 fi
 

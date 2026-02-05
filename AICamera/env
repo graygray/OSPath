@@ -1,0 +1,48 @@
+InHost="AICamera"
+PATH=~/OSPath/$InHost:$PATH
+
+alias x='x.sh'
+alias p3='python3'
+
+# AI Camera
+alias aic='x aic'
+alias restful='x tf'
+
+# edit
+alias ex="nano ~/OSPath/$InHost/x.sh"
+alias erc='nano ~/.bashrc'
+alias einit='nano /etc/init.d/primax.sh'
+
+# dir
+alias dh='cd ~'                             # dir home
+alias d--='cd $OLDPWD'                      # dir previous dir
+alias d-2='cd ../..'                                                                                
+alias d-3='cd ../../..'                                                                             
+alias dpmx='cd ~/primax'                    # dir primax
+alias dscript='cd ~/primax/script'          # dir script
+alias dmisc='cd ~/primax/misc'              # dir misc
+alias dapp='cd ~/primax/app'                # dir app
+alias dnet='cd /etc/systemd/network'
+alias dinit='cd /etc/init.d'
+alias diq='cd /usr/share/mtkcam/DataSet/SQLiteModule/db/tuning_DB/'
+alias dr='cd /mnt/reserved'
+alias dftp='cd /mnt/reserved/10.1.13.207'                               # dir ftp sync folder
+alias dlog='cd /mnt/reserved/logs'
+alias dfe='cd /home/root/backend_data/vision-sensor-frontend/'          # dir frontend
+alias dbe='cd /home/root/backend_data/vision-sensor-backend/'           # dir backend
+alias dad='cd /home/root/backend_data/'                                 # dir AD
+alias srf='x tt'
+alias srfv='x tv'
+
+alias ep='[ -f ~/tmp/p1 ] && export p1=$(cat ~/tmp/p1); [ -f ~/tmp/p2 ] && export p2=$(cat ~/tmp/p2)'
+alias sp1='mkdir -p ~/tmp && echo `pwd` > ~/tmp/p1 && ep'
+alias sp2='mkdir -p ~/tmp && echo `pwd` > ~/tmp/p2 && ep'
+
+# update
+alias ue='source ~/.bashrc'     # update env
+alias ux='x ux'                 # update x.sh
+alias ua='ux && ue'             # update all
+
+# git
+alias gx='cd ~ && rm -r OSPath && git clone https://github.com/PMX-GrayLin/OSPath.git && cd OSPath && find . -name "*.sh" -exec chmod +x {} \; && cd ~'
+alias gx2='cd ~ && git clone https://github.com/PMX-GrayLin/OSPath.git && cd OSPath && find . -name "*.sh" -exec chmod +x {} \; && cd ~'

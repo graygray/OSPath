@@ -1,0 +1,34 @@
+
+services:
+  aicamera:
+    image: graygray/aicamera_plus_box
+    container_name: build_aicamera
+    stdin_open: true  # Keep the container running and open for interactive mode
+    tty: true  # Allocate a pseudo-TTY (useful for running bash)
+    command: /bin/bash  # Run bash as the command
+    privileged: true
+#    user: root
+    restart: always
+    ports:
+      - '54322:22'
+    environment:
+      - TZ=Asia/Taipei
+    volumes:
+      - /mnt/disk2/yocto_build_folder/docker:/home/gray.lin/build
+      - /mnt/disk2/FTP/Public/Jenkins:/ftp
+      
+  visionhub:
+    image: graygray/aicamera_plus_box
+    container_name: build_visionhub
+    stdin_open: true  # Keep the container running and open for interactive mode
+    tty: true  # Allocate a pseudo-TTY (useful for running bash)
+    command: /bin/bash  # Run bash as the command
+    privileged: true
+    restart: always
+    ports:
+      - '54332:22'
+    environment:
+      - TZ=Asia/Taipei
+    volumes:
+      - /mnt/disk2/yocto_build_folder/docker:/home/gray.lin/build
+      - /mnt/disk2/FTP/Public/Jenkins:/ftp

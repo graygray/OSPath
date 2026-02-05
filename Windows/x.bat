@@ -1,37 +1,212 @@
 @echo off
+setlocal enabledelayedexpansion
 
-cd %~dp0
+:: -----------------------------
+:: Parse all command-line args
+:: -----------------------------
+set count=0
+for %%A in (%*) do (
+    set /a count+=1
+    set "arg!count!=%%~A"
+    echo Argument !count!: %%A
+)
 
-set arg1=%1
-set arg2=%2
-set arg3=%3
-set arg4=%4
-set arg5=%5
-echo %arg1%
-echo %arg2%
-echo %arg3%
-echo %arg4%
-echo %arg5%
+echo.
+echo Total arguments: !count!
 
-set live_current="C:\Users\gray.lin\STM32CubeIDE\workspace_1.13.2\.metadata\.plugins\com.st.stm32cube.ide.mcu.livewatch\saved_expr.dat"
-set live_backup="D:\prj\STM\liveview\saved_expr_%arg4%.dat"
+:: -----------------------------
+:: IQ Command Section
+:: Usage: script.bat iq s1|s2|ob1|ob2
+:: -----------------------------
+if /i "!arg1!"=="iq" (
+    set "dir_cct=D:\project\MediaToolKit_IoTYocto_240522"
+    set "dir_cct_dumpraw=!dir_cct!\svn\install\DataSet\CamCaliTool\SensorCalibrationDumpRaw"
+    set "dir_cct_db=!dir_cct!\svn\install\DataSet\SQLiteModule"
+    set "dir_dev_db=/mnt/reserved/10.1.13.207/IQ_DB/"
 
-if "%arg1%"=="stm" (
-    if "%arg2%"=="live" (
-        if "%arg3%"=="load" (
+    if /i "!arg2!"=="init" (
+        echo Running init batch...
+        cd /d "!dir_cct!"
+        call 01_cct_setup.bat
+        call 02_NDD_preview_8395.bat
+        echo to Run Streaming on device...
+    )
+
+    if /i "!arg2!"=="dump" (
+        echo To do dump...
+        adb shell rm -r /data/vendor/raw /data/vendor/camera_dump/
+        adb shell mkdir -p /data/vendor/raw
+        adb shell setprop vendor.debug.camera.pipemgr.bufdump 1
+        echo to Run Streaming on device...
+    )
+
+    if /i "!arg2!"=="ndd1" (
+        echo NDD dump step1...
+        cd /d D:\project\Genio700_NDD_ODT\MCNR\NDD
+        adb shell rm -r /data/vendor/camera_dump/ /data/vendor/raw
+        adb shell mkdir -p /data/vendor/camera_dump/
+        call 01-NDD_init.bat
+        call 02_NDD_preview_L2.bat
+
+        echo to Run ndd2 on device...
+    )
+    if /i "!arg2!"=="ndd3" (
+        echo NDD dump step3...
+        cd /d D:\project\Genio700_NDD_ODT\MCNR\NDD
+        call 03_Save_dump.bat
+    )
+
+    if /i "!arg2!"=="rui" (
+        echo Running ui...
+        cd /d "!dir_cct!\svn\install"
+        call 4.0.MTKToolCustom.bat
+    )
+
+    if /i "!arg2!"=="drinit" (
+        echo Dump raw init...
+        cd /d "!dir_cct_dumpraw!"
+        call 01_init_ISP7_IoTYocto.bat
+        echo to Run Streaming on device...
+    )
+
+    if /i "!arg2!"=="drob" (
+        echo Dump raw ob...
+        cd /d "!dir_cct_dumpraw!"
+        call 03_Dump_raw_ob_ISP7_IoTYocto.bat
+    )
+    if /i "!arg2!"=="driso" (
+        echo Dump raw iso...
+        cd /d "!dir_cct_dumpraw!"
+        call 03_Dump_raw_miniso_ISP7_IoTYocto.bat
+    )
+    if /i "!arg2!"=="drsat" (
+        echo Dump raw saturation...
+        cd /d "!dir_cct_dumpraw!"
+        call 03_Dump_raw_minsatgain_ISP7_IoTYocto.bat
+    )
+
+    if /i "!arg2!"=="2raw" (
+        echo [IQ:OB2] convert packed_word to raw...
+        cd /d "!dir_cct!\Packedword2Raw_IoT_v250307
+        python BatchRun.py
+    )
+
+    if /i "!arg2!"=="ftp" (
+        echo Preparing to upload DB to FTP...
+        call :zipFolder "!dir_cct_db!\db" "db_new.zip"
+
+        echo Uploading db_new.zip to FTP server...
+        > "%temp%\ftp_commands.txt" (
+            echo open 10.1.13.207
+            echo gray.lin
+            echo Zx03310331
+            echo binary
+            echo cd /Public/gray/aicamera/IQ_DB/
+            echo put "!dir_cct_db!\db_new.zip"
+            echo bye
+        )
+
+        ftp -s:"%temp%\ftp_commands.txt"
+        del "%temp%\ftp_commands.txt"
+
+        echo Upload complete.
+    )
+
+    if /i "!arg2!"=="mae" (
+
+        if /i "!arg3!"=="on" (
+            echo Manual AE On
+            rem === Put your AE ON logic here ===
+            adb shell setprop vendor.debug.ae_mgr.enable 1
+            adb shell setprop vendor.debug.ae_mgr.lock 1
+            adb shell setprop vendor.debug.ae_mgr.preview.update 1
+            adb shell setprop vendor.debug.ae_mgr.capture.update 1
+            adb shell setprop vendor.debug.ae_mgr.shutter 16666
+            adb shell setprop vendor.debug.ae_mgr.ispgain 4096
+            adb shell setprop vendor.debug.ae_mgr.sensorgain 1024
+        ) else if /i "!arg3!"=="off" (
+            echo Manual AE Off
+            rem === Put your AE OFF logic here ===
+            adb shell setprop vendor.debug.ae_mgr.preview.update 0
+            adb shell setprop vendor.debug.ae_mgr.capture.update 0
+            adb shell setprop vendor.debug.ae_mgr.lock 0
+            adb shell setprop vendor.debug.ae_mgr.enable 0
+        ) else (
+            adb shell setprop vendor.debug.ae_mgr.shutter !arg3!
+        )
+    )
+
+    if /i "!arg2!"=="db" (
+        
+        call :zipFolder "!dir_cct_db!\db" "db_new.zip"
+
+        echo Pushing IQ database to device...
+        adb shell rm -f "!dir_dev_db!/db_new.zip"
+        adb push "!dir_cct_db!\db_new.zip" "!dir_dev_db!/db_new.zip"
+    )
+
+)
+
+endlocal
+
+:: -----------------------------
+:: STM Section (after endlocal)
+:: -----------------------------
+set "live_current=C:\Users\gray.lin\STM32CubeIDE\workspace_1.13.2\.metadata\.plugins\com.st.stm32cube.ide.mcu.livewatch\saved_expr.dat"
+set "live_backup=D:\prj\STM\liveview\saved_expr_%4%.dat"
+
+if /i "%1"=="stm" (
+    if /i "%2"=="live" (
+        if /i "%3"=="load" (
+            echo [STM] Loading backup...
             copy "%live_backup%" "%live_current%"
         )
 
-        if "%arg3%"=="save" (
+        if /i "%3"=="save" (
+            echo [STM] Saving backup...
             copy "%live_current%" "%live_backup%"
         )
     )
-) 
+)
 
-if "%arg1%"=="code" (
-
-    if "%arg2%"=="stmlive" (
-        code C:\Users\gray.lin\STM32CubeIDE\workspace_1.13.2\.metadata\.plugins\com.st.stm32cube.ide.mcu.livewatch\saved_expr.dat
+:: -----------------------------
+:: VSCode Section
+:: -----------------------------
+if /i "%1"=="code" (
+    if /i "%2"=="stmlive" (
+        echo [CODE] Opening saved_expr.dat in VSCode...
+        code "C:\Users\gray.lin\STM32CubeIDE\workspace_1.13.2\.metadata\.plugins\com.st.stm32cube.ide.mcu.livewatch\saved_expr.dat"
     )
 )
 
+if /i "%1"=="cd" (
+    explorer %2
+)
+
+exit /b
+
+REM =====================================
+REM ========== Function section =========
+REM =====================================
+:zipFolder
+set "Z_DIR=%~1"
+set "Z_ZIP=%~2"
+
+echo Zipping folder "%Z_DIR%" to "%Z_ZIP%"...
+pushd "%Z_DIR%"
+cd ..
+
+del "%Z_ZIP%" 2>nul
+
+:: Create temp folder
+rmdir /s /q "%Z_DIR%_tmp" 2>nul
+xcopy db "%Z_DIR%_tmp" /e /i /y >nul
+
+:: Compress the temp directory
+powershell -Command "Compress-Archive -Path %Z_DIR%_tmp -DestinationPath '%Z_ZIP%' -Force"
+
+:: Cleanup temp folder
+rmdir /s /q "%Z_DIR%_tmp"
+
+popd
+goto :eof
