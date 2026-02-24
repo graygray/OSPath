@@ -263,12 +263,32 @@ if [ "$1" = "aic" ]; then
 			hwclock -r -f /dev/rtc0
 
 		elif [ "$3" = "ntp" ]; then
-			echo ">>>> timedatectl show-timesync --all"
-			timedatectl show-timesync --all
+			# echo ">>>> timedatectl show-timesync --all"
+			# timedatectl show-timesync --all
+			# echo ">>>> timedatectl status"
+			# timedatectl status
+			# echo ">>>> systemctl status systemd-timesyncd"
+			# systemctl status systemd-timesyncd
 			echo ">>>> timedatectl status"
-			timedatectl status
-			echo ">>>> systemctl status systemd-timesyncd"
-			systemctl status systemd-timesyncd
+			timedatectl status 2>/dev/null || true
+
+			echo ">>>> systemctl status chronyd"
+			systemctl status chronyd --no-pager 2>/dev/null || true
+
+			echo ">>>> chronyc tracking"
+			chronyc tracking 2>/dev/null || true
+
+			echo ">>>> chronyc sources -v"
+			chronyc sources -v 2>/dev/null || true
+
+			echo ">>>> chronyc sourcestats -v"
+			chronyc sourcestats -v 2>/dev/null || true
+
+			echo ">>>> chronyc activity"
+			chronyc activity 2>/dev/null || truez
+
+			echo ">>>> recent logs (chronyd)"
+			journalctl -u chronyd -n 80 --no-pager 2>/dev/null || true
 
 		else
 			echo "check version... ( cat /etc/primax_version )"
