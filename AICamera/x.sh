@@ -358,7 +358,13 @@ if [ "$1" = "aic" ]; then
 		elif [ "$3" = "fw2" ]; then
 			pkill fw_daemon
 			sleep 1
-			~/primax/fw_daemon &
+			fw_daemon &
+
+		elif [ "$3" = "fww" ]; then
+			echo "restart fw_watchdog.sh..."
+			pkill fw_watchdog.sh
+			sleep 1
+			fw_watchdog.sh &
 
 		elif [ "$3" = "net" ]; then
 			systemctl restart systemd-networkd
@@ -383,7 +389,7 @@ if [ "$1" = "aic" ]; then
 
 			sleep 3
 			vision_box_DualCam &
-			~/primax/fw_daemon &
+			fw_daemon &
 			mediamtx /etc/mediamtx/mediamtx.yml&
 		fi
 
