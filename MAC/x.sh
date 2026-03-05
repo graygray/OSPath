@@ -66,7 +66,7 @@ if [ "$1" == "ssh" ] ; then
 
 	elif [ "$2" == "usb" ] ; then
 		# device_ip="192.168.1.190"
-		device_ip="192.168.1.127"
+		device_ip="192.168.1.191"
 		if [ "$3" == "r" ] ; then
 			echo "ssh-keygen -R $device_ip"
 			ssh-keygen -R $device_ip
