@@ -42,6 +42,11 @@ dpvh() {
     cd /mnt/disk3/yocto_build/gray.lin/C_Vision-Hub-Plus_FW_Yocto/ || return
     export project_string="visionhub"
 }
+dpamr() {
+    cd /mnt/disk3/yocto_build/gray.lin/C_AMR-G2_FW_Yocto/ || return
+    export project_string="amr"
+}
+
 
 # dir yocto related
 alias dytb='cd /mnt/disk2/yocto_build_folder/gray'                                                  # dir yocto build                                   # dir home
