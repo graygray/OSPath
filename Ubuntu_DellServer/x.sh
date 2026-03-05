@@ -67,7 +67,7 @@ if [ "$1" = "bb" ] ; then
 		bitbake -c cleanall $3
 		
 	elif [ "$2" = "b" ] ; then
-		echo "build recipe, $3"
+		echo "build recipe, bitbake $3"
 		bitbake $3
 
 	elif [ "$2" = "ocv" ] ; then
