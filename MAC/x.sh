@@ -65,8 +65,20 @@ if [ "$1" == "ssh" ] ; then
 		ssh root@$AICamera_ip
 
 	elif [ "$2" == "usb" ] ; then
-		# device_ip="192.168.1.190"
-		device_ip="192.168.1.191"
+		device_ip=""
+		for ip_last in 190 191 192 193 194 195; do
+			candidate_ip="192.168.1.$ip_last"
+			if nc -z -w 1 "$candidate_ip" 22 >/dev/null 2>&1; then
+				device_ip="$candidate_ip"
+				break
+			fi
+		done
+
+		if [ -z "$device_ip" ] ; then
+			echo "No USB device found in 192.168.1.190-195 (SSH port 22 unreachable)."
+			exit 1
+		fi
+
 		if [ "$3" == "r" ] ; then
 			echo "ssh-keygen -R $device_ip"
 			ssh-keygen -R $device_ip
@@ -847,4 +859,3 @@ if [ "$1" == "size" ] ; then
     echo "sudo du --no-dereference -sh \"$2\""
     sudo du --no-dereference -sh "$2"
 fi
-
