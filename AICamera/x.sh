@@ -1107,7 +1107,8 @@ if [ "$1" = "aic" ]; then
 			echo "ros2 run lora_rylr993 lora_rylr993_node"
 			ros2 run lora_rylr993 lora_rylr993_node
 
-		elif [ "$3" = "off" ]; then
+		elif [ "$3" = "x" ]; then
+			echo "ros2 run lora_rylr993 lora_rylr993_node"
 
 		fi
 
