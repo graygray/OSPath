@@ -1108,8 +1108,8 @@ if [ "$1" = "aic" ]; then
 			ros2 run lora_rylr993 lora_rylr993_node
 
 		elif [ "$3" = "pub" ]; then
-			echo "ros2 topic pub --once /fleet_transmit std_msgs/msg/String \"$4\""
-			ros2 topic pub --once /fleet_transmit std_msgs/msg/String "$4"
+			# echo "ros2 topic pub --once /fleet_transmit std_msgs/msg/String \"{"v": 2, "id": "bf54", "d": "v1QDALr//QIJgFg6"}\""
+			ros2 topic pub --once /fleet_transmit std_msgs/msg/String "{\"v\": 2, \"id\": \"bf54\", \"d\": \"v1QDALr//QIJgFg6\"}"
 		fi
 
 
