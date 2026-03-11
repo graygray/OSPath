@@ -1102,6 +1102,16 @@ if [ "$1" = "aic" ]; then
 			opkg install $4 --force-reinstall
 		fi
 
+	elif [ "$2" = "lora" ]; then
+		if [ "$3" = "r" ]; then
+			echo "ros2 run lora_rylr993 lora_rylr993_node"
+			ros2 run lora_rylr993 lora_rylr993_node
+
+		elif [ "$3" = "off" ]; then
+
+		fi
+
+
 	fi
 
 fi
