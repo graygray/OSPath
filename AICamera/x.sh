@@ -1015,27 +1015,40 @@ if [ "$1" = "aic" ]; then
 			if [ -z "$rtcdev" ] || [ -z "$setdate" ]; then
 				echo "Usage:"
 				echo "  aic ck rtc w /dev/rtcX \"YYYY-MM-DD HH:MM:SS\""
+				echo "  aic ck rtc w all \"YYYY-MM-DD HH:MM:SS\""
 				exit 1
 			fi
 
-			if [ ! -e "$rtcdev" ]; then
-				echo "RTC device $rtcdev not found!"
-				exit 1
+			if [ "$rtcdev" = "all" ]; then
+				echo "==== Set RTC time on ALL RTC devices ===="
+				echo "Target date: $setdate"
+
+				for dev in /dev/rtc[0-9]*; do
+					if [ -e "$dev" ]; then
+						echo "--------------------------------"
+						echo "Setting $dev"
+						hwclock --set --date "$setdate" -f "$dev"
+
+						echo "Verify:"
+						hwclock -r -f "$dev"
+					fi
+				done
+
+			else
+				if [ ! -e "$rtcdev" ]; then
+					echo "RTC device $rtcdev not found!"
+					exit 1
+				fi
+
+				echo "==== Set RTC time on $rtcdev ===="
+				echo "Target date: $setdate"
+				echo "hwclock --set --date \"$setdate\" -f $rtcdev"
+
+				hwclock --set --date "$setdate" -f "$rtcdev"
+
+				echo "Verify:"
+				hwclock -r -f "$rtcdev"
 			fi
-
-			echo "==== Set RTC time on $rtcdev ===="
-			echo "Target date: $setdate"
-			echo "hwclock --set --date \"$setdate\" -f $rtcdev"
-			hwclock --set --date "$setdate" -f "$rtcdev"
-
-			echo "Verify:"
-			hwclock -r -f "$rtcdev"
-
-		else
-			echo "Usage:"
-			echo "  aic ck rtc r"
-			echo "  aic ck rtc w /dev/rtcX \"YYYY-MM-DD HH:MM:SS\""
-		fi
 		
 	elif [ "$2" = "pwm" ]; then
 		echo "pwm..."
