@@ -10,6 +10,9 @@ services:
     ports:
       - '30003:8080'    # Jenkins Web UI
       - "50000:50000"   # For Jenkins agent connections
+    dns:
+      - relay.primax.com.tw
+      - 8.8.8.8
     volumes:
       - /home/gray.lin/.ssh/:/root/.ssh/
       - /home/gray.lin/OSPath/Docker/aicamera_plus_box/:/root/aicamera_plus_box/
