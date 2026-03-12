@@ -1100,7 +1100,7 @@ if [ "$1" = "aic" ]; then
 			echo "  aic ck rtc w all \"YYYY-MM-DD HH:MM:SS\""
 			exit 1
 		fi
-		
+
 	elif [ "$2" = "pwm" ]; then
 		echo "pwm..."
 		# ps aux | grep fw_daemon
@@ -1176,7 +1176,7 @@ if [ "$1" = "aic" ]; then
 			ros2 topic pub --once /fleet_transmit std_msgs/msg/String "{data: '$MSG'}"
 
 		elif [ "$3" = "sub" ]; then
-			ros2 topic echo /fleet_transmit
+			ros2 topic echo /fleet_receive
 
 		fi
 
