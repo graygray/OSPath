@@ -859,3 +859,8 @@ if [ "$1" == "size" ] ; then
     echo "sudo du --no-dereference -sh \"$2\""
     sudo du --no-dereference -sh "$2"
 fi
+
+if [ "$1" == "c" ] ; then
+	echo "clear ..."
+	clear
+fi

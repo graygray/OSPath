@@ -1927,3 +1927,8 @@ if [ "$1" == "size" ] ; then
     sudo du --no-dereference -sh "$2"
 fi
 
+if [ "$1" == "c" ] ; then
+	echo "clear ..."
+	clear
+fi
+
