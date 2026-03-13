@@ -1178,8 +1178,14 @@ if [ "$1" = "aic" ]; then
 
 	elif [ "$2" = "lora" ]; then
 		if [ "$3" = "r" ]; then
-			echo "ros2 run lora_rylr993 lora_rylr993_node"
-			ros2 run lora_rylr993 lora_rylr993_node
+
+			if [ "$4" = "log" ]; then
+				echo "ros2 run lora_rylr993 lora_rylr993_node"
+				ros2 run lora_rylr993 lora_rylr993_node -- --enable-log --ros-args -p robots:=1-10
+			else
+				echo "ros2 run lora_rylr993 lora_rylr993_node"
+				ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-10
+			fi
 
 		elif [ "$3" = "i" ]; then
 			ipk_file="lora-rylr993_0.0.0-r0_armv8a.ipk"
