@@ -806,7 +806,7 @@ if [ "$1" = "aic" ]; then
 
 				echo "Update done"
 			else
-				echo "Skip: directory $dir_exec not found"
+				echo "Skip..."
 			fi
 		fi
 
