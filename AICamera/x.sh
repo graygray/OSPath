@@ -1171,6 +1171,12 @@ if [ "$1" = "aic" ]; then
 			echo "ros2 run lora_rylr993 lora_rylr993_node"
 			ros2 run lora_rylr993 lora_rylr993_node
 
+		if [ "$3" = "i" ]; then
+			ipk_file="ora-rylr993_0.0.0-r0_armv8a.ipk"
+			echo "opkg install $ipk_file --force-reinstall"
+			opkg install $ipk_file --force-reinstall
+		fi
+
 		elif [ "$3" = "pub" ]; then
 			MSG='{"v": 2, "id": "bf54", "d": "v1QDALr//QIJgFg6"}'
 			ros2 topic pub --once /fleet_transmit std_msgs/msg/String "{data: '$MSG'}"
