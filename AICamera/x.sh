@@ -793,11 +793,21 @@ if [ "$1" = "aic" ]; then
 			fi
 			echo "Running: $cmd"
 			eval $cmd
-			cp -f "$dir_local/$ftp_host/vision_box_DualCam" "$dir_exec"
-			cp -f "$dir_local/$ftp_host/fw_daemon" "$dir_exec"
-			chmod 777 "$dir_exec/vision_box_DualCam" "$dir_exec/fw_daemon"
-			chmod 777 "$dir_local/$ftp_host/fw_ota.sh"
 
+			if [ -d "$dir_exec" ]; then
+				echo "Updating firmware files..."
+
+				cp -f "$dir_local/$ftp_host/vision_box_DualCam" "$dir_exec/" || exit 1
+				cp -f "$dir_local/$ftp_host/fw_daemon" "$dir_exec/" || exit 1
+
+				chmod 777 "$dir_exec/vision_box_DualCam"
+				chmod 777 "$dir_exec/fw_daemon"
+				chmod 777 "$dir_local/$ftp_host/fw_ota.sh"
+
+				echo "Update done"
+			else
+				echo "Skip: directory $dir_exec not found"
+			fi
 		fi
 
 	elif [ "$2" = "uota" ]; then
