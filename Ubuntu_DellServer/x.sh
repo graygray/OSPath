@@ -119,6 +119,17 @@ if [ "$1" = "bb" ] ; then
 	fi
 fi
 
+if [ "$1" = "lora" ] ; then
+	if [ "$2" = "b" ]; then
+		echo "bitbake lora-rylr993"
+		bitbake lora-rylr993
+	elif [ "$2" = "ftp" ]; then
+		echo "copy lora ipk to ftp... "
+		file2copy="lora-rylr993_0.0.0-r0_armv8a.ipk"
+		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$file2copy" "/mnt/disk2/FTP/Public/gray/aicamera/"
+	fi
+fi
+
 # AI Camera
 if [ "$1" = "aic" ] ; then
 
