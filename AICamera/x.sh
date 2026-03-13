@@ -794,7 +794,7 @@ if [ "$1" = "aic" ]; then
 			echo "Running: $cmd"
 			eval $cmd
 
-			if [ -d "$dir_exec" ]; then
+			if is_aicamera || is_visionhub; then
 				echo "Updating firmware files..."
 
 				cp -f "$dir_local/$ftp_host/vision_box_DualCam" "$dir_exec/" || exit 1
