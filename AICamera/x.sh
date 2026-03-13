@@ -1866,12 +1866,27 @@ if [ "$1" = "dkc" ]; then
 	fi
 fi
 
+# # update x
+# if [ "$1" == "ux" ]; then
+# 	cd ~/OSPath
+# 	git reset --hard HEAD
+# 	git pull
+# 	sudo chmod 777 AICamera/x.sh
+# fi
 # update x
 if [ "$1" == "ux" ]; then
-	cd ~/OSPath
-	git reset --hard HEAD
-	git pull
-	sudo chmod 777 AICamera/x.sh
+    REPO=~/OSPath
+
+    if [ ! -d "$REPO/.git" ]; then
+        echo "[UX] shallow cloning OSPath"
+        git clone --depth 1 https://github.com/graygray/OSPath.git "$REPO"
+    else
+        echo "[UX] updating OSPath"
+        git -C "$REPO" fetch --depth 1 origin
+        git -C "$REPO" reset --hard origin/HEAD
+    fi
+
+    chmod 777 "$REPO/AICamera/x.sh"
 fi
 
 # find content
