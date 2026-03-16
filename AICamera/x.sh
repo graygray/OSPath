@@ -1186,8 +1186,8 @@ if [ "$1" = "aic" ]; then
 					python3 lora_tdma.py --port /dev/ttyUSB0 --robots 1-4 --log --log-calc --log-rx
 				else
 					# ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-15 -p log:=true -p port:=/dev/ttyUSB0
-					echo "ros2 run lora_rylr993 lora_rylr993_node --ros-args -p log:=true  -p log_calc:=true -p port:=/dev/ttyUSB0"
-					ros2 run lora_rylr993 lora_rylr993_node --ros-args -p log:=true -p port:=/dev/ttyUSB0
+					echo "ros2 run lora_rylr993 lora_rylr993_node --ros-args -p log:=true -p log_calc:=true -p port:=/dev/ttyUSB0"
+					ros2 run lora_rylr993 lora_rylr993_node --ros-args -p log:=true -p log_calc:=true -p port:=/dev/ttyUSB0
 				fi
 			else
 				if is_aicamera ||  is_visionhub; then
