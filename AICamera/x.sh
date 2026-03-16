@@ -1181,10 +1181,11 @@ if [ "$1" = "aic" ]; then
 
 			if [ "$4" = "log" ]; then
 				echo "ros2 run lora_rylr993 lora_rylr993_node"
-				ros2 run lora_rylr993 lora_rylr993_node -- --enable-log --ros-args -p robots:=1-10
+				# ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-15 -p log:=true -p port:=/dev/ttyUSB0
+				ros2 run lora_rylr993 lora_rylr993_node --ros-args -p log:=true -p port:=/dev/ttyUSB0
 			else
 				echo "ros2 run lora_rylr993 lora_rylr993_node"
-				ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-10
+				ros2 run lora_rylr993 lora_rylr993_node --ros-args -p log:=true -p port:=/dev/ttyUSB0
 			fi
 
 		elif [ "$3" = "i" ]; then
