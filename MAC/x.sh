@@ -12,18 +12,15 @@ xDir=~/OSPath/MAC
 
 currentDateTime=`date "+%m%d%H%M"`
 
-# wheeltec
-wheeltec_ip="192.168.1.196"
-
 # dell server
 DellServer_ip="10.1.13.207"
 
 # ai camera
-# AICamera_ip="192.168.2.99"
 AICamera_ip="aicamera-0687.local"
-# AICamera_ip="visionhub-0687.local"
-# AICamera_ip="aibox-0791.local"
-# AICamera_ip="192.168.1.179"
+VisionHub_ip="visionhub-0687.local"
+AIBoxCamera_ip="aibox-0791.local"
+TestDevice1_ip="192.168.1.39"
+TestDevice2_ip="192.168.3.103"
 
 # nfs
 if [ "$1" == "nfs" ] ; then
@@ -40,31 +37,91 @@ if [ "$1" == "nfs" ] ; then
 
 fi
 
+# -----------------------------
+# helper
+# -----------------------------
+ssh_connect() {
+	local host="$1"
+	local user="$2"
+	local reset_known_host="$3"
+
+	if [ "$reset_known_host" = "r" ]; then
+		echo "ssh-keygen -R $host"
+		ssh-keygen -R "$host"
+	fi
+
+	echo "ssh ${user}@${host}"
+	ssh "${user}@${host}"
+}
+
+scp_transfer() {
+	local host="$1"
+	local user="$2"
+	local direction="$3"      # up / down
+	local src="$4"
+	local dst="$5"
+	local reset_known_host="$6"
+
+	if [ "$reset_known_host" = "r" ]; then
+		echo "ssh-keygen -R $host"
+		ssh-keygen -R "$host"
+	fi
+
+	if [ "$direction" = "up" ]; then
+		echo "scp $src ${user}@${host}:$dst"
+		scp "$src" "${user}@${host}:$dst"
+
+	elif [ "$direction" = "down" ]; then
+		echo "scp ${user}@${host}:$src $dst"
+		scp "${user}@${host}:$src" "$dst"
+
+	else
+		echo "Invalid scp direction: $direction"
+		echo "Use: up / down"
+		return 1
+	fi
+}
+
+# -----------------------------
+# device mapping
+# -----------------------------
+get_device_host() {
+	case "$1" in
+		aic)   echo "$AICamera_ip" ;;
+		vh)    echo "$VisionHub_ip" ;;
+		aib)   echo "$AIBoxCamera_ip" ;;
+		t1)    echo "$TestDevice1_ip" ;;
+		t2)    echo "$TestDevice2_ip" ;;
+		pi)    echo "raspberrypi.local" ;;
+		*)     return 1 ;;
+	esac
+}
+
+get_device_user() {
+	case "$1" in
+		pi) echo "pi" ;;
+		*)  echo "root" ;;
+	esac
+}
+
 # ssh
-if [ "$1" == "ssh" ] ; then
+if [ "$1" = "ssh" ]; then
 
-	if [ "$2" == "dell" ] ; then
-
-		## ctcfw/Primax1234
-		if [ "$3" != "" ] ; then
-			ssh $3@$DellServer_ip
+	if [ "$2" = "dell" ]; then
+		## example:
+		##   ./x.sh ssh dell
+		##   ./x.sh ssh dell root
+		##   ./x.sh ssh dell gray.lin
+		if [ -n "$3" ]; then
+			echo "ssh $3@$DellServer_ip"
+			ssh "$3@$DellServer_ip"
 		else
-			sshpass -p 'Zx03310331' ssh gray.lin@$DellServer_ip
-			# ssh gray.lin@$DellServer_ip
+			echo "sshpass -p 'Zx03310331' ssh gray.lin@$DellServer_ip"
+			sshpass -p 'Zx03310331' ssh "gray.lin@$DellServer_ip"
+			# ssh "gray.lin@$DellServer_ip"
 		fi
 
-	elif [ "$2" == "pi" ] ; then
-		ssh pi@raspberrypi.local
-	
-	elif [ "$2" == "aic" ] ; then
-		if [ "$3" == "r" ] ; then
-			echo "ssh-keygen -R $AICamera_ip"
-			ssh-keygen -R $AICamera_ip
-		fi
-		echo "ssh root@$AICamera_ip"
-		ssh root@$AICamera_ip
-
-	elif [ "$2" == "usb" ] ; then
+	elif [ "$2" = "usb" ]; then
 		device_ip=""
 		for ip_last in 190 191 192 193 194 195; do
 			candidate_ip="192.168.1.$ip_last"
@@ -74,52 +131,103 @@ if [ "$1" == "ssh" ] ; then
 			fi
 		done
 
-		if [ -z "$device_ip" ] ; then
+		if [ -z "$device_ip" ]; then
 			echo "No USB device found in 192.168.1.190-195 (SSH port 22 unreachable)."
 			exit 1
 		fi
 
-		if [ "$3" == "r" ] ; then
-			echo "ssh-keygen -R $device_ip"
-			ssh-keygen -R $device_ip
-		fi
-		echo "ssh root@$device_ip"
-		ssh root@$device_ip
+		ssh_connect "$device_ip" "root" "$3"
 
-	elif [ "$2" == "wt" ] ; then
-		# wheeltech
-		if [ "$3" = "r" ] ; then
-			ssh -Y root@$wheeltec_ip
-		else
-			echo "ssh -Y wheeltec@$wheeltec_ip"
-			ssh -Y wheeltec@$wheeltec_ip
-		fi
 	else
-		if [ "$2" == "r" ] ; then
-			echo "ssh-keygen -R $3"
-			ssh-keygen -R $3
+		if host=$(get_device_host "$2" 2>/dev/null); then
+			user=$(get_device_user "$2")
+			ssh_connect "$host" "$user" "$3"
+		elif [ -n "$2" ]; then
+			# fallback: direct host/ip
+			ssh_connect "$2" "root" "$3"
+		else
+			echo "Usage:"
+			echo "  $0 ssh dell [user]"
+			echo "  $0 ssh aic [r]"
+			echo "  $0 ssh vh [r]"
+			echo "  $0 ssh aib [r]"
+			echo "  $0 ssh t1 [r]"
+			echo "  $0 ssh t2 [r]"
+			echo "  $0 ssh pi [r]"
+			echo "  $0 ssh usb [r]"
+			echo "  $0 ssh <ip-or-host> [r]"
+			exit 1
 		fi
-
 	fi
 fi
 
 # scp
-if [ "$1" == "scp" ] ; then
+if [ "$1" = "scp" ]; then
 	echo "copy files..."
-	if [ "$2" == "aic" ] ; then
-		# user="ubuntu"
-		# pass="primax1234"
-		user="root"
-		pass=""
-		remoteFolder=""
-		# remoteFolder="~/primax/apps"
-		if [ "$3" == "up" ] ; then
-			echo "scp ./$4 $user@$AICamera_ip:$remoteFolder$5"
-			scp ./$4 $user@$AICamera_ip:$remoteFolder$5
-			# sshpass scp ./$4 $user@$AICamera_ip:$remoteFolder/$5
-		elif [ "$3" == "down" ] ; then
-			echo "sshpass scp $user@$AICamera_ip:$remoteFolder$4 ."
-			sshpass scp $user@$AICamera_ip:$remoteFolder$4 .
+
+	if host=$(get_device_host "$2" 2>/dev/null); then
+		user=$(get_device_user "$2")
+
+		# examples:
+		#   ./x.sh scp aic up   local.txt /tmp/local.txt
+		#   ./x.sh scp aic down /tmp/remote.txt .
+		#   ./x.sh scp aic up   build/app /home/root/app r
+		#   ./x.sh scp vh  down /etc/hostname .
+		#
+		# arg map:
+		#   $3 = up/down
+		#   $4 = src
+		#   $5 = dst
+		#   $6 = optional r
+
+		if [ -z "$3" ] || [ -z "$4" ] || [ -z "$5" ]; then
+			echo "Usage:"
+			echo "  $0 scp <device> up   <local_src>  <remote_dst> [r]"
+			echo "  $0 scp <device> down <remote_src> <local_dst>  [r]"
+			echo
+			echo "Devices: aic vh aib t1 t2 pi"
+			exit 1
+		fi
+
+		scp_transfer "$host" "$user" "$3" "$4" "$5" "$6"
+
+	elif [ "$2" = "usb" ]; then
+		device_ip=""
+		for ip_last in 190 191 192 193 194 195; do
+			candidate_ip="192.168.1.$ip_last"
+			if nc -z -w 1 "$candidate_ip" 22 >/dev/null 2>&1; then
+				device_ip="$candidate_ip"
+				break
+			fi
+		done
+
+		if [ -z "$device_ip" ]; then
+			echo "No USB device found in 192.168.1.190-195 (SSH port 22 unreachable)."
+			exit 1
+		fi
+
+		if [ -z "$3" ] || [ -z "$4" ] || [ -z "$5" ]; then
+			echo "Usage:"
+			echo "  $0 scp usb up   <local_src>  <remote_dst> [r]"
+			echo "  $0 scp usb down <remote_src> <local_dst>  [r]"
+			exit 1
+		fi
+
+		scp_transfer "$device_ip" "root" "$3" "$4" "$5" "$6"
+
+	else
+		# fallback: direct host/ip
+		#   ./x.sh scp 192.168.3.100 up   a.txt /tmp/a.txt
+		#   ./x.sh scp myhost.local down /tmp/a.txt .
+		if [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] && [ -n "$5" ]; then
+			scp_transfer "$2" "root" "$3" "$4" "$5" "$6"
+		else
+			echo "Usage:"
+			echo "  $0 scp <device> up   <local_src>  <remote_dst> [r]"
+			echo "  $0 scp <device> down <remote_src> <local_dst>  [r]"
+			echo "  $0 scp <ip-or-host> up   <local_src>  <remote_dst> [r]"
+			echo "  $0 scp <ip-or-host> down <remote_src> <local_dst>  [r]"
+			exit 1
 		fi
 	fi
 fi

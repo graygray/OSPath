@@ -1177,28 +1177,27 @@ if [ "$1" = "aic" ]; then
 		fi
 
 	elif [ "$2" = "lora" ]; then
+
 		if [ "$3" = "r" ]; then
+			BAND="${5:-433000000}"   # optional: pass band as $5, default 433000000
+			PORT="/dev/ttyUSB0"
 
 			if [ "$4" = "log" ]; then
-
-				if is_aicamera ||  is_visionhub; then
-					echo "python3 lora_tdma.py --port /dev/ttyUSB0 --robots 1-4 --log --log-calc --log-rx"
-					python3 lora_tdma.py --port /dev/ttyUSB0 --robots 1-4 --log --log-calc --log-rx
+				if is_aicamera || is_visionhub; then
+					CMD="python3 lora_tdma.py --port $PORT --robots 1-4 --band $BAND --log --log-calc --log-rx"
 				else
-					# ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-15 -p log:=true -p port:=/dev/ttyUSB0
-					echo "ros2 run lora_rylr993 lora_rylr993_node --ros-args -p log:=true -p log_calc:=true -p port:=/dev/ttyUSB0"
-					ros2 run lora_rylr993 lora_rylr993_node --ros-args -p log:=true -p log_calc:=true -p port:=/dev/ttyUSB0
+					CMD="ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-10 -p log:=true -p log_calc:=true -p log_rx:=true -p port:=$PORT -p band:=$BAND"
 				fi
 			else
-				if is_aicamera ||  is_visionhub; then
-					echo "python3 lora_tdma.py --port /dev/ttyUSB0 --robots 1-4 --log-calc --log-rx"
-					python3 lora_tdma.py --port /dev/ttyUSB0 --robots 1-4 --log --log-calc --log-rx
+				if is_aicamera || is_visionhub; then
+					CMD="python3 lora_tdma.py --port $PORT --robots 1-4 --band $BAND --log-calc --log-rx"
 				else
-					echo "ros2 run lora_rylr993 lora_rylr993_node --ros-args -p log_calc:=true -p port:=/dev/ttyUSB0"
-					ros2 run lora_rylr993 lora_rylr993_node --ros-args -p log:=true -p log_calc:=true -p port:=/dev/ttyUSB0
+					CMD="ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-10 -p log_calc:=true -p log_rx:=true -p port:=$PORT -p band:=$BAND"
 				fi
-
 			fi
+
+			echo "$CMD"
+			eval "$CMD"
 
 		elif [ "$3" = "i" ]; then
 			ipk_file="lora-rylr993_0.0.0-r0_armv8a.ipk"
