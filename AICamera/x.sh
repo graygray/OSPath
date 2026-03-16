@@ -1179,7 +1179,7 @@ if [ "$1" = "aic" ]; then
 	elif [ "$2" = "lora" ]; then
 
 		if [ "$3" = "r" ]; then
-			BAND="${5:-433000000}"   # optional: pass band as $5, default 433000000
+			BAND="${5:-868000000}"   # optional: pass band as $5, default 433000000
 			PORT="/dev/ttyUSB0"
 
 			if [ "$4" = "log" ]; then
