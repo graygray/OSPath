@@ -1544,6 +1544,20 @@ if [ "$1" = "unzip" ] ; then
 	elif [[ "$2" == *.tar.bz2 || "$2" == *.tbz || "$2" == *.tbz2 ]]; then
 		echo "tar -jxvf \"$2\""
 		tar -jxvf "$2"
+	elif [[ "$2" == *.7z ]]; then
+		if command -v 7z >/dev/null 2>&1; then
+			echo "7z x \"$2\""
+			7z x "$2"
+		elif command -v 7zr >/dev/null 2>&1; then
+			echo "7zr x \"$2\""
+			7zr x "$2"
+		elif command -v 7za >/dev/null 2>&1; then
+			echo "7za x \"$2\""
+			7za x "$2"
+		else
+			echo "No 7z extractor found. Install p7zip (7z/7zr/7za)."
+			exit 1
+		fi
 	elif [[ "$2" == *.zip ]]; then
 		echo "unzip \"$2\""
 		unzip "$2"
@@ -1961,4 +1975,3 @@ if [ "$1" == "c" ] ; then
 	echo "clear ..."
 	clear
 fi
-
