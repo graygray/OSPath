@@ -1207,9 +1207,11 @@ if [ "$1" = "aic" ]; then
 
 		elif [ "$3" = "pub" ]; then
 			MSG='{"v": 2, "id": "bf54", "d": "v1QDALr//QIJgFg6"}'
+			echo "ros2 topic pub /fleet_transmit std_msgs/msg/String \"{data: '$MSG'}\" -r 1"
 			ros2 topic pub /fleet_transmit std_msgs/msg/String "{data: '$MSG'}" -r 1
 
 		elif [ "$3" = "sub" ]; then
+			echo "ros2 topic echo /fleet_receive"
 			ros2 topic echo /fleet_receive
 
 		fi
