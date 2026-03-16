@@ -1184,13 +1184,13 @@ if [ "$1" = "aic" ]; then
 
 			if [ "$4" = "log" ]; then
 				if is_aicamera || is_visionhub; then
-					CMD="python3 lora_tdma.py --port $PORT --robots 1-4 --band $BAND --log --log-calc --log-rx"
+					CMD="python3 lora_tdma.py --port $PORT --robots 1-10 --band $BAND --log --log-calc --log-rx"
 				else
 					CMD="ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-10 -p log:=true -p log_calc:=true -p log_rx:=true -p port:=$PORT -p band:=$BAND"
 				fi
 			else
 				if is_aicamera || is_visionhub; then
-					CMD="python3 lora_tdma.py --port $PORT --robots 1-4 --band $BAND --log-calc --log-rx"
+					CMD="python3 lora_tdma.py --port $PORT --robots 1-10 --band $BAND --log-calc --log-rx"
 				else
 					CMD="ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-10 -p log_calc:=true -p log_rx:=true -p port:=$PORT -p band:=$BAND"
 				fi
