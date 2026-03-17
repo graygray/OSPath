@@ -1283,3 +1283,8 @@ if [ "$1" == "bpb" ] ; then
 	backup_build "aicamera"
 	backup_build "visionhub"
 fi
+
+if [ "$1" == "c" ] ; then
+	echo "clear ..."
+	clear
+fi
