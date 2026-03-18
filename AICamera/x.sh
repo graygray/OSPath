@@ -717,7 +717,6 @@ if [ "$1" = "aic" ]; then
 
 	elif [ "$2" = "ftp" ]; then
 
-		# FTP/SSH details
 		ftp_user="gray.lin"
 		ftp_pass="Zx03310331"
 		ftp_host="10.1.13.207"
@@ -727,41 +726,70 @@ if [ "$1" = "aic" ]; then
 			dir_prj="visionhub"
 		fi
 
-		dir_ftp="/mnt/disk2/FTP/Public/gray/$dir_prj"
+		dir_ssh_remote="/mnt/disk2/FTP/Public/gray/$dir_prj"
+		dir_ftp_remote="Public/gray/$dir_prj"
 		dir_local="/mnt/reserved"
+		dir_local_cache="$dir_local/$ftp_host"
 		dir_exec=~/"primax"
 
-		pkill fw_watchdog.sh
-		pkill vision_box
-		pkill fw_daemon
+		stop_runtime_processes() {
+			pkill fw_watchdog.sh
+			pkill vision_box
+			pkill fw_daemon
+		}
+
+		sync_runtime_files() {
+			if [ ! -d "$dir_local_cache" ]; then
+				echo "Local cache not found: $dir_local_cache"
+				return 1
+			fi
+
+			if [ -f "$dir_local_cache/vision_box_DualCam" ]; then
+				cp -f "$dir_local_cache/vision_box_DualCam" "$dir_exec/" || return 1
+				chmod 755 "$dir_exec/vision_box_DualCam"
+			fi
+
+			if [ -f "$dir_local_cache/fw_daemon" ]; then
+				cp -f "$dir_local_cache/fw_daemon" "$dir_exec/" || return 1
+				chmod 755 "$dir_exec/fw_daemon"
+			fi
+
+			if [ -f "$dir_local_cache/fw_ota.sh" ]; then
+				chmod 755 "$dir_local_cache/fw_ota.sh"
+			fi
+		}
+
+		mkdir -p "$dir_local_cache" || exit 1
 
 		if [ "$3" = "sync" ]; then
 			echo "use rsync..."
-			cd "$dir_local" || exit 1
 
 			case "$4" in
 				up)
-					echo "sync -avz -e ssh $dir_local/$ftp_host/ $ftp_user@$ftp_host:$dir_ftp/"
+					echo "rsync -avz -e ssh $dir_local_cache/ $ftp_user@$ftp_host:$dir_ssh_remote/"
 					rsync -avz -e ssh \
-						"$dir_local/$ftp_host/" \
-						"$ftp_user@$ftp_host:$dir_ftp/"
+						"$dir_local_cache/" \
+						"$ftp_user@$ftp_host:$dir_ssh_remote/"
 					;;
 				down)
+					stop_runtime_processes
 					if [ "$5" = "all" ]; then
 						rsync -avz -e ssh \
-							"$ftp_user@$ftp_host:$dir_ftp/" \
-							"$dir_local/$ftp_host/"
+							"$ftp_user@$ftp_host:$dir_ssh_remote/" \
+							"$dir_local_cache/"
 					else
 						rsync -avz -e ssh \
 							--exclude 'IQ_DB/' \
 							--exclude 'hikrobot/' \
-							"$ftp_user@$ftp_host:$dir_ftp/" \
-							"$dir_local/$ftp_host/"
+							"$ftp_user@$ftp_host:$dir_ssh_remote/" \
+							"$dir_local_cache/"
 					fi
 
-					cp -f "$dir_local/$ftp_host/vision_box_DualCam" "$dir_exec"
-					cp -f "$dir_local/$ftp_host/fw_daemon" "$dir_exec"
-					chmod 755 "$dir_exec/vision_box_DualCam" "$dir_exec/fw_daemon"
+					sync_runtime_files || exit 1
+					;;
+				*)
+					echo "Usage: $0 aic ftp sync {up|down} [all]"
+					exit 1
 					;;
 			esac
 
@@ -770,7 +798,7 @@ if [ "$1" = "aic" ]; then
 			file_to_upload="$4"
 
 			if [ -z "$file_to_upload" ]; then
-				echo "Error: No file specified to upload."
+				echo "Usage: $0 aic ftp up <file>"
 				exit 1
 			fi
 
@@ -780,30 +808,36 @@ if [ "$1" = "aic" ]; then
 				exit 1
 			fi
 
-			echo "Uploading $abs_path → $ftp_host:$dir_ftp/"
-			rsync -avz -e ssh "$abs_path" "$ftp_user@$ftp_host:$dir_ftp/"
+			echo "Uploading $abs_path -> $ftp_host:$dir_ssh_remote/"
+			rsync -avz -e ssh "$abs_path" "$ftp_user@$ftp_host:$dir_ssh_remote/"
 
 		else
 			echo "use wget..."
+			stop_runtime_processes
 			cd "$dir_local" || exit 1
-			dir_ftp="Public/gray/$dir_prj"
-			cmd="wget -m --cut-dirs=3 --no-parent --user=\"$ftp_user\" --password=\"$ftp_pass\" ftp://$ftp_host/$dir_ftp/ --exclude-directories=$dir_ftp/IQ_DB,$dir_ftp/hikrobot"
+
 			if [ "$3" = "all" ]; then
-				cmd="wget --mirror --cut-dirs=3 --no-parent --user=\"$ftp_user\" --password=\"$ftp_pass\" ftp://$ftp_host/$dir_ftp/"
+				echo "wget --mirror ftp://$ftp_host/$dir_ftp_remote/"
+				wget --mirror \
+					--cut-dirs=3 \
+					--no-parent \
+					--user="$ftp_user" \
+					--password="$ftp_pass" \
+					"ftp://$ftp_host/$dir_ftp_remote/"
+			else
+				echo "wget --mirror ftp://$ftp_host/$dir_ftp_remote/ (exclude IQ_DB hikrobot)"
+				wget --mirror \
+					--cut-dirs=3 \
+					--no-parent \
+					--user="$ftp_user" \
+					--password="$ftp_pass" \
+					--exclude-directories="$dir_ftp_remote/IQ_DB,$dir_ftp_remote/hikrobot" \
+					"ftp://$ftp_host/$dir_ftp_remote/"
 			fi
-			echo "Running: $cmd"
-			eval $cmd
 
 			if is_aicamera || is_visionhub; then
 				echo "Updating firmware files..."
-
-				cp -f "$dir_local/$ftp_host/vision_box_DualCam" "$dir_exec/" || exit 1
-				cp -f "$dir_local/$ftp_host/fw_daemon" "$dir_exec/" || exit 1
-
-				chmod 777 "$dir_exec/vision_box_DualCam"
-				chmod 777 "$dir_exec/fw_daemon"
-				chmod 777 "$dir_local/$ftp_host/fw_ota.sh"
-
+				sync_runtime_files || exit 1
 				echo "Update done"
 			else
 				echo "Skip..."
