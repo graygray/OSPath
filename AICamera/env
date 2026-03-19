@@ -48,7 +48,26 @@ alias ux='x ux'                 # update x.sh
 alias ua='ux && ue'             # update all
 
 # git
-alias gx='cd ~ && rm -r OSPath && git clone --depth 1 https://github.com/graygray/OSPath.git && cd OSPath && find . -name "*.sh" -exec chmod +x {} \; && cd ~'
-alias gx2='cd ~ && git clone --depth 1 https://github.com/graygray/OSPath.git && cd OSPath && find . -name "*.sh" -exec chmod +x {} \; && cd ~'
-alias gx3='cd ~ && rm -r OSPath && git clone https://github.com/PMX-GrayLin/OSPath.git && cd OSPath && find . -name "*.sh" -exec chmod +x {} \; && cd ~'
-alias gx4='cd ~ && git clone https://github.com/PMX-GrayLin/OSPath.git && cd OSPath && find . -name "*.sh" -exec chmod +x {} \; && cd ~'
+clone_ospath() {
+	local repo_url="$1"
+	local replace_existing="$2"
+
+	cd ~ || return 1
+
+	if [ "$replace_existing" = "replace" ] && [ -d OSPath ]; then
+		rm -rf OSPath
+	fi
+
+	if [ -d OSPath ]; then
+		echo "OSPath already exists: ~/OSPath"
+		return 1
+	fi
+
+	git clone --depth 1 "$repo_url" OSPath || return 1
+
+	cd ~/OSPath || return 1
+	find . -name "*.sh" -exec chmod +x {} \;
+}
+
+alias gx='clone_ospath https://github.com/graygray/OSPath.git replace'
+alias gx2='clone_ospath https://github.com/graygray/OSPath.git keep'
