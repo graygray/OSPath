@@ -50,15 +50,22 @@ alias ua='ux && ue'             # update all
 # git
 clone_ospath() {
 	local repo_url="$1"
-	local replace_existing="$2"
+	local mode="$2"
 
 	cd ~ || return 1
 
-	if [ "$replace_existing" = "replace" ] && [ -d OSPath ]; then
+	if [ "$mode" = "replace" ] && [ -d OSPath ]; then
 		rm -rf OSPath
 	fi
 
 	if [ -d OSPath ]; then
+		if [ "$mode" = "update" ]; then
+			cd ~/OSPath || return 1
+			git pull --ff-only || return 1
+			find . -name "*.sh" -exec chmod +x {} \;
+			return 0
+		fi
+
 		echo "OSPath already exists: ~/OSPath"
 		return 1
 	fi
@@ -70,4 +77,4 @@ clone_ospath() {
 }
 
 alias gx='clone_ospath https://github.com/graygray/OSPath.git replace'
-alias gx2='clone_ospath https://github.com/graygray/OSPath.git keep'
+alias gx2='clone_ospath https://github.com/graygray/OSPath.git update'
