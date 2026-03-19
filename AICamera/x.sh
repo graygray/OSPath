@@ -298,12 +298,15 @@ if [ "$1" = "aic" ]; then
 			# build_number=$(cat ~/primax/misc/build_number)
 			# echo "#$build_number"
 			# echo ""
-			echo "check build date... ( cat ~/primax/misc/build_date )"
-			cat ~/primax/misc/build_date
-			echo ""
-			echo "check build commit... ( cat ~/primax/misc/build_commit )"
-			cat ~/primax/misc/build_commit
-			echo ""
+				echo "check build date... ( cat ~/primax/misc/build_date )"
+				cat ~/primax/misc/build_date
+				echo ""
+				echo "check build branch... ( cat ~/primax/misc/build_branch )"
+				cat ~/primax/misc/build_branch
+				echo ""
+				echo "check build commit... ( cat ~/primax/misc/build_commit )"
+				cat ~/primax/misc/build_commit
+				echo ""
 			if [ -s /home/root/primax/misc/application_tag ]; then
 				echo "App Tag:" && cat /home/root/primax/misc/application_tag && echo
 			fi
