@@ -100,7 +100,7 @@ alias ytp='dpr && ./pack_image.bash'
 alias ytb='bDate && bCommit && bBranch && DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image'
 alias ytb2='bDate && bCommit && bBranch && x bb c primax && DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image'
 alias ytb3='ytb2 && ytp'
-alias ytb_docker='bCommit && DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image'
+alias ytb_docker='bCommit && bBranch && DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image'
 
 alias ep='[ -f ~/tmp/p1 ] && export p1=$(cat ~/tmp/p1); [ -f ~/tmp/p2 ] && export p2=$(cat ~/tmp/p2)'
 alias sp1='mkdir -p ~/tmp && echo `pwd` > ~/tmp/p1 && ep'
