@@ -14,7 +14,7 @@ services:
     environment:
       - TZ=Asia/Taipei
     volumes:
-      - /mnt/disk2/yocto_build_folder/docker:/home/gray.lin/build
+      - /mnt/disk3/yocto_build/docker:/home/gray.lin/build
       - /mnt/disk2/FTP/Public/Jenkins:/ftp
       
   visionhub:
@@ -30,5 +30,5 @@ services:
     environment:
       - TZ=Asia/Taipei
     volumes:
-      - /mnt/disk2/yocto_build_folder/docker:/home/gray.lin/build
+      - /mnt/disk3/yocto_build/docker:/home/gray.lin/build
       - /mnt/disk2/FTP/Public/Jenkins:/ftp
