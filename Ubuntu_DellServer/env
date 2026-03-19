@@ -9,8 +9,6 @@ alias p3='python3'
 # edit
 alias ex='nano ~/OSPath/$InHost/x.sh'
 alias erc='nano ~/.bashrc'
-alias ewifi='nano /etc/netplan/01-network-manager-all.yaml'
-alias euser='rm ~/init.done && nano ~/primax/misc/user'
 
 alias ebbi='nano $PROJ_ROOT/src/meta-rity/meta-rity-demo/recipes-demo/images/rity-demo-image.bb'
 alias ebbpmx='nano $PROJ_ROOT/src/meta-primax/recipes-primax/primax/primax_1.0.bb'
@@ -33,20 +31,6 @@ alias dftp='cd /mnt/disk2/FTP/Public/gray'
 alias dftppi='cd /mnt/disk2/FTP/Public/gray/privateImage'
 alias dftpaic='cd /mnt/disk2/FTP/Public/gray/aicamera'
 alias dftpvh='cd /mnt/disk2/FTP/Public/gray/visionhub'
-alias dg2='cd /home/gray.lin/C_AI-Camera-G2_FW_Yocto'
-dpaic() {
-    cd /mnt/disk3/yocto_build/gray.lin/C_AI-Camera-Plus_FW_Yocto/ || return
-    export project_string="aicamera"
-}
-dpvh() {
-    cd /mnt/disk3/yocto_build/gray.lin/C_Vision-Hub-Plus_FW_Yocto/ || return
-    export project_string="visionhub"
-}
-dpamr() {
-    cd /mnt/disk3/yocto_build/gray.lin/C_AMR-G2_FW_Yocto/ || return
-    export project_string="amr"
-}
-
 
 # dir yocto related
 alias dytb='cd /mnt/disk2/yocto_build_folder/gray'                                                  # dir yocto build                                   # dir home
@@ -78,6 +62,19 @@ alias dpwk='cd $BUILD_DIR/workspace/sources/linux-mtk/'                         
 alias dpwdts='cd $BUILD_DIR/workspace/sources/linux-mtk/arch/arm64/boot/dts/mediatek'              # dir project kernal dts
 alias dpwiq='cd $BUILD_DIR/workspace/sources/mtk-camisp-mw/mtkcam-yocto/custom/mt8188/hal/imgsensor/ver1/imx214_mipi_raw'
 alias dpwiq2='cd $BUILD_DIR/workspace/sources/mtk-camisp-mw/mtkcam-yocto/custom/mt8188/hal/camera_db/DataSet/SQLiteModule'
+
+dpaic() {
+    cd /mnt/disk3/yocto_build/gray.lin/C_AI-Camera-Plus_FW_Yocto/ || return
+    export project_string="aicamera"
+}
+dpvh() {
+    cd /mnt/disk3/yocto_build/gray.lin/C_Vision-Hub-Plus_FW_Yocto/ || return
+    export project_string="visionhub"
+}
+dpamr() {
+    cd /mnt/disk3/yocto_build/gray.lin/C_AMR-G2_FW_Yocto/ || return
+    export project_string="amr"
+}
 
 # update
 alias ue='source ~/.bashrc'     # update env
