@@ -299,7 +299,8 @@ if [ "$1" = "aic" ]; then
 			build_commit=$(cat ~/primax/misc/build_commit)
 			echo ""
 			echo "=============================="
-			echo "build info :"
+			echo "hostname : "
+			echo "build info : $(hostname)"
 			echo "version : $build_version"
 			echo "date : $build_date"
 			echo "branch : $build_branch"
