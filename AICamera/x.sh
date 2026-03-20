@@ -20,7 +20,7 @@ for arg in "$@"; do
 done
 
 timestamp=$(TZ='UTC-8' date +"%H%M%S")
-echo "timestamp:"$timestamp
+# echo "timestamp:"$timestamp
 
 product=$(fw_printenv | grep '^product=' | cut -d '=' -f2)
 # ai_camera_plus or vision_hub_plus 
@@ -35,7 +35,7 @@ device_uvc=$(cat ~/primax/misc/camera_uvc.conf)
 if [ -z "$device_uvc" ]; then
   device_uvc="/dev/video137"
 fi
-echo "device_uvc:$device_uvc"
+# echo "device_uvc:$device_uvc"
 
 is_aicamera() {
   if [[ "$hostname_prefix" == "aicamera" || "$hostname_prefix" == "aibox" || "$product" == "ai_camera_plus" ]]; then
@@ -132,13 +132,11 @@ fi
 
 # AICamera 
 if [ "$1" = "aic" ]; then
-	echo "aicamera command..."
 
 	if [ "$2" = "jobs" ]; then
 		pm2 list
 
 	elif [ "$2" = "ck" ]; then
-		echo "check feature..."
 		if [ "$3" = "dp" ]; then
 			echo "display port..."
 			echo "i2cdetect -r -y 0"
@@ -295,12 +293,15 @@ if [ "$1" = "aic" ]; then
 			build_date=$(cat ~/primax/misc/build_date)
 			build_branch=$(cat ~/primax/misc/build_branch)
 			build_commit=$(cat ~/primax/misc/build_commit)
+			echo ""
+			echo "=============================="
 			echo "build info :"
 			echo "version : $build_version"
 			echo "date : $build_date"
 			echo "branch : $build_branch"
 			echo "commit : $build_commit"
 			echo ""
+			echo "=============================="
 			if [ -s /home/root/primax/misc/application_tag ]; then
 				echo "App Tag:" && cat /home/root/primax/misc/application_tag && echo
 			fi
