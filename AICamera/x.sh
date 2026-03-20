@@ -352,7 +352,11 @@ if [ "$1" = "aic" ]; then
 			pkill mediamtx
 			sleep 1
 			mediamtx /etc/mediamtx/mediamtx.yml&
-		
+
+		elif [ "$3" = "udev" ]; then
+			udevadm control --reload-rules
+			udevadm trigger
+
 		elif [ "$3" = "fw" ]; then
 			pkill vision_box
 			sleep 1
