@@ -18,6 +18,7 @@ for arg in "$@"; do
     echo "param $i: $arg"
     ((i++))
 done
+echo ""
 
 timestamp=$(TZ='UTC-8' date +"%H%M%S")
 # echo "timestamp:"$timestamp
@@ -31,7 +32,10 @@ hostname_prefix=$(hostname | awk -F'-' '{print $1}')
 echo "hostname_prefix:$hostname_prefix"
 
 # Load device path from config
-device_uvc=$(cat ~/primax/misc/camera_uvc.conf)
+camera_uvc_conf=~/primax/misc/camera_uvc.conf
+if [ -f "$camera_uvc_conf" ]; then
+  device_uvc=$(cat "$camera_uvc_conf")
+fi
 if [ -z "$device_uvc" ]; then
   device_uvc="/dev/video137"
 fi
@@ -300,12 +304,11 @@ if [ "$1" = "aic" ]; then
 			echo "date : $build_date"
 			echo "branch : $build_branch"
 			echo "commit : $build_commit"
-			echo ""
 			echo "=============================="
 			if [ -s /home/root/primax/misc/application_tag ]; then
 				echo "App Tag:" && cat /home/root/primax/misc/application_tag && echo
 			fi
-			echo "check process... ps aux | grep -E --color=auto \"vision_box|mediamtx|fw|gst\""
+			echo "FW process... ps aux | grep -E --color=auto \"vision_box|mediamtx|fw|gst\""
 			ps aux | grep -E --color=auto "vision_box|mediamtx|fw|gst|wpa_s|hostapd"
 		fi
 	
