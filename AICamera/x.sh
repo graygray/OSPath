@@ -291,22 +291,16 @@ if [ "$1" = "aic" ]; then
 			journalctl -u chronyd -n 80 --no-pager 2>/dev/null || true
 
 		else
-			echo "check version... ( cat /etc/primax_version )"
-			cat /etc/primax_version
+			build_version=$(cat /etc/primax_version)
+			build_date=$(cat ~/primax/misc/build_date)
+			build_branch=$(cat ~/primax/misc/build_branch)
+			build_commit=$(cat ~/primax/misc/build_commit)
+			echo "build info :"
+			echo "version : $build_version"
+			echo "date : $build_date"
+			echo "branch : $build_branch"
+			echo "commit : $build_commit"
 			echo ""
-			# echo "check build number... ( cat ~/primax/misc/build_number )"
-			# build_number=$(cat ~/primax/misc/build_number)
-			# echo "#$build_number"
-			# echo ""
-				echo "check build date... ( cat ~/primax/misc/build_date )"
-				cat ~/primax/misc/build_date
-				echo ""
-				echo "check build branch... ( cat ~/primax/misc/build_branch )"
-				cat ~/primax/misc/build_branch
-				echo ""
-				echo "check build commit... ( cat ~/primax/misc/build_commit )"
-				cat ~/primax/misc/build_commit
-				echo ""
 			if [ -s /home/root/primax/misc/application_tag ]; then
 				echo "App Tag:" && cat /home/root/primax/misc/application_tag && echo
 			fi
