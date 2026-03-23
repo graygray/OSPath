@@ -88,6 +88,8 @@ REM =====================================================
 set "dir_ndd_root=D:\project\MT8395_IoTYocto_NDD_Dump_Scripts_r230614"
 set "dir_ndd_dump=!dir_ndd_root!\Ndd_Dump_Scripts"
 set "dir_ndd_camera=!dir_ndd_root!\CameraOpenClose"
+set "dir_ndd_dev=/mnt/reserved/camera_dump"
+set "file_ndd_cfg=ndd_autogen_cfg_ISP7.0_coArch_v2.cfg"
 
 if not exist "!dir_ndd_root!" (
     echo [ERROR] NDD root dir not found: "!dir_ndd_root!"
@@ -95,9 +97,7 @@ if not exist "!dir_ndd_root!" (
 )
 
 if /i "!arg2!"=="init" (
-    cd /d "!dir_ndd_dump!"
-    call 01_NDD_init.bat
-    call 02_NDD_preview_config.bat
+    call :ndd_init
     goto :eof
 )
 
@@ -125,8 +125,21 @@ if /i "!arg2!"=="stop" (
 )
 
 if /i "!arg2!"=="dump" (
-    cd /d "!dir_ndd_dump!"
-    call 04_NDD_Pull.bat
+    call :ndd_dump
+    goto :eof
+)
+
+if /i "!arg2!"=="ck" (
+    echo [NDD] Dump path: !dir_ndd_dev!
+    echo.
+    echo [NDD] Filesystem usage
+    adb shell "df -h !dir_ndd_dev!"
+    echo.
+    echo [NDD] Dump folder size
+    adb shell "du -sh !dir_ndd_dev! 2>/dev/null || ls -ld !dir_ndd_dev!"
+    echo.
+    echo [NDD] Dump folder content
+    adb shell "ls -lh !dir_ndd_dev!"
     goto :eof
 )
 
@@ -250,6 +263,42 @@ goto :eof
 REM =====================================================
 REM ================== NDD Helpers ======================
 REM =====================================================
+:ndd_init
+cd /d "!dir_ndd_dump!"
+adb root
+adb shell "rm -rf !dir_ndd_dev!/"
+adb shell "rm -rf !dir_ndd_dev!"
+adb shell "mkdir -p !dir_ndd_dev!/"
+adb shell "chmod 777 !dir_ndd_dev!"
+adb shell setprop persist.vendor.logmuch false
+adb shell setprop vendor.debug.p2g.force.buffer.round 5
+adb shell setprop persist.vendor.camera3.pipeline.bufnum.base.rsso 15
+adb shell setprop persist.vendor.camera3.pipeline.bufnum.base.rrzo 10
+adb shell setprop vendor.debug.ndd.thdnum 2
+adb shell setprop vendor.debug.ndd.subdir 1
+adb shell setprop vendor.debug.ndd.debuging 0
+adb shell setprop vendor.debug.camera.pipemgr.bufdump 1
+adb shell "chmod -R 777 /sys/kernel/debug/mtk_cam_dbg/"
+adb shell setprop vendor.debug.camera.imgBuf.enFC 0
+adb shell setprop vendor.debug.ndd.direct_write 1
+adb shell setprop vendor.debug.camera.scenarioRecorder.enable 1
+adb shell setprop vendor.debug.ndd.gen_cfg 1
+adb shell setprop vendor.debug.fwcolorparam.dump 1
+adb shell "echo userspace > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor"
+adb shell "echo 2000000 > /sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed"
+adb shell "echo userspace > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor"
+adb shell "echo 2200000 > /sys/devices/system/cpu/cpufreq/policy4/scaling_setspeed"
+adb shell setprop vendor.debug.fpipe.mcnr.probe_dl 1
+adb shell setprop vendor.debug.fpipe.force.img3o.fmt "MTK_YUV_P010"
+adb shell pkill camera
+adb shell setenforce 0
+adb push "!file_ndd_cfg!" "!dir_ndd_dev!/"
+adb shell chmod 777 "!dir_ndd_dev!/!file_ndd_cfg!"
+adb shell setprop vendor.debug.ndd.cfgpath "!dir_ndd_dev!/!file_ndd_cfg!"
+adb shell setprop vendor.debug.camera.img3o.dump 1
+adb shell setprop vendor.debug.ndd.action_enable -1
+goto :eof
+
 :ndd_push_camera_scripts
 if not exist "!dir_ndd_camera!" (
     echo [ERROR] NDD camera dir not found: "!dir_ndd_camera!"
@@ -259,9 +308,34 @@ adb shell mkdir -p /data/vendor
 adb push "!dir_ndd_camera!\camera_open_preview.sh" /data/vendor/camera_open_preview.sh
 adb push "!dir_ndd_camera!\camera_open_capture.sh" /data/vendor/camera_open_capture.sh
 adb push "!dir_ndd_camera!\camera_close.sh" /data/vendor/camera_close.sh
-adb shell chmod 755 /data/vendor/camera_open_preview.sh
-adb shell chmod 755 /data/vendor/camera_open_capture.sh
-adb shell chmod 755 /data/vendor/camera_close.sh
+adb shell chmod 777 /data/vendor/camera_open_preview.sh
+adb shell chmod 777 /data/vendor/camera_open_capture.sh
+adb shell chmod 777 /data/vendor/camera_close.sh
+goto :eof
+
+:ndd_dump
+call :init_timestamp
+cd /d "!dir_ndd_dump!"
+set "ndd_local_dir=%cd%\!TS!"
+set "filelist=!ndd_local_dir!\FileList.log"
+
+adb root
+adb remount
+adb push camsys_converter.sh "!dir_ndd_dev!/camsys_converter.sh"
+adb shell "sed -i 's#^path=.*#path=\"!dir_ndd_dev!/\"#' !dir_ndd_dev!/camsys_converter.sh"
+adb shell "chmod a+x !dir_ndd_dev!/camsys_converter.sh"
+adb shell "sh !dir_ndd_dev!/camsys_converter.sh"
+
+mkdir "!ndd_local_dir!"
+adb shell "ls -d !dir_ndd_dev!/*  | tr  '\n' ' '" > "!filelist!"
+
+setlocal enabledelayedexpansion
+for /f "delims=" %%F in (!filelist!) do (
+    adb pull %%F "!ndd_local_dir!"
+)
+endlocal
+
+del "!filelist!"
 goto :eof
 
 REM =====================================================
@@ -312,6 +386,7 @@ echo   x ndd init
 echo   x ndd start [capture]
 echo   x ndd stop
 echo   x ndd dump
+echo   x ndd ck
 goto :eof
 
 :usage
