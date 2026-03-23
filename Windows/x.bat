@@ -18,6 +18,7 @@ REM =====================================================
 REM =============== Main Dispatcher =====================
 REM =====================================================
 if /i "!arg1!"=="iq"   goto :cmd_iq
+if /i "!arg1!"=="ndd"  goto :cmd_ndd
 if /i "!arg1!"=="stm"  goto :cmd_stm
 if /i "!arg1!"=="code" goto :cmd_code
 if /i "!arg1!"=="cd"   goto :cmd_cd
@@ -28,8 +29,8 @@ REM =====================================================
 REM ===================== IQ ============================
 REM =====================================================
 :cmd_iq
-set "dir_cct=D:\project\MediaToolKit_IoTYocto_240522"
-@REM set "dir_cct=D:\project\MediaToolKit_0129"
+@REM set "dir_cct=D:\project\MediaToolKit_IoTYocto_240522"
+set "dir_cct=D:\project\MediaToolKit_0129"
 set "dir_cct_dumpraw=!dir_cct!\svn\install\DataSet\CamCaliTool\SensorCalibrationDumpRaw"
 set "dir_cct_db=!dir_cct!\svn\install\DataSet\SQLiteModule"
 set "dir_dev_db=/mnt/reserved/10.1.13.207/IQ_DB/"
@@ -79,6 +80,57 @@ if /i "!arg2!"=="db" (
 )
 
 goto :iq_usage
+
+REM =====================================================
+REM ===================== NDD ===========================
+REM =====================================================
+:cmd_ndd
+set "dir_ndd_root=D:\project\MT8395_IoTYocto_NDD_Dump_Scripts_r230614"
+set "dir_ndd_dump=!dir_ndd_root!\Ndd_Dump_Scripts"
+set "dir_ndd_camera=!dir_ndd_root!\CameraOpenClose"
+
+if not exist "!dir_ndd_root!" (
+    echo [ERROR] NDD root dir not found: "!dir_ndd_root!"
+    goto :eof
+)
+
+if /i "!arg2!"=="init" (
+    cd /d "!dir_ndd_dump!"
+    call 01_NDD_init.bat
+    call 02_NDD_preview_config.bat
+    goto :eof
+)
+
+if /i "!arg2!"=="start" (
+    call :ndd_push_camera_scripts
+    if /i "!arg3!"=="capture" (
+        adb shell "sh /data/vendor/camera_open_preview.sh"
+        timeout /t 1 /nobreak >nul
+        adb shell "sh /data/vendor/camera_close.sh"
+        adb shell "sh /data/vendor/camera_open_capture.sh"
+    ) else (
+        adb shell "sh /data/vendor/camera_open_preview.sh"
+        cd /d "!dir_ndd_dump!"
+        call 03_NDD_preview_start.bat
+    )
+    goto :eof
+)
+
+if /i "!arg2!"=="stop" (
+    call :ndd_push_camera_scripts
+    adb shell "sh /data/vendor/camera_close.sh"
+    echo.
+    echo [NDD] Wait 3~5 min to guarantee all image data and tuning logs are saved.
+    goto :eof
+)
+
+if /i "!arg2!"=="dump" (
+    cd /d "!dir_ndd_dump!"
+    call 04_NDD_Pull.bat
+    goto :eof
+)
+
+goto :ndd_usage
 
 REM =====================================================
 REM ===================== STM ===========================
@@ -196,6 +248,23 @@ copy /y "%live_backup%" "%live_current%"
 goto :eof
 
 REM =====================================================
+REM ================== NDD Helpers ======================
+REM =====================================================
+:ndd_push_camera_scripts
+if not exist "!dir_ndd_camera!" (
+    echo [ERROR] NDD camera dir not found: "!dir_ndd_camera!"
+    goto :eof
+)
+adb shell mkdir -p /data/vendor
+adb push "!dir_ndd_camera!\camera_open_preview.sh" /data/vendor/camera_open_preview.sh
+adb push "!dir_ndd_camera!\camera_open_capture.sh" /data/vendor/camera_open_capture.sh
+adb push "!dir_ndd_camera!\camera_close.sh" /data/vendor/camera_close.sh
+adb shell chmod 755 /data/vendor/camera_open_preview.sh
+adb shell chmod 755 /data/vendor/camera_open_capture.sh
+adb shell chmod 755 /data/vendor/camera_close.sh
+goto :eof
+
+REM =====================================================
 REM ================== ZIP Helper =======================
 REM =====================================================
 :zipFolder
@@ -236,10 +305,20 @@ echo   x iq ftp
 echo   x iq db
 goto :eof
 
+:ndd_usage
+echo.
+echo NDD Usage:
+echo   x ndd init
+echo   x ndd start [capture]
+echo   x ndd stop
+echo   x ndd dump
+goto :eof
+
 :usage
 echo.
 echo Usage:
 echo   x iq ...
+echo   x ndd ...
 echo   x stm live ...
 echo   x code stmlive
 echo   x cd PATH
