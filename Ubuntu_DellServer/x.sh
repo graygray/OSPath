@@ -125,7 +125,7 @@ if [ "$1" = "lora" ] ; then
 		bitbake lora-rylr993
 	elif [ "$2" = "ftp" ]; then
 		echo "copy lora ipk to ftp... "
-		file2copy="lora-rylr993_0.0.0-r0_armv8a.ipk"
+		file2copy="lora-rylr993_0.0.1-r0_armv8a.ipk"
 		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$file2copy" "/mnt/disk2/FTP/Public/gray/aicamera/"
 	fi
 fi
