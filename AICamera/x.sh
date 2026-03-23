@@ -18,9 +18,10 @@ for arg in "$@"; do
     echo "param $i: $arg"
     ((i++))
 done
+echo ""
 
 timestamp=$(TZ='UTC-8' date +"%H%M%S")
-echo "timestamp:"$timestamp
+# echo "timestamp:"$timestamp
 
 product=$(fw_printenv | grep '^product=' | cut -d '=' -f2)
 # ai_camera_plus or vision_hub_plus 
@@ -31,11 +32,14 @@ hostname_prefix=$(hostname | awk -F'-' '{print $1}')
 echo "hostname_prefix:$hostname_prefix"
 
 # Load device path from config
-device_uvc=$(cat ~/primax/misc/camera_uvc.conf)
+camera_uvc_conf=~/primax/misc/camera_uvc.conf
+if [ -f "$camera_uvc_conf" ]; then
+  device_uvc=$(cat "$camera_uvc_conf")
+fi
 if [ -z "$device_uvc" ]; then
   device_uvc="/dev/video137"
 fi
-echo "device_uvc:$device_uvc"
+# echo "device_uvc:$device_uvc"
 
 is_aicamera() {
   if [[ "$hostname_prefix" == "aicamera" || "$hostname_prefix" == "aibox" || "$product" == "ai_camera_plus" ]]; then
@@ -132,13 +136,11 @@ fi
 
 # AICamera 
 if [ "$1" = "aic" ]; then
-	echo "aicamera command..."
 
 	if [ "$2" = "jobs" ]; then
 		pm2 list
 
 	elif [ "$2" = "ck" ]; then
-		echo "check feature..."
 		if [ "$3" = "dp" ]; then
 			echo "display port..."
 			echo "i2cdetect -r -y 0"
@@ -291,26 +293,24 @@ if [ "$1" = "aic" ]; then
 			journalctl -u chronyd -n 80 --no-pager 2>/dev/null || true
 
 		else
-			echo "check version... ( cat /etc/primax_version )"
-			cat /etc/primax_version
+			build_version=$(cat /etc/primax_version)
+			build_date=$(cat ~/primax/misc/build_date)
+			build_branch=$(cat ~/primax/misc/build_branch)
+			build_commit=$(cat ~/primax/misc/build_commit)
 			echo ""
-			# echo "check build number... ( cat ~/primax/misc/build_number )"
-			# build_number=$(cat ~/primax/misc/build_number)
-			# echo "#$build_number"
-			# echo ""
-				echo "check build date... ( cat ~/primax/misc/build_date )"
-				cat ~/primax/misc/build_date
-				echo ""
-				echo "check build branch... ( cat ~/primax/misc/build_branch )"
-				cat ~/primax/misc/build_branch
-				echo ""
-				echo "check build commit... ( cat ~/primax/misc/build_commit )"
-				cat ~/primax/misc/build_commit
-				echo ""
+			echo "=============================="
+			echo "hostname : $(hostname)"
+			echo ""
+			echo "build info : "
+			echo "version : $build_version"
+			echo "date : $build_date"
+			echo "branch : $build_branch"
+			echo "commit : $build_commit"
+			echo "=============================="
 			if [ -s /home/root/primax/misc/application_tag ]; then
 				echo "App Tag:" && cat /home/root/primax/misc/application_tag && echo
 			fi
-			echo "check process... ps aux | grep -E --color=auto \"vision_box|mediamtx|fw|gst\""
+			echo "FW process... ps aux | grep -E --color=auto \"vision_box|mediamtx|fw|gst\""
 			ps aux | grep -E --color=auto "vision_box|mediamtx|fw|gst|wpa_s|hostapd"
 		fi
 	
@@ -352,7 +352,11 @@ if [ "$1" = "aic" ]; then
 			pkill mediamtx
 			sleep 1
 			mediamtx /etc/mediamtx/mediamtx.yml&
-		
+
+		elif [ "$3" = "udev" ]; then
+			udevadm control --reload-rules
+			udevadm trigger
+
 		elif [ "$3" = "fw" ]; then
 			pkill vision_box
 			sleep 1

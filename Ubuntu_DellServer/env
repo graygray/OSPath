@@ -31,6 +31,8 @@ alias dftp='cd /mnt/disk2/FTP/Public/gray'
 alias dftppi='cd /mnt/disk2/FTP/Public/gray/privateImage'
 alias dftpaic='cd /mnt/disk2/FTP/Public/gray/aicamera'
 alias dftpvh='cd /mnt/disk2/FTP/Public/gray/visionhub'
+alias dd2='cd /mnt/disk2'
+alias dd3='cd /mnt/disk3'
 
 # dir yocto related
 alias dytb='cd /mnt/disk2/yocto_build_folder/gray'                                                  # dir yocto build                                   # dir home

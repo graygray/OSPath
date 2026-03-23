@@ -20,7 +20,7 @@ AICamera_ip="aicamera-0687.local"
 VisionHub_ip="visionhub-0687.local"
 AIBoxCamera_ip="aibox-0791.local"
 TestDevice1_ip="aicamera-d14b.local"
-TestDevice2_ip="192.168.3.103"
+TestDevice2_ip="192.168.1.193"
 
 # nfs
 if [ "$1" == "nfs" ] ; then
