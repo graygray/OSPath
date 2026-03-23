@@ -1944,6 +1944,7 @@ if [ "$1" == "ux" ]; then
     REPO=~/OSPath
     BRANCH="main"
     REMOTE="origin"
+    STASH_CREATED=0
 
     if [ ! -d "$REPO/.git" ]; then
         echo "[UX] shallow cloning OSPath"
@@ -1963,9 +1964,27 @@ if [ "$1" == "ux" ]; then
             echo "[UX] already up to date"
         elif [ "$LOCAL" = "$BASE" ]; then
             echo "[UX] fast-forwarding to $REMOTE/$BRANCH"
+            if ! git -C "$REPO" diff --quiet || ! git -C "$REPO" diff --cached --quiet || [ -n "$(git -C "$REPO" ls-files --others --exclude-standard)" ]; then
+                echo "[UX] stashing local changes before update"
+                if ! git -C "$REPO" stash push --include-untracked -m "ux-auto-stash"; then
+                    echo "[UX] stash failed"
+                    exit 1
+                fi
+                STASH_CREATED=1
+            fi
+
             if ! git -C "$REPO" merge --ff-only "$REMOTE/$BRANCH"; then
                 echo "[UX] fast-forward failed"
                 exit 1
+            fi
+
+            if [ "$STASH_CREATED" = "1" ]; then
+                echo "[UX] restoring stashed local changes"
+                if ! git -C "$REPO" stash pop; then
+                    echo "[UX] stash restored with conflicts"
+                    echo "[UX] resolve the conflicts, then run: git -C \"$REPO\" status"
+                    exit 1
+                fi
             fi
         elif [ "$REMOTE_HEAD" = "$BASE" ]; then
             echo "[UX] local branch is ahead of $REMOTE/$BRANCH"
