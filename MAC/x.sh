@@ -20,7 +20,7 @@ AICamera_ip="aicamera-0687.local"
 VisionHub_ip="visionhub-0687.local"
 AIBoxCamera_ip="aibox-0791.local"
 TestDevice1_ip="aicamera-d14b.local"
-TestDevice2_ip="192.168.1.193"
+TestDevice2_ip="192.168.50.59"
 
 # nfs
 if [ "$1" == "nfs" ] ; then
@@ -61,6 +61,7 @@ scp_transfer() {
 	local src="$4"
 	local dst="$5"
 	local reset_known_host="$6"
+	local scp_opts=(-O)
 
 	if [ "$reset_known_host" = "r" ]; then
 		echo "ssh-keygen -R $host"
@@ -68,12 +69,15 @@ scp_transfer() {
 	fi
 
 	if [ "$direction" = "up" ]; then
-		echo "scp $src ${user}@${host}:$dst"
-		scp "$src" "${user}@${host}:$dst"
+		if [[ "$dst" == */ ]]; then
+			dst="${dst}$(basename "$src")"
+		fi
+		echo "scp ${scp_opts[*]} $src ${user}@${host}:$dst"
+		scp "${scp_opts[@]}" "$src" "${user}@${host}:$dst"
 
 	elif [ "$direction" = "down" ]; then
-		echo "scp ${user}@${host}:$src $dst"
-		scp "${user}@${host}:$src" "$dst"
+		echo "scp ${scp_opts[*]} ${user}@${host}:$src $dst"
+		scp "${scp_opts[@]}" "${user}@${host}:$src" "$dst"
 
 	else
 		echo "Invalid scp direction: $direction"
