@@ -316,7 +316,7 @@ goto :eof
 
 :ndd_open_preview
 echo [NDD] Launch preview via adb shell through bash and nohup...
-adb shell "bash -lc 'nohup sh /data/vendor/camera_open_preview.sh >/data/vendor/camera_open_preview.log 2>&1 </dev/null &'"
+adb shell "bash -lc 'nohup sh /data/vendor/camera_open_preview.sh ^>/data/vendor/camera_open_preview.log 2^>^&1 ^</dev/null ^&'"
 goto :eof
 
 :ndd_dump
