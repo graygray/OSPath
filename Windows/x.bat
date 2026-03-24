@@ -97,12 +97,12 @@ if not exist "!dir_ndd_root!" (
 )
 
 if /i "!arg2!"=="init" (
+    call :ndd_push_camera_scripts
     call :ndd_init
     goto :eof
 )
 
 if /i "!arg2!"=="start" (
-    call :ndd_push_camera_scripts
     if /i "!arg3!"=="capture" (
         call :ndd_open_preview
         timeout /t 1 /nobreak >nul
@@ -117,7 +117,6 @@ if /i "!arg2!"=="start" (
 )
 
 if /i "!arg2!"=="stop" (
-    call :ndd_push_camera_scripts
     adb shell "bash -lc 'sh /data/vendor/camera_close.sh'"
     echo.
     echo [NDD] Wait 3~5 min to guarantee all image data and tuning logs are saved.
