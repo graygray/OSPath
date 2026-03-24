@@ -104,12 +104,12 @@ if /i "!arg2!"=="init" (
 if /i "!arg2!"=="start" (
     call :ndd_push_camera_scripts
     if /i "!arg3!"=="capture" (
-        adb shell "sh /data/vendor/camera_open_preview.sh"
+        call :ndd_open_preview
         timeout /t 1 /nobreak >nul
         adb shell "sh /data/vendor/camera_close.sh"
         adb shell "sh /data/vendor/camera_open_capture.sh"
     ) else (
-        adb shell "sh /data/vendor/camera_open_preview.sh"
+        call :ndd_open_preview
         cd /d "!dir_ndd_dump!"
         call 03_NDD_preview_start.bat
     )
@@ -311,6 +311,11 @@ adb push "!dir_ndd_camera!\camera_close.sh" /data/vendor/camera_close.sh
 adb shell chmod 777 /data/vendor/camera_open_preview.sh
 adb shell chmod 777 /data/vendor/camera_open_capture.sh
 adb shell chmod 777 /data/vendor/camera_close.sh
+goto :eof
+
+:ndd_open_preview
+echo [NDD] Launch preview via adb shell with Wayland env and nohup...
+adb shell "export XDG_RUNTIME_DIR=/run/user/0; export WAYLAND_DISPLAY=wayland-1; nohup sh /data/vendor/camera_open_preview.sh >/data/vendor/camera_open_preview.log 2>&1 </dev/null &"
 goto :eof
 
 :ndd_dump
