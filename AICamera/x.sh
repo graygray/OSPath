@@ -503,6 +503,8 @@ if [ "$1" = "aic" ]; then
 				# cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! v4l2convert output-io-mode=dmabuf-import ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false"
 			elif [ "$4" = "iq" ]; then
        			cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=1280,height=720,format=YUY2 ! waylandsink"
+			elif [ "$4" = "ndd" ]; then
+				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=1920,height=1080,format=NV12 ! waylandsink"
 			else
 				# cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=2048,height=1536 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
 				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=2592,height=1944 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
@@ -1940,17 +1942,62 @@ fi
 # update x
 if [ "$1" == "ux" ]; then
     REPO=~/OSPath
+    BRANCH="main"
+    REMOTE="origin"
+    STASH_CREATED=0
 
     if [ ! -d "$REPO/.git" ]; then
         echo "[UX] shallow cloning OSPath"
         git clone --depth 1 https://github.com/graygray/OSPath.git "$REPO"
     else
         echo "[UX] updating OSPath"
-        git -C "$REPO" fetch --depth 1 origin
-        git -C "$REPO" reset --hard origin/HEAD
+        if ! git -C "$REPO" fetch "$REMOTE" "$BRANCH"; then
+            echo "[UX] fetch failed"
+            exit 1
+        fi
+
+        LOCAL=$(git -C "$REPO" rev-parse HEAD)
+        REMOTE_HEAD=$(git -C "$REPO" rev-parse "$REMOTE/$BRANCH")
+        BASE=$(git -C "$REPO" merge-base HEAD "$REMOTE/$BRANCH")
+
+        if [ "$LOCAL" = "$REMOTE_HEAD" ]; then
+            echo "[UX] already up to date"
+        elif [ "$LOCAL" = "$BASE" ]; then
+            echo "[UX] fast-forwarding to $REMOTE/$BRANCH"
+            if ! git -C "$REPO" diff --quiet || ! git -C "$REPO" diff --cached --quiet || [ -n "$(git -C "$REPO" ls-files --others --exclude-standard)" ]; then
+                echo "[UX] stashing local changes before update"
+                if ! git -C "$REPO" stash push --include-untracked -m "ux-auto-stash"; then
+                    echo "[UX] stash failed"
+                    exit 1
+                fi
+                STASH_CREATED=1
+            fi
+
+            if ! git -C "$REPO" merge --ff-only "$REMOTE/$BRANCH"; then
+                echo "[UX] fast-forward failed"
+                exit 1
+            fi
+
+            if [ "$STASH_CREATED" = "1" ]; then
+                echo "[UX] restoring stashed local changes"
+                if ! git -C "$REPO" stash pop; then
+                    echo "[UX] stash restored with conflicts"
+                    echo "[UX] resolve the conflicts, then run: git -C \"$REPO\" status"
+                    exit 1
+                fi
+            fi
+        elif [ "$REMOTE_HEAD" = "$BASE" ]; then
+            echo "[UX] local branch is ahead of $REMOTE/$BRANCH"
+            echo "[UX] push your local commits with: git -C \"$REPO\" push $REMOTE $BRANCH"
+        else
+            echo "[UX] local and remote branches have diverged"
+            echo "[UX] rebase local commits with: git -C \"$REPO\" pull --rebase $REMOTE $BRANCH"
+            echo "[UX] or discard local commits with: git -C \"$REPO\" reset --hard $REMOTE/$BRANCH"
+            exit 1
+        fi
     fi
 
-    chmod 777 "$REPO/AICamera/x.sh"
+    chmod 755 "$REPO/AICamera/x.sh"
 fi
 
 # find content
