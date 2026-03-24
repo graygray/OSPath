@@ -90,13 +90,13 @@ if not exist "!dir_ndd_root!" (
 )
 
 if /i "!arg2!"=="init" (
+    call :ndd_prepare_start
     call :ndd_push_camera_scripts
     call :ndd_init
     goto :eof
 )
 
 if /i "!arg2!"=="start" (
-    call :ndd_prepare_start
     if /i "!arg3!"=="capture" (
         call :ndd_open_preview
         timeout /t 1 /nobreak >nul
