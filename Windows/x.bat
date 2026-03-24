@@ -270,6 +270,8 @@ adb shell "rm -rf !dir_ndd_dev!/"
 adb shell "rm -rf !dir_ndd_dev!"
 adb shell "mkdir -p !dir_ndd_dev!/"
 adb shell "chmod 777 !dir_ndd_dev!"
+adb shell "mkdir -p /data/vendor"
+adb shell "[ -e /data/vendor/camera_dump ] || ln -s !dir_ndd_dev! /data/vendor/camera_dump"
 adb shell setprop persist.vendor.logmuch false
 adb shell setprop vendor.debug.p2g.force.buffer.round 5
 adb shell setprop persist.vendor.camera3.pipeline.bufnum.base.rsso 15
