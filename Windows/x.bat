@@ -96,6 +96,7 @@ if /i "!arg2!"=="init" (
 )
 
 if /i "!arg2!"=="start" (
+    call :ndd_prepare_start
     if /i "!arg3!"=="capture" (
         call :ndd_open_preview
         timeout /t 1 /nobreak >nul
@@ -310,6 +311,13 @@ goto :eof
 :ndd_open_preview
 echo [NDD] Launch preview via adb shell through bash and nohup...
 adb shell "bash -lc 'nohup sh /data/vendor/camera_open_preview.sh'"
+goto :eof
+
+:ndd_prepare_start
+echo [NDD] Clean previous dump data...
+adb shell "rm -rf !dir_ndd_dev!/*"
+echo [NDD] Stop running GStreamer instances...
+adb shell "pkill -f gst"
 goto :eof
 
 :ndd_dump
