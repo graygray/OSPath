@@ -42,13 +42,6 @@ if /i "!arg2!"=="init" (
     goto :eof
 )
 
-if /i "!arg2!"=="dump" (
-    adb shell rm -r /data/vendor/raw /data/vendor/camera_dump/
-    adb shell mkdir -p /data/vendor/raw
-    adb shell setprop vendor.debug.camera.pipemgr.bufdump 1
-    goto :eof
-)
-
 if /i "!arg2!"=="rui" (
     cd /d "!dir_cct!\svn\install"
     call 4.0.MTKToolCustom.bat
