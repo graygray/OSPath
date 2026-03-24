@@ -17,7 +17,7 @@ DellServer_ip="10.1.13.207"
 
 # ai camera
 AICamera_ip="aicamera-0687.local"
-VisionHub_ip="visionhub-0687.local"
+VisionHub_ip="visionhub-f015.local"
 AIBoxCamera_ip="aibox-0791.local"
 TestDevice1_ip="aicamera-d14b.local"
 TestDevice2_ip="192.168.50.59"
