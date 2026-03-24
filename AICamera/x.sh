@@ -1944,7 +1944,6 @@ if [ "$1" == "ux" ]; then
     REPO=~/OSPath
     BRANCH="main"
     REMOTE="origin"
-    STASH_CREATED=0
 
     if [ ! -d "$REPO/.git" ]; then
         echo "[UX] shallow cloning OSPath"
@@ -1958,42 +1957,19 @@ if [ "$1" == "ux" ]; then
 
         LOCAL=$(git -C "$REPO" rev-parse HEAD)
         REMOTE_HEAD=$(git -C "$REPO" rev-parse "$REMOTE/$BRANCH")
-        BASE=$(git -C "$REPO" merge-base HEAD "$REMOTE/$BRANCH")
 
-        if [ "$LOCAL" = "$REMOTE_HEAD" ]; then
+        if [ "$LOCAL" = "$REMOTE_HEAD" ] && git -C "$REPO" diff --quiet && git -C "$REPO" diff --cached --quiet && [ -z "$(git -C "$REPO" ls-files --others --exclude-standard)" ]; then
             echo "[UX] already up to date"
-        elif [ "$LOCAL" = "$BASE" ]; then
-            echo "[UX] fast-forwarding to $REMOTE/$BRANCH"
-            if ! git -C "$REPO" diff --quiet || ! git -C "$REPO" diff --cached --quiet || [ -n "$(git -C "$REPO" ls-files --others --exclude-standard)" ]; then
-                echo "[UX] stashing local changes before update"
-                if ! git -C "$REPO" stash push --include-untracked -m "ux-auto-stash"; then
-                    echo "[UX] stash failed"
-                    exit 1
-                fi
-                STASH_CREATED=1
-            fi
-
-            if ! git -C "$REPO" merge --ff-only "$REMOTE/$BRANCH"; then
-                echo "[UX] fast-forward failed"
+        else
+            echo "[UX] discarding local changes and syncing to $REMOTE/$BRANCH"
+            if ! git -C "$REPO" reset --hard "$REMOTE/$BRANCH"; then
+                echo "[UX] reset failed"
                 exit 1
             fi
-
-            if [ "$STASH_CREATED" = "1" ]; then
-                echo "[UX] restoring stashed local changes"
-                if ! git -C "$REPO" stash pop; then
-                    echo "[UX] stash restored with conflicts"
-                    echo "[UX] resolve the conflicts, then run: git -C \"$REPO\" status"
-                    exit 1
-                fi
+            if ! git -C "$REPO" clean -fd; then
+                echo "[UX] clean failed"
+                exit 1
             fi
-        elif [ "$REMOTE_HEAD" = "$BASE" ]; then
-            echo "[UX] local branch is ahead of $REMOTE/$BRANCH"
-            echo "[UX] push your local commits with: git -C \"$REPO\" push $REMOTE $BRANCH"
-        else
-            echo "[UX] local and remote branches have diverged"
-            echo "[UX] rebase local commits with: git -C \"$REPO\" pull --rebase $REMOTE $BRANCH"
-            echo "[UX] or discard local commits with: git -C \"$REPO\" reset --hard $REMOTE/$BRANCH"
-            exit 1
         fi
     fi
 
