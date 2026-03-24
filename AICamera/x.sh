@@ -1243,7 +1243,7 @@ if [ "$1" = "aic" ]; then
 			eval "$CMD"
 
 		elif [ "$3" = "i" ]; then
-			ipk_file="lora-rylr993_0.0.0-r0_armv8a.ipk"
+			ipk_file="lora-rylr993_0.0.1-r0_armv8a.ipk"
 			echo "opkg install $ipk_file --force-reinstall"
 			opkg install $ipk_file --force-reinstall
 
