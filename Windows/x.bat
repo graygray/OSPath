@@ -106,8 +106,8 @@ if /i "!arg2!"=="start" (
     if /i "!arg3!"=="capture" (
         call :ndd_open_preview
         timeout /t 1 /nobreak >nul
-        adb shell "sh /data/vendor/camera_close.sh"
-        adb shell "sh /data/vendor/camera_open_capture.sh"
+        adb shell "bash -lc 'sh /data/vendor/camera_close.sh'"
+        adb shell "bash -lc 'sh /data/vendor/camera_open_capture.sh'"
     ) else (
         call :ndd_open_preview
         cd /d "!dir_ndd_dump!"
@@ -118,7 +118,7 @@ if /i "!arg2!"=="start" (
 
 if /i "!arg2!"=="stop" (
     call :ndd_push_camera_scripts
-    adb shell "sh /data/vendor/camera_close.sh"
+    adb shell "bash -lc 'sh /data/vendor/camera_close.sh'"
     echo.
     echo [NDD] Wait 3~5 min to guarantee all image data and tuning logs are saved.
     goto :eof
@@ -316,8 +316,8 @@ adb shell chmod 777 /data/vendor/camera_close.sh
 goto :eof
 
 :ndd_open_preview
-echo [NDD] Launch preview via adb shell with Wayland env and nohup...
-adb shell "export XDG_RUNTIME_DIR=/run/user/0; export WAYLAND_DISPLAY=wayland-1; nohup sh /data/vendor/camera_open_preview.sh >/data/vendor/camera_open_preview.log 2>&1 </dev/null &"
+echo [NDD] Launch preview via adb shell through bash and nohup...
+adb shell "bash -lc 'nohup sh /data/vendor/camera_open_preview.sh >/data/vendor/camera_open_preview.log 2>&1 </dev/null &'"
 goto :eof
 
 :ndd_dump
