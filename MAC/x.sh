@@ -21,7 +21,7 @@ ip_visionhub="visionhub-f015.local"
 ip_aibox="aibox-0791.local"
 ip_amr="192.168.1.39"
 ip_testDevice1="aicamera-d14b.local"
-ip_testDevice2="192.168.1.39"
+ip_testDevice2="192.168.1.93"
 
 # nfs
 if [ "$1" == "nfs" ] ; then
@@ -45,14 +45,20 @@ ssh_connect() {
 	local host="$1"
 	local user="$2"
 	local reset_known_host="$3"
+	local password="$4"
 
 	if [ "$reset_known_host" = "r" ]; then
 		echo "ssh-keygen -R $host"
 		ssh-keygen -R "$host"
 	fi
 
-	echo "ssh ${user}@${host}"
-	ssh "${user}@${host}"
+	if [ -n "$password" ]; then
+		echo "sshpass -p '$password' ssh ${user}@${host}"
+		sshpass -p "$password" ssh "${user}@${host}"
+	else
+		echo "ssh ${user}@${host}"
+		ssh "${user}@${host}"
+	fi
 }
 
 scp_transfer() {
@@ -62,6 +68,7 @@ scp_transfer() {
 	local src="$4"
 	local dst="$5"
 	local reset_known_host="$6"
+	local password="$7"
 	local scp_opts=(-O)
 
 	if [ "$reset_known_host" = "r" ]; then
@@ -73,12 +80,22 @@ scp_transfer() {
 		if [[ "$dst" == */ ]]; then
 			dst="${dst}$(basename "$src")"
 		fi
-		echo "scp ${scp_opts[*]} $src ${user}@${host}:$dst"
-		scp "${scp_opts[@]}" "$src" "${user}@${host}:$dst"
+		if [ -n "$password" ]; then
+			echo "sshpass -p '$password' scp ${scp_opts[*]} $src ${user}@${host}:$dst"
+			sshpass -p "$password" scp "${scp_opts[@]}" "$src" "${user}@${host}:$dst"
+		else
+			echo "scp ${scp_opts[*]} $src ${user}@${host}:$dst"
+			scp "${scp_opts[@]}" "$src" "${user}@${host}:$dst"
+		fi
 
 	elif [ "$direction" = "down" ]; then
-		echo "scp ${scp_opts[*]} ${user}@${host}:$src $dst"
-		scp "${scp_opts[@]}" "${user}@${host}:$src" "$dst"
+		if [ -n "$password" ]; then
+			echo "sshpass -p '$password' scp ${scp_opts[*]} ${user}@${host}:$src $dst"
+			sshpass -p "$password" scp "${scp_opts[@]}" "${user}@${host}:$src" "$dst"
+		else
+			echo "scp ${scp_opts[*]} ${user}@${host}:$src $dst"
+			scp "${scp_opts[@]}" "${user}@${host}:$src" "$dst"
+		fi
 
 	else
 		echo "Invalid scp direction: $direction"
@@ -107,6 +124,13 @@ get_device_user() {
 	case "$1" in
 		pi) echo "pi" ;;
 		*)  echo "root" ;;
+	esac
+}
+
+get_device_password() {
+	case "$1" in
+		amr) echo "28006928" ;;
+		*)      echo "" ;;
 	esac
 }
 
@@ -147,7 +171,8 @@ if [ "$1" = "ssh" ]; then
 	else
 		if host=$(get_device_host "$2" 2>/dev/null); then
 			user=$(get_device_user "$2")
-			ssh_connect "$host" "$user" "$3"
+			password=$(get_device_password "$2")
+			ssh_connect "$host" "$user" "$3" "$password"
 		elif [ -n "$2" ]; then
 			# fallback: direct host/ip
 			ssh_connect "$2" "root" "$3"

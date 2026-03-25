@@ -255,20 +255,22 @@ if [ "$1" = "aic" ]; then
 			arv-tool-0.8 control DeviceUserID Width Height ExposureAuto ExposureTime GainAuto Gain TriggerMode TriggerSource TriggerActivation TriggerDelay LineDebouncerTime LineSelector=Line1 LineInverter LineSource StrobeEnable StrobeLineDuration StrobeLineDelay StrobeLinePreDelay
 
 		elif [ "$3" = "lora" ]; then
-			echo "opkg list-installed | grep lora"
+			echo ">>>> opkg list-installed | grep lora"
 			opkg list-installed | grep --color=auto lora
 
-			echo "find /usr -name '*lora_rylr993*' 2>/dev/null"
+			echo ">>>> find /usr -name '*lora_rylr993*' 2>/dev/null"
 			find /usr -name '*lora_rylr993*' 2>/dev/null
 
-			echo "find /etc/udev/rules.d -name '*lora*' 2>/dev/null"
-			find /etc/udev/rules.d -name '*lora*' 2>/dev/null
-
-			echo "ros2 pkg list | grep lora_rylr993"
+			echo ">>>> ros2 pkg list | grep lora_rylr993"
 			ros2 pkg list | grep --color=auto lora_rylr993
 
-			echo "ros2 pkg executables lora_rylr993"
+			echo ">>>> ros2 pkg executables lora_rylr993"
 			ros2 pkg executables lora_rylr993
+
+			echo ">>>> find /etc/udev/rules.d -name '*lora*' 2>/dev/null"
+			find /etc/udev/rules.d -name '*lora*' 2>/dev/null
+			echo ">>>> ls -al /dev/lora* 2>/dev/null"
+			ls -al /dev/lora*
 
 		elif [ "$3" = "udev" ]; then
 			target_dev="$4"
