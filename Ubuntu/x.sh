@@ -44,23 +44,6 @@ echo "param 3:"$3
 echo "param 4:"$4
 echo "param 5:"$5
 
-# AI Camera
-if [ "$1" = "aic" ] ; then
-	echo "========== AI Camera =========="
-	DellServer_ip="10.1.13.207"
-	if [ "$2" = "nfs" ] ; then
-		# nfs mount dir
-		dir_nfs_remote="/home/gray.lin/iot-yocto-mtk"
-		dir_nfs="/home/gray/nfs-share"
-
-		if [  "$3" = "+" ] ; then
-			sudo mount $DellServer_ip:$dir_nfs_remote $dir_nfs
-		elif [  "$3" = "-" ] ; then
-			sudo umount $dir_nfs
-		fi
-
-	fi
-fi
 
 # wheeltec
 if [ "$1" = "wt" ] ; then

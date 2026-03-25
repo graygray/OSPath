@@ -13,9 +13,9 @@ xDir=~/OSPath/MAC
 currentDateTime=`date "+%m%d%H%M"`
 
 # dell server
-DellServer_ip="10.1.13.207"
+ip_dellServer="10.1.13.207"
 
-# ai camera
+# ai camera/box/amr
 ip_aicamera="aicamera-0687.local"
 ip_visionhub="visionhub-f015.local"
 ip_aibox="aibox-0791.local"
@@ -117,12 +117,12 @@ if [ "$1" = "ssh" ]; then
 		##   ./x.sh ssh dell root
 		##   ./x.sh ssh dell gray.lin
 		if [ -n "$3" ]; then
-			echo "ssh $3@$DellServer_ip"
-			ssh "$3@$DellServer_ip"
+			echo "ssh $3@$ip_dellServer"
+			ssh "$3@$ip_dellServer"
 		else
-			echo "sshpass -p 'Zx03310331' ssh gray.lin@$DellServer_ip"
-			sshpass -p 'Zx03310331' ssh "gray.lin@$DellServer_ip"
-			# ssh "gray.lin@$DellServer_ip"
+			echo "sshpass -p 'Zx03310331' ssh gray.lin@$ip_dellServer"
+			sshpass -p 'Zx03310331' ssh "gray.lin@$ip_dellServer"
+			# ssh "gray.lin@$ip_dellServer"
 		fi
 
 	elif [ "$2" = "usb" ]; then
