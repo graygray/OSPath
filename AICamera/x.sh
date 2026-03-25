@@ -254,6 +254,28 @@ if [ "$1" = "aic" ]; then
 			echo "arv-tool-0.8 control DeviceUserID Width Height ExposureAuto ExposureTime GainAuto Gain TriggerMode TriggerSource TriggerActivation TriggerDelay LineDebouncerTime LineSelector=Line1 LineInverter LineSource StrobeEnable StrobeLineDuration StrobeLineDelay StrobeLinePreDelay"
 			arv-tool-0.8 control DeviceUserID Width Height ExposureAuto ExposureTime GainAuto Gain TriggerMode TriggerSource TriggerActivation TriggerDelay LineDebouncerTime LineSelector=Line1 LineInverter LineSource StrobeEnable StrobeLineDuration StrobeLineDelay StrobeLinePreDelay
 
+		elif [ "$3" = "udev" ]; then
+			target_dev="$4"
+			if [ -z "$target_dev" ]; then
+				echo "usage: aic ck udev <device>"
+				echo "example: aic ck udev /dev/video0"
+			else
+				if [ ! -e "$target_dev" ] && [ -e "/dev/$target_dev" ]; then
+					target_dev="/dev/$target_dev"
+				fi
+
+				echo "========== udev target =========="
+				echo "$target_dev"
+				echo "========== udevadm info --query=all --name=$target_dev =========="
+				udevadm info --query=all --name="$target_dev"
+
+				target_path=$(udevadm info -q path -n "$target_dev" 2>/dev/null)
+				if [ -n "$target_path" ]; then
+					echo "========== udevadm info -a -p $target_path =========="
+					udevadm info -a -p "$target_path"
+				fi
+			fi
+
 		elif [ "$3" = "rtc" ]; then
 			echo "hwclock -r -f /dev/rtc"
 			hwclock -r -f /dev/rtc
@@ -354,7 +376,9 @@ if [ "$1" = "aic" ]; then
 			mediamtx /etc/mediamtx/mediamtx.yml&
 
 		elif [ "$3" = "udev" ]; then
+			echo "udevadm control --reload-rules"
 			udevadm control --reload-rules
+			echo "udevadm trigger"
 			udevadm trigger
 
 		elif [ "$3" = "fw" ]; then
