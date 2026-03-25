@@ -36,21 +36,28 @@ set "dir_cct_db=!dir_cct!\svn\install\DataSet\SQLiteModule"
 set "dir_dev_db=/mnt/reserved/10.1.13.207/IQ_DB/"
 
 if /i "!arg2!"=="init" (
+    echo cd /d "!dir_cct!"
     cd /d "!dir_cct!"
+    echo call 01_cct_setup.bat
     call 01_cct_setup.bat
+    echo call 02_NDD_preview_8395.bat
     call 02_NDD_preview_8395.bat
     goto :eof
 )
 
 if /i "!arg2!"=="rui" (
+    echo cd /d "!dir_cct!\svn\install"
     cd /d "!dir_cct!\svn\install"
+    echo call 4.0.MTKToolCustom.bat
     call 4.0.MTKToolCustom.bat
     goto :eof
 )
 
 if /i "!arg2!"=="ftp" (
+    echo call :zipFolder "!dir_cct_db!\db" "db_new.zip"
     call :zipFolder "!dir_cct_db!\db" "db_new.zip"
 
+    echo Create "%temp%\ftp_commands.txt"
     > "%temp%\ftp_commands.txt" (
         echo open 10.1.13.207
         echo gray.lin
@@ -60,14 +67,19 @@ if /i "!arg2!"=="ftp" (
         echo put "!dir_cct_db!\db_new.zip"
         echo bye
     )
+    echo ftp -s:"%temp%\ftp_commands.txt"
     ftp -s:"%temp%\ftp_commands.txt"
+    echo del "%temp%\ftp_commands.txt"
     del "%temp%\ftp_commands.txt"
     goto :eof
 )
 
 if /i "!arg2!"=="db" (
+    echo call :zipFolder "!dir_cct_db!\db" "db_new.zip"
     call :zipFolder "!dir_cct_db!\db" "db_new.zip"
+    echo adb shell rm -f "!dir_dev_db!/db_new.zip"
     adb shell rm -f "!dir_dev_db!/db_new.zip"
+    echo adb push "!dir_cct_db!\db_new.zip" "!dir_dev_db!/db_new.zip"
     adb push "!dir_cct_db!\db_new.zip" "!dir_dev_db!/db_new.zip"
     goto :eof
 )
