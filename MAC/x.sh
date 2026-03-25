@@ -16,11 +16,11 @@ currentDateTime=`date "+%m%d%H%M"`
 DellServer_ip="10.1.13.207"
 
 # ai camera
-AICamera_ip="aicamera-0687.local"
-VisionHub_ip="visionhub-f015.local"
-AIBoxCamera_ip="aibox-0791.local"
-TestDevice1_ip="aicamera-d14b.local"
-TestDevice2_ip="192.168.1.93"
+ip_aicamera="aicamera-0687.local"
+ip_visionhub="visionhub-f015.local"
+ip_aibox="aibox-0791.local"
+ip_testDevice1="aicamera-d14b.local"
+ip_testDevice2="192.168.1.39"
 
 # nfs
 if [ "$1" == "nfs" ] ; then
@@ -91,11 +91,11 @@ scp_transfer() {
 # -----------------------------
 get_device_host() {
 	case "$1" in
-		aic)   echo "$AICamera_ip" ;;
-		vh)    echo "$VisionHub_ip" ;;
-		aib)   echo "$AIBoxCamera_ip" ;;
-		t1)    echo "$TestDevice1_ip" ;;
-		t2)    echo "$TestDevice2_ip" ;;
+		aic)   echo "$ip_aicamera" ;;
+		vh)    echo "$ip_visionhub" ;;
+		aib)   echo "$ip_aibox" ;;
+		t1)    echo "$ip_testDevice1" ;;
+		t2)    echo "$ip_testDevice2" ;;
 		pi)    echo "raspberrypi.local" ;;
 		*)     return 1 ;;
 	esac
@@ -931,8 +931,8 @@ fi
 
 if [ "$1" == "ping" ] ; then
 	if [ "$2" == "aic" ] ; then
-		echo "ping $AICamera_ip ..."
-		ping $AICamera_ip
+		echo "ping $ip_aicamera ..."
+		ping $ip_aicamera
 	fi
 fi
 
