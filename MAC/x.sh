@@ -19,6 +19,7 @@ ip_dellServer="10.1.13.207"
 ip_aicamera="aicamera-0687.local"
 ip_visionhub="visionhub-f015.local"
 ip_aibox="aibox-0791.local"
+ip_amr="192.168.1.39"
 ip_testDevice1="aicamera-d14b.local"
 ip_testDevice2="192.168.1.39"
 
@@ -94,6 +95,7 @@ get_device_host() {
 		aic)   echo "$ip_aicamera" ;;
 		vh)    echo "$ip_visionhub" ;;
 		aib)   echo "$ip_aibox" ;;
+		amr)   echo "$ip_amr" ;;
 		t1)    echo "$ip_testDevice1" ;;
 		t2)    echo "$ip_testDevice2" ;;
 		pi)    echo "raspberrypi.local" ;;
@@ -155,6 +157,7 @@ if [ "$1" = "ssh" ]; then
 			echo "  $0 ssh aic [r]"
 			echo "  $0 ssh vh [r]"
 			echo "  $0 ssh aib [r]"
+			echo "  $0 ssh amr [r]"
 			echo "  $0 ssh t1 [r]"
 			echo "  $0 ssh t2 [r]"
 			echo "  $0 ssh pi [r]"
@@ -189,7 +192,7 @@ if [ "$1" = "scp" ]; then
 			echo "  $0 scp <device> up   <local_src>  <remote_dst> [r]"
 			echo "  $0 scp <device> down <remote_src> <local_dst>  [r]"
 			echo
-			echo "Devices: aic vh aib t1 t2 pi"
+			echo "Devices: aic vh aib amr t1 t2 pi"
 			exit 1
 		fi
 
