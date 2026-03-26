@@ -2,7 +2,6 @@ xDir=~/"OSPath/Ubuntu"
 
 # docker
 dockderDir=~/"OSPath/Docker"
-# dockderDir=~/"Docker"
 
 # redmine
 redDir="$dockderDir/redmine"
