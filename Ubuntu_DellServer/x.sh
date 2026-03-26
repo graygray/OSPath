@@ -985,10 +985,11 @@ if [ "$1" = "jks" ] ; then
 	elif [ "$2" = "bash" ] ; then
 		echo "========== docker exec -it -u root jenkins /bin/bash =========="
 		docker exec -it -u root jenkins /bin/bash
-elif [ "$2" = "log" ] ; then
+	elif [ "$2" = "log" ] ; then
 		echo "========== docker logs -tf jenkins =========="
 		docker logs -tf jenkins
 	else
+		echo "jksDir:$jksDir"
 		echo "param 2 not match"
 		exit -1
 	fi
