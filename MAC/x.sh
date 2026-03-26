@@ -983,21 +983,21 @@ if [ "$1" == "size" ] ; then
     
     # === List directory size (one level) ===
     if [ "$3" == "d" ]; then
-        echo "sudo du -h --max-depth=1 \"$2\" | sort -h"
-        sudo du -h --max-depth=1 "$2" | sort -h
+        echo "sudo du -h -d 1 \"$2\" | sort -h"
+        sudo du -h -d 1 "$2" | sort -h
         exit 0
     fi
     
     # === Max depth mode (m) ===
     if [ "$3" == "m" ] && [ -n "$4" ] && [[ "$4" =~ ^[0-9]+$ ]]; then
-        echo "sudo du -h --max-depth=$4 \"$2\" | sort -h"
-        sudo du -h --max-depth="$4" "$2" | sort -h
+        echo "sudo du -h -d $4 \"$2\" | sort -h"
+        sudo du -h -d "$4" "$2" | sort -h
         exit 0
     fi
     
     # === Default: summary only (file or folder size) ===
-    echo "sudo du --no-dereference -sh \"$2\""
-    sudo du --no-dereference -sh "$2"
+    echo "sudo du -sh \"$2\""
+    sudo du -sh "$2"
 fi
 
 if [ "$1" == "c" ] ; then

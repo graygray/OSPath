@@ -21,7 +21,6 @@ gitBackupFile="1588961756_2020_05_08_12.9.3"
 
 # jenkins
 jksDir="$dockderDir/jenkins"
-jksDir_Home="/var/lib/docker/volumes/jenkins_vHome/_data"
 
 # Loop through all parameters passed to the script
 echo "xDir = $xDir"
@@ -327,8 +326,7 @@ if [ "$1" = "wd" ] ; then
 		elif [ "$2" = "jks" ] ; then
 			xfce4-terminal --geometry=160x40 \
 			--tab -T "Docker_Jenkins" --working-directory=$jksDir \
-			--tab -T "Docker_Jenkins2" --working-directory=$jksDir \
-			--tab -T "Jenkins_Home" --working-directory=$jksDir_Home 
+			--tab -T "Docker_Jenkins2" --working-directory=$jksDir
 		else
 			echo "param 3 not match"
 			exit -1
@@ -358,8 +356,7 @@ if [ "$1" = "wd" ] ; then
 		elif [ "$2" = "jks" ] ; then
 			gnome-terminal --geometry=150x40 \
 			--tab -t "Docker_Jenkins" --working-directory=$jksDir \
-			--tab -t "Docker_Jenkins2" --working-directory=$jksDir \
-			--tab -t "Jenkins_Home" --working-directory=$jksDir_Home 
+			--tab -t "Docker_Jenkins2" --working-directory=$jksDir
 		elif [ "$2" = "ros" ] ; then
 			xfce4-terminal --geometry=150x40 \
 			--tab -T "home" --working-directory=~ \
