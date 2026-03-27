@@ -85,13 +85,67 @@ alias ua='ux && ue'             # update all
 alias uyt='dppmxsys && cd home/root/OSPath/AICamera/ && cp -f ~/OSPath/AICamera/env . && cp -f ~/OSPath/AICamera/x.sh . && dpb && mkdir -p /mnt/disk2/FTP/Public/gray/aicamera/OSPath/AICamera && cp -f ~/OSPath/AICamera/* /mnt/disk2/FTP/Public/gray/aicamera/OSPath/AICamera'
 
 # env
-alias spp='export PROJ_ROOT=`pwd`'                                          # set yocto project path
-alias env1='export TEMPLATECONF=$PROJ_ROOT/src/meta-rity/meta/conf/'
-alias env2='source $PROJ_ROOT/src/poky/oe-init-build-env'
-alias env3='export BUILD_DIR=$PROJ_ROOT/build'
-alias env_mtk='env1 && env2 && env3 && MACHINE=genio-700-evk'
-alias spe='git branch && spp && env_mtk'                                    # set project env
-alias spe2='spp && env_mtk'                                                 # set project env
+spp() {
+    local root
+    root="$(git rev-parse --show-toplevel 2>/dev/null)" || root="$(pwd)"
+    export PROJ_ROOT="$root"
+    echo "[spp] PROJ_ROOT=$PROJ_ROOT"
+}
+env1() {
+    [ -n "$PROJ_ROOT" ] || { echo "[env1] ERROR: run 'spp' first"; return 1; }
+
+    local base="$PROJ_ROOT/src/meta-rity/meta/conf"
+    local new="$base/templates/default"
+
+    if [ -d "$new" ]; then
+        export TEMPLATECONF="$new"
+        echo "[env1] TEMPLATECONF=$TEMPLATECONF"
+    elif [ -d "$base" ]; then
+        export TEMPLATECONF="$base"
+        echo "[env1] TEMPLATECONF=$TEMPLATECONF"
+    else
+        echo "[env1] ERROR: TEMPLATECONF path not found"
+        return 1
+    fi
+}
+env3() {
+    [ -n "$PROJ_ROOT" ] || { echo "[env3] ERROR: run 'spp' first"; return 1; }
+    export BUILD_DIR="$PROJ_ROOT/build"
+    echo "[env3] BUILD_DIR=$BUILD_DIR"
+}
+env2() {
+    [ -n "$PROJ_ROOT" ] || { echo "[env2] ERROR: run 'spp' first"; return 1; }
+
+    local init_script="$PROJ_ROOT/src/poky/oe-init-build-env"
+    [ -f "$init_script" ] || { echo "[env2] ERROR: $init_script not found"; return 1; }
+
+    source "$init_script" "$BUILD_DIR"
+}
+env_mtk700() {
+    spp || return 1
+    env1 || return 1
+    env3 || return 1
+    export MACHINE="genio-700-evk"
+    echo "[env_mtk700] MACHINE=$MACHINE"
+    env2
+}
+env_mtk720() {
+    spp || return 1
+    env1 || return 1
+    env3 || return 1
+    export MACHINE="genio-720-evk"
+    echo "[env_mtk720] MACHINE=$MACHINE"
+    env2
+}
+spe700() {
+    git branch --show-current 2>/dev/null || true
+    env_mtk700
+}
+spe720() {
+    git branch --show-current 2>/dev/null || true
+    env_mtk720
+}
+
 alias bCommit='echo "$(git rev-parse HEAD)" > $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc/build_commit'
 alias bDate='echo "$(date "+%Y%m%d-%H%M")" > $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc/build_date'
 alias bBranch='echo "$(git branch --show-current)" > $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc/build_branch'
