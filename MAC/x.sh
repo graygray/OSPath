@@ -1,4 +1,6 @@
 
+xDir=~/OSPath/MAC
+
 # Loop through all parameters passed to the script
 echo "xDir = $xDir"
 echo "param 0: $0"
@@ -7,8 +9,6 @@ for arg in "$@"; do
     echo "param $i: $arg"
     ((i++))
 done
-
-xDir=~/OSPath/MAC
 
 currentDateTime=`date "+%m%d%H%M"`
 
@@ -19,7 +19,7 @@ ip_dellServer="10.1.13.207"
 ip_aicamera="aicamera-0687.local"
 ip_visionhub="visionhub-f015.local"
 ip_aibox="aibox-0791.local"
-ip_amr="192.168.1.39"
+ip_amr="192.168.1.66"
 ip_testDevice1="aicamera-d14b.local"
 ip_testDevice2="192.168.1.93"
 
@@ -46,18 +46,21 @@ ssh_connect() {
 	local user="$2"
 	local reset_known_host="$3"
 	local password="$4"
+	local ssh_opts=()
 
 	if [ "$reset_known_host" = "r" ]; then
 		echo "ssh-keygen -R $host"
 		ssh-keygen -R "$host"
+		# Re-accept the host key automatically right after removing the old entry.
+		ssh_opts+=(-o StrictHostKeyChecking=accept-new)
 	fi
 
 	if [ -n "$password" ]; then
-		echo "sshpass -p '$password' ssh ${user}@${host}"
-		sshpass -p "$password" ssh "${user}@${host}"
+		echo "sshpass -p '$password' ssh ${ssh_opts[*]} ${user}@${host}"
+		sshpass -p "$password" ssh "${ssh_opts[@]}" "${user}@${host}"
 	else
-		echo "ssh ${user}@${host}"
-		ssh "${user}@${host}"
+		echo "ssh ${ssh_opts[*]} ${user}@${host}"
+		ssh "${ssh_opts[@]}" "${user}@${host}"
 	fi
 }
 
@@ -74,6 +77,7 @@ scp_transfer() {
 	if [ "$reset_known_host" = "r" ]; then
 		echo "ssh-keygen -R $host"
 		ssh-keygen -R "$host"
+		scp_opts+=(-o StrictHostKeyChecking=accept-new)
 	fi
 
 	if [ "$direction" = "up" ]; then
@@ -1001,6 +1005,120 @@ if [ "$1" == "size" ] ; then
 fi
 
 if [ "$1" == "c" ] ; then
-	echo "clear ..."
+	echo "clear terminal..."
 	clear
+fi
+
+mac_cleansys() {
+  local mode="${1:-check}"
+
+  echo "========== mac_cleansys: $mode =========="
+
+  echo
+  echo "[1/8] Disk usage"
+  df -h /
+
+  echo
+  echo "[2/8] Top-level ~/Library usage"
+  du -hxd1 ~/Library 2>/dev/null | sort -hr | head -20
+
+  echo
+  echo "[3/8] Cache usage"
+  du -sh ~/Library/Caches 2>/dev/null
+  sudo du -sh /Library/Caches 2>/dev/null
+
+  echo
+  echo "[4/8] Logs usage"
+  du -sh ~/Library/Logs 2>/dev/null
+  sudo du -sh /private/var/log 2>/dev/null
+
+  echo
+  echo "[5/8] Xcode / Simulator usage"
+  du -sh ~/Library/Developer 2>/dev/null
+  sudo du -sh /Library/Developer/CoreSimulator 2>/dev/null
+
+  echo
+  echo "[6/8] Docker Desktop usage"
+  du -sh ~/Library/Containers/com.docker.docker 2>/dev/null
+  du -sh ~/Library/Containers/com.docker.docker/Data/vms 2>/dev/null
+
+  echo
+  echo "[7/8] /private/var usage"
+  sudo du -hxd1 /private/var 2>/dev/null | sort -hr | head -20
+
+  echo
+  echo "[8/8] Time Machine snapshots"
+  tmutil listlocalsnapshots / 2>/dev/null || true
+
+  case "$mode" in
+    check)
+      echo
+      echo "Check only. No files deleted."
+      ;;
+
+    clean)
+      echo
+      echo "Cleaning safe items..."
+
+      echo "- Clean user caches"
+      rm -rf ~/Library/Caches/* 2>/dev/null
+
+      echo "- Clean user logs"
+      rm -rf ~/Library/Logs/* 2>/dev/null
+
+      echo "- Clean old simulator runtimes (unavailable only)"
+      if xcrun simctl list >/dev/null 2>&1; then
+        xcrun simctl delete unavailable || true
+      else
+        echo "  simctl not available, skip."
+      fi
+
+      echo "- Thin local snapshots"
+      sudo tmutil thinlocalsnapshots / 10000000000 4 2>/dev/null || true
+
+      echo
+      echo "After clean:"
+      df -h /
+      ;;
+
+    deep)
+      echo
+      echo "Deep cleaning common dev junk..."
+
+      echo "- Clean user caches"
+      rm -rf ~/Library/Caches/* 2>/dev/null
+
+      echo "- Clean user logs"
+      rm -rf ~/Library/Logs/* 2>/dev/null
+
+      echo "- Clean Xcode DerivedData"
+      rm -rf ~/Library/Developer/Xcode/DerivedData/* 2>/dev/null
+
+      echo "- Clean Xcode Archives"
+      rm -rf ~/Library/Developer/Xcode/Archives/* 2>/dev/null
+
+      echo "- Clean unavailable simulator devices"
+      if xcrun simctl list >/dev/null 2>&1; then
+        xcrun simctl delete unavailable || true
+      else
+        echo "  simctl not available, skip."
+      fi
+
+      echo "- Thin local snapshots"
+      sudo tmutil thinlocalsnapshots / 20000000000 4 2>/dev/null || true
+
+      echo
+      echo "After deep clean:"
+      df -h /
+      ;;
+
+    *)
+      echo "Usage: mac_cleansys [check|clean|deep]"
+      return 1
+      ;;
+  esac
+}
+
+if [ "$1" = "cleansys" ]; then
+    mac_cleansys "${2:-check}"
 fi
