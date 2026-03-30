@@ -18,7 +18,6 @@ alias econf='nano $PROJ_ROOT/build/conf/local.conf'
 alias elayer='nano $PROJ_ROOT/build/conf/bblayers.conf'
 alias ekconf='nano $BUILD_DIR/workspace/sources/linux-mtk/arch/arm64/configs/defconfig'
 alias ekconf2='nano $PROJ_ROOT/src/meta-mediatek-bsp/recipes-kernel/linux/linux-mtk/mt8390-evk.cfg'
-alias edts='nano $BUILD_DIR/workspace/sources/linux-mtk/arch/arm64/boot/dts/mediatek/genio-700-evk.dts'
 
 # dir
 alias dh='cd ~'                                                                                     # dir home
@@ -39,12 +38,11 @@ alias dytb='cd /mnt/disk2/yocto_build_folder/gray'                              
 alias dpr='cd $PROJ_ROOT'                                                                           # dir project root
 alias dpb='cd $PROJ_ROOT/build'                                                                     # dir project build path
 alias dps='cd $PROJ_ROOT/src'                                                                       # dir project src path
-alias dpi='cd $BUILD_DIR/tmp/deploy/images/genio-700-evk'                                           # dir project build image path
 alias dpi2='cd $BUILD_DIR/tmp/deploy/images/00.0C.00'                                               # dir project packed OTA image path
 alias dppmx='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax'                                   # dir project primax
 alias dppmxsrc='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/src'           # dir project primax src
 alias dppmxsys='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot'       # dir project primax sysroot
-alias dppmxhome='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/primax/files/primax-1.0/sysroot/home/root'
+alias dppmxhome='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root'
 alias dppmxscript='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/script'
 alias dppmxmisc='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc'
 alias dptof='cd $PROJ_ROOT/src/meta-primax/recipes-tof/st-tof-module'                               # dir project tof
@@ -54,7 +52,6 @@ alias dpbbD='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/image/'     
 alias dpinc='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/recipe-sysroot/usr/include'     # dir project build include path
 alias dplib='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/recipe-sysroot/usr/lib'         # dir project build lib path
 alias dpk='cd $PROJ_ROOT/src/meta-mediatek-bsp/recipes-kernel/linux'                                # dir project kernal
-alias dpdtbo='cd $PROJ_ROOT/src/meta-mediatek-bsp/recipes-kernel/dtbo/genio-700-evk'                # dir project kernal dtbo
 alias dpbbKS='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/st-tof-module/1.0-r0'                        # dir project BB {S} path for kernel
 alias dpbbKD='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/st-tof-module/1.0-r0/image'                  # dir project BB {D} path for kernel
 alias dpsmw='cd $PROJ_ROOT/src/meta-mediatek-bsp/recipes-multimedia/mtk-camisp-mw'
@@ -76,6 +73,21 @@ dpvh() {
 dpamr() {
     cd /mnt/disk3/yocto_build/gray.lin/C_AMR-G2_FW_Yocto/ || return
     export project_string="amr"
+}
+require_machine() {
+    [ -n "$MACHINE" ] || { echo "[machine] ERROR: MACHINE is not set. Run spe700/spe720 or export MACHINE first."; return 1; }
+}
+dpi() {
+    require_machine || return 1
+    cd "$BUILD_DIR/tmp/deploy/images/$MACHINE" || return
+}
+dpdtbo() {
+    require_machine || return 1
+    cd "$PROJ_ROOT/src/meta-mediatek-bsp/recipes-kernel/dtbo/$MACHINE" || return
+}
+edts() {
+    require_machine || return 1
+    nano "$BUILD_DIR/workspace/sources/linux-mtk/arch/arm64/boot/dts/mediatek/$MACHINE.dts"
 }
 
 # update
