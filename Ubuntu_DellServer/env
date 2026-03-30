@@ -145,15 +145,67 @@ spe720() {
     git branch --show-current 2>/dev/null || true
     env_mtk720
 }
+alias spe='spe700'
 
-alias bCommit='echo "$(git rev-parse HEAD)" > $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc/build_commit'
-alias bDate='echo "$(date "+%Y%m%d-%H%M")" > $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc/build_date'
-alias bBranch='echo "$(git branch --show-current)" > $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc/build_branch'
+primax_recipe_dir() {
+    [ -n "$PROJ_ROOT" ] || { echo "[primax] ERROR: PROJ_ROOT is not set"; return 1; }
+
+    local recipe_dir="$PROJ_ROOT/src/meta-primax/recipes-primax/primax"
+    [ -d "$recipe_dir" ] || { echo "[primax] INFO: $recipe_dir not found, skip build metadata"; return 1; }
+
+    printf '%s\n' "$recipe_dir"
+}
+primax_misc_dir() {
+    local recipe_dir
+    recipe_dir="$(primax_recipe_dir)" || return 1
+
+    local misc_dir="$recipe_dir/files/primax-1.0/sysroot/home/root/primax/misc"
+    mkdir -p "$misc_dir" || return 1
+    printf '%s\n' "$misc_dir"
+}
+bCommit() {
+    local misc_dir
+    misc_dir="$(primax_misc_dir)" || return 0
+    git rev-parse HEAD > "$misc_dir/build_commit"
+}
+bDate() {
+    local misc_dir
+    misc_dir="$(primax_misc_dir)" || return 0
+    date "+%Y%m%d-%H%M" > "$misc_dir/build_date"
+}
+bBranch() {
+    local misc_dir
+    misc_dir="$(primax_misc_dir)" || return 0
+    git branch --show-current > "$misc_dir/build_branch"
+}
+primax_build_meta() {
+    bDate &&
+    bCommit &&
+    bBranch
+}
+ytb_machine() {
+    [ -n "$MACHINE" ] || { echo "[ytb] ERROR: MACHINE is not set. Run spe700/spe720 or export MACHINE first."; return 1; }
+    printf '%s\n' "$MACHINE"
+}
+ytb_build() {
+    local machine
+    machine="$(ytb_machine)" || return 1
+    primax_build_meta || return 1
+    DISTRO=rity-demo MACHINE="$machine" bitbake rity-demo-image
+}
+ytb_build_clean_primax() {
+    local machine
+    machine="$(ytb_machine)" || return 1
+    primax_build_meta || return 1
+    x bb c primax || return 1
+    DISTRO=rity-demo MACHINE="$machine" bitbake rity-demo-image
+}
+
 alias ytp='dpr && ./pack_image.bash'
-alias ytb='bDate && bCommit && bBranch && DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image'
-alias ytb2='bDate && bCommit && bBranch && x bb c primax && DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image'
+alias ytb='ytb_build'
+alias ytb2='ytb_build_clean_primax'
 alias ytb3='ytb2 && ytp'
-alias ytb_docker='bCommit && bBranch && DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image'
+alias ytb_docker='ytb_build'
 
 alias ep='[ -f ~/tmp/p1 ] && export p1=$(cat ~/tmp/p1); [ -f ~/tmp/p2 ] && export p2=$(cat ~/tmp/p2)'
 alias sp1='mkdir -p ~/tmp && echo `pwd` > ~/tmp/p1 && ep'
