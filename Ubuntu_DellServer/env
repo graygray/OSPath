@@ -167,6 +167,24 @@ primax_recipe_dir() {
 
     printf '%s\n' "$recipe_dir"
 }
+primax_git_dir() {
+    [ -n "$PROJ_ROOT" ] || { echo "[primax] ERROR: PROJ_ROOT is not set"; return 1; }
+
+    local candidate
+    for candidate in \
+        "$PROJ_ROOT" \
+        "$PROJ_ROOT/src/meta-primax" \
+        "$PROJ_ROOT/src/meta-primax/recipes-primax/primax"
+    do
+        if [ -d "$candidate" ] && git -C "$candidate" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+
+    echo "[primax] INFO: no git repository found for build metadata" >&2
+    return 1
+}
 primax_misc_dir() {
     local recipe_dir
     recipe_dir="$(primax_recipe_dir)" || return 1
@@ -178,7 +196,10 @@ primax_misc_dir() {
 bCommit() {
     local misc_dir
     misc_dir="$(primax_misc_dir)" || return 0
-    git rev-parse HEAD > "$misc_dir/build_commit"
+
+    local git_dir
+    git_dir="$(primax_git_dir)" || return 0
+    git -C "$git_dir" rev-parse HEAD > "$misc_dir/build_commit"
 }
 bDate() {
     local misc_dir
@@ -188,7 +209,10 @@ bDate() {
 bBranch() {
     local misc_dir
     misc_dir="$(primax_misc_dir)" || return 0
-    git branch --show-current > "$misc_dir/build_branch"
+
+    local git_dir
+    git_dir="$(primax_git_dir)" || return 0
+    git -C "$git_dir" branch --show-current > "$misc_dir/build_branch"
 }
 primax_build_meta() {
     bDate &&

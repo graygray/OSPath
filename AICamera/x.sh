@@ -99,6 +99,7 @@ if [ "$1" = "cp" ]; then
 		cp -rf $3 $path 
 	elif [ "$2" = "ftp" ]; then
 		path="/mnt/reserved/10.1.13.207"
+		mkdir -p "$path" || exit 1
 		cp -rf $3 $path 
 	fi
 	echo "copy $3 to $path"
@@ -865,6 +866,7 @@ if [ "$1" = "aic" ]; then
 		else
 			echo "use wget..."
 			stop_runtime_processes
+			mkdir -p "$dir_local" || exit 1
 			cd "$dir_local" || exit 1
 
 			if [ "$3" = "all" ]; then
