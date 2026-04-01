@@ -254,6 +254,10 @@ gflash_run() {
         bash -lc 'genio-flash -i rity-demo-image --unload-dtbo display-dsi.dtbo --load-dtbo display-dpoc.dtbo'
 }
 
+gflash_off() {
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml down
+}
+
 gflash_run_off() {
     IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml up -d || return $?
     IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml exec genio-flash \
