@@ -672,14 +672,74 @@ if [ "$1" = "chown" ] ; then
 	fi
 fi
 
-# tar
+# zip
 if [ "$1" = "zip" ] ; then
-		echo ">>>> zip $2 to $3.tar.gz"
-		tar -czvf $3.tar.gz $2
+    # $2 must exist
+    if [ -z "$2" ]; then
+        echo "❗ Missing target path (arg 2)"
+        echo "Usage: $0 zip <folder/file> [output_name] [bz2|zip|gz]"
+        exit 1
+    fi
+
+    # default output name if $3 is empty
+    if [ -z "$3" ]; then
+        # strip trailing slash & extract base name
+        out="$(basename "${2%/}")"
+    else
+        out="$3"
+    fi
+
+    # default type = gzip if no $4
+    type="$4"
+
+    # === bz2 ===
+    if [ "$type" = "bz2" ]; then
+        echo ">>>> bz2 $2 to $out.tar.bz2"
+        echo "tar -jcvf $out.tar.bz2 \"$2\""
+        tar -jcvf "$out.tar.bz2" "$2"
+
+    # === zip ===
+    elif [ "$type" = "zip" ]; then
+        echo ">>>> zip $2 to $out.zip"
+        echo "zip -r $out.zip \"$2\""
+        zip -r "$out.zip" "$2"
+
+    # === default: gzip ===
+    else
+        echo ">>>> gzip $2 to $out.tar.gz"
+        echo "tar -zcvf $out.tar.gz \"$2\""
+        tar -zcvf "$out.tar.gz" "$2"
+    fi
 fi
 if [ "$1" = "unzip" ] ; then
-		echo ">>>> unzip file"
-		tar -xzvf $2
+	echo ">>>> unzip file: $2"
+
+	if [[ "$2" == *.tar.gz || "$2" == *.tgz ]]; then
+		echo "tar -zxvf \"$2\""
+		tar -zxvf "$2"
+	elif [[ "$2" == *.tar.bz2 || "$2" == *.tbz || "$2" == *.tbz2 ]]; then
+		echo "tar -jxvf \"$2\""
+		tar -jxvf "$2"
+	elif [[ "$2" == *.7z ]]; then
+		if command -v 7z >/dev/null 2>&1; then
+			echo "7z x \"$2\""
+			7z x "$2"
+		elif command -v 7zr >/dev/null 2>&1; then
+			echo "7zr x \"$2\""
+			7zr x "$2"
+		elif command -v 7za >/dev/null 2>&1; then
+			echo "7za x \"$2\""
+			7za x "$2"
+		else
+			echo "No 7z extractor found. Install p7zip (7z/7zr/7za)."
+			exit 1
+		fi
+	elif [[ "$2" == *.zip ]]; then
+		echo "unzip \"$2\""
+		unzip "$2"
+	else
+		echo "Unsupported file format: $2"
+	fi
 fi
 
 # chmod
