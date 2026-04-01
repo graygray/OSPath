@@ -1,13 +1,11 @@
 services:
   genio-flash:
-    build: .
     image: genio-flash:ubuntu22.04
     container_name: genio-flash
     privileged: true
     stdin_open: true
     tty: true
     network_mode: host
-
     working_dir: /images
 
     environment:
@@ -15,10 +13,17 @@ services:
       PATH: /opt/platform-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     volumes:
-      - /mnt/disk3/yocto_build/gray.lin/g720/build/tmp/deploy/images/genio-720-evk:/images
+      # 🔥 動態 image path
+      - ${IMAGE_DIR}:/images
+
+      # USB access
       - /dev:/dev
       - /dev/bus/usb:/dev/bus/usb
+
+      # fastboot (host verified version)
       - /home/gray.lin/platform-tools:/opt/platform-tools:ro
+
+      # persistent home
       - genio_home:/root
 
     entrypoint: ["/usr/local/bin/entrypoint.sh"]
