@@ -1,0 +1,38 @@
+services:
+  genio-flash:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: genio-flash:ubuntu22.04
+    container_name: genio-flash
+    privileged: true
+    stdin_open: true
+    tty: true
+    network_mode: host
+    working_dir: /workspace
+
+    environment:
+      TZ: Asia/Taipei
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+    volumes:
+      # 你的 Yocto image / script / log 工作區
+      - ./workspace:/workspace
+
+      # USB / serial / device access
+      - /dev:/dev
+      - /dev/bus/usb:/dev/bus/usb
+
+      # 保留 shell history / user local data
+      - genio_home:/root
+
+    devices:
+      # 常見 serial device，沒有也沒關係
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyACM0:/dev/ttyACM0
+
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
+    command: ["bash"]
+
+volumes:
+  genio_home:
