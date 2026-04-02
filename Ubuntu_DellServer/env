@@ -34,7 +34,7 @@ alias dd2='cd /mnt/disk2'
 alias dd3='cd /mnt/disk3'
 
 # dir yocto related
-alias dytb='cd /mnt/disk2/yocto_build_folder/gray'                                                  # dir yocto build                                   # dir home
+alias dytb='cd /mnt/disk3/yocto_build/gray.lin'                                                     # dir yocto build
 alias dpr='cd $PROJ_ROOT'                                                                           # dir project root
 alias dpb='cd $PROJ_ROOT/build'                                                                     # dir project build path
 alias dps='cd $PROJ_ROOT/src'                                                                       # dir project src path
