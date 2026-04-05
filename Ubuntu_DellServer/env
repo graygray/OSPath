@@ -45,15 +45,11 @@ alias dppmxsys='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax
 alias dppmxhome='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root'
 alias dppmxscript='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/script'
 alias dppmxmisc='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc'
-alias dptof='cd $PROJ_ROOT/src/meta-primax/recipes-tof/st-tof-module'                               # dir project tof
-alias dpmtx='cd $PROJ_ROOT/src/meta-primax/recipes-mediamtx/mediamtx'                               # dir project tof
 alias dpbbS='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/primax-1.0'                     # dir project BB {S} path
 alias dpbbD='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/image/'                         # dir project BB {D} path
-alias dpinc='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/recipe-sysroot/usr/include'     # dir project build include path
-alias dplib='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/recipe-sysroot/usr/lib'         # dir project build lib path
+alias dpbbinc='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/recipe-sysroot/usr/include'   # dir project BB include path
+alias dpbblib='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/recipe-sysroot/usr/lib'       # dir project BB lib path
 alias dpk='cd $PROJ_ROOT/src/meta-mediatek-bsp/recipes-kernel/linux'                                # dir project kernal
-alias dpbbKS='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/st-tof-module/1.0-r0'                        # dir project BB {S} path for kernel
-alias dpbbKD='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/st-tof-module/1.0-r0/image'                  # dir project BB {D} path for kernel
 alias dpsmw='cd $PROJ_ROOT/src/meta-mediatek-bsp/recipes-multimedia/mtk-camisp-mw'
 
 alias dpws='cd $BUILD_DIR/workspace/sources/'                                                      # dir project workspace source
@@ -65,14 +61,22 @@ alias dpwiq2='cd $BUILD_DIR/workspace/sources/mtk-camisp-mw/mtkcam-yocto/custom/
 dpaic() {
     cd /mnt/disk3/yocto_build/gray.lin/C_AI-Camera-Plus_FW_Yocto/ || return
     export project_string="aicamera"
+    spe700
 }
 dpvh() {
     cd /mnt/disk3/yocto_build/gray.lin/C_Vision-Hub-Plus_FW_Yocto/ || return
     export project_string="visionhub"
+    spe700
 }
 dpamr() {
     cd /mnt/disk3/yocto_build/gray.lin/C_AMR-G2_FW_Yocto/ || return
+    spe700
     export project_string="amr"
+}
+dp720() {
+    cd /mnt/disk3/yocto_build/gray.lin/g720/ || return
+    spe720
+    export project_string="g720"
 }
 require_machine() {
     [ -n "$MACHINE" ] || { echo "[machine] ERROR: MACHINE is not set. Run spe700/spe720 or export MACHINE first."; return 1; }
