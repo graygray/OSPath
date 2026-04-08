@@ -56,6 +56,34 @@ is_visionhub() {
   fi
 }
 
+upload_path_with_rsync() {
+	local src_path="$1"
+	local remote_user="$2"
+	local remote_host="$3"
+	local remote_dir="$4"
+	local rsync_src_path
+
+	if [ -z "$src_path" ] || [ -z "$remote_user" ] || [ -z "$remote_host" ] || [ -z "$remote_dir" ]; then
+		echo "upload_path_with_rsync: missing argument"
+		return 1
+	fi
+
+	local abs_path
+	abs_path="$(readlink -f "$src_path")"
+	if [ ! -e "$abs_path" ]; then
+		echo "Error: File or directory not found: $abs_path"
+		return 1
+	fi
+
+	rsync_src_path="$abs_path"
+	if [ -d "$abs_path" ] && [[ "$src_path" == */ ]]; then
+		rsync_src_path="$abs_path/"
+	fi
+
+	echo "Uploading $abs_path -> $remote_user@$remote_host:$remote_dir/"
+	rsync -avz -e ssh "$rsync_src_path" "$remote_user@$remote_host:$remote_dir/"
+}
+
 if [ "$1" = "fixt" ]; then
 	find . -exec touch {} +
 fi
@@ -850,22 +878,32 @@ if [ "$1" = "aic" ]; then
 			esac
 
 		elif [ "$3" = "up" ]; then
-			echo "upload single file..."
-			file_to_upload="$4"
+			echo "upload path..."
 
-			if [ -z "$file_to_upload" ]; then
-				echo "Usage: $0 aic ftp up <file>"
-				exit 1
+			if [ "$4" = "mac" ]; then
+				host_PC="MAC206554.local"
+				user_PC="test"
+				dir_PC_default="/Users/test/Downloads"
+				path_to_upload="$5"
+				dir_PC="${6:-$dir_PC_default}"
+
+				if [ -z "$path_to_upload" ]; then
+					echo "Usage: $0 aic ftp up mac <file-or-dir> [remote_dir]"
+					exit 1
+				fi
+
+				upload_path_with_rsync "$path_to_upload" "$user_PC" "$host_PC" "$dir_PC" || exit 1
+			else
+				path_to_upload="$4"
+
+				if [ -z "$path_to_upload" ]; then
+					echo "Usage: $0 aic ftp up <file-or-dir>"
+					echo "Usage: $0 aic ftp up mac <file-or-dir> [remote_dir]"
+					exit 1
+				fi
+
+				upload_path_with_rsync "$path_to_upload" "$ftp_user" "$ftp_host" "$dir_ssh_remote" || exit 1
 			fi
-
-			abs_path="$(readlink -f "$file_to_upload")"
-			if [ ! -f "$abs_path" ]; then
-				echo "Error: File not found: $abs_path"
-				exit 1
-			fi
-
-			echo "Uploading $abs_path -> $ftp_host:$dir_ssh_remote/"
-			rsync -avz -e ssh "$abs_path" "$ftp_user@$ftp_host:$dir_ssh_remote/"
 
 		else
 			echo "use wget..."
@@ -1688,15 +1726,15 @@ if [ "$1" = "scp" ]; then
 		if [ "$3" = "mac" ]; then
 		# upload to MAC PC
 
-			file_to_upload="$4"
-			if [ -z "$file_to_upload" ]; then
-				echo "Error: No file specified to upload."
+			path_to_upload="$4"
+			if [ -z "$path_to_upload" ]; then
+				echo "Error: No file or directory specified to upload."
 				exit 1
 			fi
 
-			abs_path="$(readlink -f "$file_to_upload")"
-			if [ ! -f "$abs_path" ]; then
-				echo "Error: File not found: $abs_path"
+			abs_path="$(readlink -f "$path_to_upload")"
+			if [ ! -e "$abs_path" ]; then
+				echo "Error: File or directory not found: $abs_path"
 				exit 1
 			fi
 
@@ -1707,8 +1745,8 @@ if [ "$1" = "scp" ]; then
 
 			echo "Uploading $abs_path to $user_PC@$host_PC:$dir_PC ..."
 
-			# Use scp to transfer file
-			scp -o StrictHostKeyChecking=no "$abs_path" "${user_PC}@${host_PC}:${dir_PC}/"
+			# Use scp to transfer file or directory
+			scp -r -O -o StrictHostKeyChecking=no "$abs_path" "${user_PC}@${host_PC}:${dir_PC}/"
 			if [ $? -eq 0 ]; then
 				echo "Upload successful!"
 			else
