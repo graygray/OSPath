@@ -1745,8 +1745,8 @@ if [ "$1" = "scp" ]; then
 
 			echo "Uploading $abs_path to $user_PC@$host_PC:$dir_PC ..."
 
-			# Use scp to transfer file or directory
-			scp -r -O -o StrictHostKeyChecking=no "$abs_path" "${user_PC}@${host_PC}:${dir_PC}/"
+			# Use scp to transfer file or directory. Some embedded scp builds do not support -O.
+			scp -r -o StrictHostKeyChecking=no "$abs_path" "${user_PC}@${host_PC}:${dir_PC}/"
 			if [ $? -eq 0 ]; then
 				echo "Upload successful!"
 			else
