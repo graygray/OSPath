@@ -432,6 +432,10 @@ if [ "$1" = "aic" ]; then
 			echo " Restart time sync daemon "
 			systemctl restart systemd-timesyncd
 
+		elif [ "$3" = "weston" ]; then
+			echo " Restart weston"
+			systemctl restart weston
+
 		elif [ "$3" = "all" ]; then
 			pkill vision_box
 			pkill fw_daemon
@@ -2057,6 +2061,12 @@ if [ "$1" == "size" ] ; then
     # === Default: summary only (file or folder size) ===
     echo "sudo du --no-dereference -sh \"$2\""
     sudo du --no-dereference -sh "$2"
+fi
+
+# tree -L3
+if [ "$1" == "tree" ] ; then
+	echo "tree -L 3 $2"
+	tree -L 3 $2
 fi
 
 if [ "$1" == "c" ] ; then
