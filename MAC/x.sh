@@ -21,9 +21,9 @@ ip_visionhub="visionhub-f015.local"
 ip_aibox="aibox-07B3.local"
 ip_amr="192.168.1.66"
 ip_testDevice1="aicamera-d14b.local"
-# ip_testDevice1="192.168.50.68"
+# ip_testDevice1="192.168.3.100"
 ip_testDevice2="192.168.1.126"
-# ip_testDevice2="192.168.50.155"
+# ip_testDevice2="192.168.3.104"
 
 # nfs
 if [ "$1" == "nfs" ] ; then
