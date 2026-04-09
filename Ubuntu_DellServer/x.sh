@@ -123,6 +123,8 @@ if [ "$1" = "bb" ] ; then
 		pkill -9 -f bitbake
 		echo "pkill -9 -f bitbake-server"
 		pkill -9 -f bitbake-server
+		rm -f "$BUILD_DIR/bitbake-cookerdaemon.*"
+		rm -f "$BUILD_DIR/bitbake.sock"
 		echo "ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep"
 		ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep
 	fi
