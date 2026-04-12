@@ -362,20 +362,11 @@ if [ "$1" = "aic" ]; then
 			journalctl -u chronyd -n 80 --no-pager 2>/dev/null || true
 
 		else
-			build_version=$(cat /etc/primax_version)
-			build_date=$(cat ~/primax/misc/build_date)
-			build_branch=$(cat ~/primax/misc/build_branch)
-			build_commit=$(cat ~/primax/misc/build_commit)
 			echo ""
 			echo "=============================="
 			echo "hostname : $(hostname)"
 			echo ""
-			echo "build info : "
-			echo "version : $build_version"
-			echo "date : $build_date"
-			echo "branch : $build_branch"
-			echo "commit : $build_commit"
-			echo "=============================="
+			/root/primax/script/slot_build_info.sh current
 			if [ -s /home/root/primax/misc/application_tag ]; then
 				echo "App Tag:" && cat /home/root/primax/misc/application_tag && echo
 			fi
