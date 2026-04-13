@@ -5,6 +5,7 @@ set -eu
 DURATION="${1:-5}"
 TOP_N="${TOP_N:-10}"
 TMPDIR="${TMPDIR:-/tmp}"
+SELF_PID="$$"
 
 case "$DURATION" in
     ''|*[!0-9.]*)
@@ -80,7 +81,7 @@ take_snapshot() {
         if [ -r "$cmdline_file" ]; then
             cmdline="$(tr '\000' ' ' < "$cmdline_file" | sed 's/[[:space:]]*$//')"
             if [ -n "$cmdline" ]; then
-                awk -v p="$pid" -v c="$cmdline" 'BEGIN { printf "%s\t%s\n", p, c }' >> "${out_file}.cmd"
+                printf '%s\t%s\n' "$pid" "$cmdline" >> "${out_file}.cmd"
             fi
         fi
     done
@@ -138,11 +139,16 @@ total_user_pct="$(awk -v user="$user_delta" -v total="$total_delta" 'BEGIN {
     printf "%.2f", (user / total) * 100
 }')"
 
-echo "Total user-space CPU usage: ${total_user_pct}%"
+cores_busy="$(awk -v user="$user_delta" -v total="$total_delta" 'BEGIN {
+    printf "%.2f", user / total
+}')"
+
+echo "Total user-space CPU usage: ${total_user_pct}% of machine capacity"
+echo "Equivalent busy cores: ${cores_busy}"
 echo ""
 echo "Top ${TOP_N} processes by user-space CPU usage:"
 
-awk -F '\t' -v total="$total_delta" '
+top_output="$(awk -F '\t' -v total="$total_delta" -v self_pid="$SELF_PID" '
 NR == FNR {
     prev[$1] = $2
     next
@@ -152,12 +158,16 @@ NR == FNR {
     utime = $2
     cmd = $3
 
+    if (pid == self_pid || cmd ~ /cpu_usage_all\.sh/) {
+        next
+    }
+
     if (!(pid in prev)) {
         next
     }
 
     delta = utime - prev[pid]
-    if (delta <= 0) {
+    if (delta < 0) {
         next
     }
 
@@ -167,4 +177,10 @@ NR == FNR {
 {
     printf "CPU: %.2f%%\t| PID: %s\t| CMD: %s\n", $1, $2, $3
 }
-'
+')"
+
+if [ -n "$top_output" ]; then
+    printf '%s\n' "$top_output"
+else
+    echo "No user-space process accumulated measurable CPU time during the sample window."
+fi
