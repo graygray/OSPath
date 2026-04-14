@@ -362,20 +362,11 @@ if [ "$1" = "aic" ]; then
 			journalctl -u chronyd -n 80 --no-pager 2>/dev/null || true
 
 		else
-			build_version=$(cat /etc/primax_version)
-			build_date=$(cat ~/primax/misc/build_date)
-			build_branch=$(cat ~/primax/misc/build_branch)
-			build_commit=$(cat ~/primax/misc/build_commit)
 			echo ""
 			echo "=============================="
 			echo "hostname : $(hostname)"
 			echo ""
-			echo "build info : "
-			echo "version : $build_version"
-			echo "date : $build_date"
-			echo "branch : $build_branch"
-			echo "commit : $build_commit"
-			echo "=============================="
+			/root/primax/script/slot_build_info.sh current
 			if [ -s /home/root/primax/misc/application_tag ]; then
 				echo "App Tag:" && cat /home/root/primax/misc/application_tag && echo
 			fi
@@ -530,6 +521,18 @@ if [ "$1" = "aic" ]; then
 			echo "gige..."
 			
 			if [ "$4" = "tee" ]; then
+				cmd="gst-launch-1.0 aravissrc ! videoconvert ! video/x-raw,format=NV12 ! tee name=t t. ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t. ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+			elif [ "$4" = "dp" ]; then
+				cmd='gst-launch-1.0 aravissrc ! videoconvert ! video/x-raw,format=NV12,width=1536,height=1024 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
+			elif [ "$4" = "dp2" ]; then
+				cmd='gst-launch-1.0 aravissrc ! videoconvert ! video/x-raw,format=NV12,width=3072,height=2048 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
+			else
+				cmd="gst-launch-1.0 aravissrc ! videoconvert ! video/x-raw,format=NV12 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+			fi
+		elif [ "$3" = "gige1" ]; then
+			echo "gige..."
+			
+			if [ "$4" = "tee" ]; then
 				cmd="gst-launch-1.0 aravissrc camera-name=id1 ! videoconvert ! video/x-raw,format=NV12 ! tee name=t t. ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t. ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
 			elif [ "$4" = "dp" ]; then
 				cmd='gst-launch-1.0 aravissrc camera-name=id1 ! videoconvert ! video/x-raw,format=NV12,width=1536,height=1024 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
@@ -538,7 +541,6 @@ if [ "$1" = "aic" ]; then
 			else
 				cmd="gst-launch-1.0 aravissrc camera-name=id1 ! videoconvert ! video/x-raw,format=NV12 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
 			fi
-
 		elif [ "$3" = "gige2" ]; then
 			echo "gige2..."
 			

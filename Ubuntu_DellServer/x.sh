@@ -114,6 +114,19 @@ if [ "$1" = "bb" ] ; then
 			echo "bitbake-layers create-recipe $4"
 			bitbake-layers create-recipe $4
 		fi
+
+	elif [ "$2" = "kill" ] ; then
+		echo "kill bitbake & bitbake server"
+		echo "ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep"
+		ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep
+		echo "pkill -9 -f bitbake"
+		pkill -9 -f bitbake
+		echo "pkill -9 -f bitbake-server"
+		pkill -9 -f bitbake-server
+		rm -f "$BUILD_DIR/bitbake-cookerdaemon.*"
+		rm -f "$BUILD_DIR/bitbake.sock"
+		echo "ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep"
+		ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep
 	fi
 fi
 
