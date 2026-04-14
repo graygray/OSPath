@@ -90,7 +90,7 @@ REM =====================================================
 REM ===================== NDD ===========================
 REM =====================================================
 :cmd_ndd
-set "dir_ndd_root=D:\project\MT8395_IoTYocto_NDD_Dump_Scripts_r230614"
+set "dir_ndd_root=D:\project\MT8395_IoTYocto_NDD_Dump_Scripts_r230614_new"
 set "dir_ndd_dump=!dir_ndd_root!\Ndd_Dump_Scripts"
 set "dir_ndd_camera=!dir_ndd_root!\CameraOpenClose"
 set "dir_ndd_dev=/mnt/reserved/camera_dump"
@@ -271,6 +271,7 @@ REM =====================================================
 :ndd_init
 cd /d "!dir_ndd_dump!"
 adb root
+adb shell setenforce 0
 adb shell "rm -rf !dir_ndd_dev!/"
 adb shell "rm -rf !dir_ndd_dev!"
 adb shell "mkdir -p !dir_ndd_dev!/"
@@ -289,6 +290,8 @@ adb shell "chmod -R 777 /sys/kernel/debug/mtk_cam_dbg/"
 adb shell setprop vendor.debug.camera.imgBuf.enFC 0
 adb shell setprop vendor.debug.ndd.direct_write 1
 adb shell setprop vendor.debug.camera.scenarioRecorder.enable 1
+adb shell setprop vendor.debug.mapping_mgr.enable 1
+adb shell setprop vendor.debug.idxcache.log 1
 adb shell setprop vendor.debug.ndd.gen_cfg 1
 adb shell setprop vendor.debug.fwcolorparam.dump 1
 adb shell "echo userspace > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor"
@@ -297,8 +300,7 @@ adb shell "echo userspace > /sys/devices/system/cpu/cpufreq/policy4/scaling_gove
 adb shell "echo 2200000 > /sys/devices/system/cpu/cpufreq/policy4/scaling_setspeed"
 adb shell setprop vendor.debug.fpipe.mcnr.probe_dl 1
 adb shell setprop vendor.debug.fpipe.force.img3o.fmt "MTK_YUV_P010"
-adb shell pkill camera
-adb shell setenforce 0
+adb shell pkill camera*
 adb push "!file_ndd_cfg!" "!dir_ndd_dev!/"
 adb shell chmod 777 "!dir_ndd_dev!/!file_ndd_cfg!"
 adb shell setprop vendor.debug.ndd.cfgpath "!dir_ndd_dev!/!file_ndd_cfg!"
@@ -346,6 +348,10 @@ adb shell "chmod a+x !dir_ndd_dev!/camsys_converter.sh"
 adb shell "sh !dir_ndd_dev!/camsys_converter.sh"
 
 mkdir "!ndd_local_dir!"
+echo [NDD] Check expected dump artifacts...
+adb shell "ls !dir_ndd_dev!/ | grep '_p1.reg'" 
+adb shell "ls !dir_ndd_dev!/ | grep 'TuningLog'"
+adb shell "ls !dir_ndd_dev!/ | grep 'META_P2'"
 adb shell "ls -d !dir_ndd_dev!/*  | tr  '\n' ' '" > "!filelist!"
 
 setlocal enabledelayedexpansion
