@@ -1,4 +1,6 @@
 
+#!/usr/bin/env bash
+
 xDir=~/OSPath/MAC
 
 # Loop through all parameters passed to the script
@@ -26,8 +28,8 @@ ip_testDevice2="192.168.1.126"
 # ip_testDevice2="192.168.3.104"
 
 # nfs
-if [ "$1" == "nfs" ] ; then
-	echo "========== NFS "==========
+if [ "$1" = "nfs" ] ; then
+	echo "========== NFS =========="
 	cd ~
 	if [ "$2" = "+" ] ; then
 		mount -t nfs -o nolock 10.1.13.207:/mnt/disk2/yocto_build_folder/gray DellServer/yocto_build_folder
@@ -270,10 +272,10 @@ if [ "$1" = "scp" ]; then
 	fi
 fi
 
-if [ "$1" == "lan" ] ; then
-	if [ "$2" == "scan" ] ; then
+if [ "$1" = "lan" ] ; then
+	if [ "$2" = "scan" ] ; then
 		lan="192.168.$3.0/24"
-		echo "nmap -sn "$lan""
+		echo "nmap -sn $lan"
 		nmap -sn "$lan"
 	fi
 fi
@@ -330,13 +332,13 @@ if [ "$1" = "sys" ] ; then
 fi
 
 # vs code
-if [ "$1" == "code" ] ; then
-	if [ "$2" == "x" ] ; then
+if [ "$1" = "code" ] ; then
+	if [ "$2" = "x" ] ; then
 		code "$xDir/x.sh"
-	elif [ "$2" == ".rc" ] ; then
+	elif [ "$2" = ".rc" ] ; then
 		echo "edit ~/.zshrc"
 		code ~/.zshrc
-	elif [ "$2" == "fp" ] ; then
+	elif [ "$2" = "fp" ] ; then
 		echo "full path $3"
 		code $3
 	else
@@ -346,7 +348,7 @@ if [ "$1" == "code" ] ; then
 fi
 
 # gstreamer
-if [ "$1" == "gst" ] ; then
+if [ "$1" = "gst" ] ; then
 
 	gstVersion="1.20.3"
 	# gstVersion="1.18.6"
@@ -359,38 +361,38 @@ if [ "$1" == "gst" ] ; then
 	echo "cerberoFolder:$cerberoFolder"
 	echo "badSrcFolder:$badSrcFolder"
 
-	if [ "$2" == "c" ] ; then
+	if [ "$2" = "c" ] ; then
 		echo "clean GStreamer installed folders"
 		sudo rm -rf ~/Library/Developer/Xcode/Templates
 		sudo rm -rf ~/Library/Developer/GStreamer
-	elif [ "$2" == "chmod" ] ; then
+	elif [ "$2" = "chmod" ] ; then
 		echo "make source files r/w"
 		cd $badSrcFolder
 		sudo chmod -R 777 .
 
-	elif [ "$2" == "e" ] ; then
+	elif [ "$2" = "e" ] ; then
 		cd $cerberoFolder
 		code cerbero/build/recipe.py
 		code build/sources/ios_universal/arm64/gstreamer-1.0/subprojects/gst-plugins-bad/sys/applemedia/avfvideosrc.h
 		code build/sources/ios_universal/arm64/gstreamer-1.0/subprojects/gst-plugins-bad/sys/applemedia/avfvideosrc.m
 
-	elif [ "$2" == "udp" ] ; then
+	elif [ "$2" = "udp" ] ; then
 		echo "GStreamer start udp stream server"
 		gst-launch-1.0 -v udpsrc port=5000 caps="application/x-rtp,media=video,encoding-name=H264" ! rtph264depay ! avdec_h264 ! videoconvert ! autovideosink
 
-	elif [ "$2" == "b" ] ; then
+	elif [ "$2" = "b" ] ; then
 		echo "build GStreamer..."
 		cd $cerberoFolder
 
-		if [ "$3" == "env" ] ; then
+		if [ "$3" = "env" ] ; then
 			echo "bootstrap, setup environment"
 			sudo ./cerbero-uninstalled -c config/$configfile bootstrap
 		
-		elif [ "$3" == "bad" ] ; then
+		elif [ "$3" = "bad" ] ; then
 			echo "build gst-plugins-bad..."
 			sudo ./cerbero-uninstalled -c config/$configfile buildone gst-plugins-bad-1.0
 		 
-		elif [ "$3" == "all" ] ; then
+		elif [ "$3" = "all" ] ; then
 			echo "package GStreamer..."
 			ls
 			rm -f "gstreamer-1.0-devel-$gstVersion-ios-universal.pkg"
@@ -399,7 +401,7 @@ if [ "$1" == "gst" ] ; then
 			sudo ./cerbero-uninstalled -c config/$configfile package gstreamer-1.0 
 			open $cerberoFolder
 		
-		elif [ "$3" == "c" ] ; then
+		elif [ "$3" = "c" ] ; then
 			echo "wipe GStreamer installed folders"
 			sudo ./cerbero-uninstalled -c config/$configfile wipe
 			sudo rm -rf $cerberoFolder/build
@@ -413,8 +415,8 @@ if [ "$1" == "gst" ] ; then
 fi
 
 # open finder
-if [ "$1" == "f" ] ; then
-	if [ "$2" == "code" ] ; then
+if [ "$1" = "f" ] ; then
+	if [ "$2" = "code" ] ; then
 		# vs code snippet folders
 		open ~/"Library/Application Support/Code/User/snippets"
 
@@ -424,27 +426,27 @@ if [ "$1" == "f" ] ; then
 fi
 
 # cd folders && open explorer
-if [ "$1" == "cd" ] ; then
+if [ "$1" = "cd" ] ; then
 
-	if [ "$2" == "vscode" ] ; then
+	if [ "$2" = "vscode" ] ; then
 		# vs code snippet folders
 		open ~/"Library/Application Support/Code/User/snippets"
 
-	elif [ "$2" == "gst" ] ; then
+	elif [ "$2" = "gst" ] ; then
 		open ~/"Work/libs/cerbero"
 	fi
 	
-	if [ "$2" == "." ] ; then
+	if [ "$2" = "." ] ; then
 		open .
 	fi	
 		
 fi
 
 # related
-if [ "$1" == "clean" ] ; then
+if [ "$1" = "clean" ] ; then
 
 	#  clean pod
-	if [ "$2" == "pod" ] ; then
+	if [ "$2" = "pod" ] ; then
 		echo "pod clean, should in project dir"
 		# sudo gem install cocoapods-clean
 		# rm -rf ~/Library/Caches/CocoaPods
@@ -453,7 +455,7 @@ if [ "$1" == "clean" ] ; then
 		pod deintegrate
 		rm -f Podfile.lock
 
-	elif [ "$2" == "ds" ] ; then
+	elif [ "$2" = "ds" ] ; then
 		echo "clean *.DS_Store"
 		find . -name "*.DS_Store" -exec rm -f {} \; 
 
@@ -467,15 +469,15 @@ if [ "$1" == "clean" ] ; then
 fi
 
 # kill
-if [ "$1" == "kill" ] ; then
+if [ "$1" = "kill" ] ; then
 	sudo ps aux | grep TextInputMenuAgent | awk '{print $2}' | xargs kill -9
 	sudo ps aux | grep distnoted | awk '{print $2}' | xargs kill -9
 fi
 
 # patch
-if [ "$1" == "patch" ] ; then
+if [ "$1" = "patch" ] ; then
 
-	if [ "$2" == "gen" ] ; then
+	if [ "$2" = "gen" ] ; then
 		# generate a patch file
 		if [ ! -n "$3" ] || [ ! -n "$4" ] || [ ! -n "$5" ] ; then
 			echo "param 3 & 4 & 5 shoud not be null"
@@ -485,7 +487,7 @@ if [ "$1" == "patch" ] ; then
 		
 		diff -uN $3 $4 > $5.patch
 
-	elif [ "$2" == "p" ] ; then
+	elif [ "$2" = "p" ] ; then
 		# patch
 		if [ ! -n "$3" ] || [ ! -n "$4" ] ; then
 			echo "param 3 & 4 shoud not be null"
@@ -494,7 +496,7 @@ if [ "$1" == "patch" ] ; then
 
 		patch $3 < $4
 
-	elif [ "$2" == "r" ] ; then
+	elif [ "$2" = "r" ] ; then
 		# restore 
 		if [ ! -n "$3" ] || [ ! -n "$4" ] ; then
 			echo "param 3 & 4 shoud not be null"
@@ -512,20 +514,20 @@ if [ "$1" == "patch" ] ; then
 fi
 
 # rename project
-if [ "$1" == "rename" ] ; then
+if [ "$1" = "rename" ] ; then
 
 	if [ ! -n "$2" ] || [ ! -n "$3" ] ; then
 		echo "param 3 & 4 shoud not be null"
 		exit -1
 	fi
 
-	if [ "$4" == "1" ] ; then
+	if [ "$4" = "1" ] ; then
 		echo "step 1 : rename file content"
 		find . -name "*.*" -type f -exec sed -i "" "s/$2/$3/g" {} \; 
-	elif [ "$4" == "2" ] ; then
+	elif [ "$4" = "2" ] ; then
 		echo "step 2 : rename file name"
 		find . -name "*$2*" -type f -exec rename "s/$2/$3/g" {} \; 	
-	elif [ "$4" == "3" ] ; then
+	elif [ "$4" = "3" ] ; then
 		echo "step 3 : rename directory name"
 		find . -name "*$2*" -type d -exec rename "s/$2/$3/g" {} \; 
 	else
@@ -539,13 +541,13 @@ if [ "$1" == "rename" ] ; then
 fi
 
 # react native related
-if [ "$1" == "rn" ] ; then
+if [ "$1" = "rn" ] ; then
 	
 	PackectManagementTool=yarn
 	
 	# init project
 	# PmxHome >> 0.60.5 
-	if [ "$2" == "init" ] ; then
+	if [ "$2" = "init" ] ; then
 		if [ -n "$3" ] ; then
 			if [ -z "$4" ] ; then
 				npx react-native init $3			
@@ -558,12 +560,12 @@ if [ "$1" == "rn" ] ; then
 	fi
 
 	# react-native version
-	if [ "$2" == "v" ] ; then
+	if [ "$2" = "v" ] ; then
 		react-native -v
 	fi
 
 	# run project
-	if [ "$2" == "x" ] ; then
+	if [ "$2" = "x" ] ; then
 
 		if [ -z "$3" ] ; then
 			echo "default run iOS"
@@ -575,9 +577,9 @@ if [ "$1" == "rn" ] ; then
 	fi
 
 	# run metro bunduler
-	if [ "$2" == "xnode" ] ; then
+	if [ "$2" = "xnode" ] ; then
 
-		if [ "$3" == "c" ] ; then
+		if [ "$3" = "c" ] ; then
 			watchman watch-del-all
 			npm start -- --reset-cache		
 		else
@@ -586,7 +588,7 @@ if [ "$1" == "rn" ] ; then
 	fi
 
 	# add a react-native module
-	if [ "$2" == "module+" ] ; then
+	if [ "$2" = "module+" ] ; then
 		echo "add a react-native module"
 		if [ -n "$3" ] ; then
 			npm install --save $3
@@ -594,7 +596,7 @@ if [ "$1" == "rn" ] ; then
 			echo "please input moudle"
 		fi
 	fi
-	if [ "$2" == "module++" ] ; then
+	if [ "$2" = "module++" ] ; then
 		echo "add a react-native module [with link]"
 		if [ -n "$3" ] ; then
 			npm install --save $3
@@ -605,7 +607,7 @@ if [ "$1" == "rn" ] ; then
 	fi
 
 	# remove a react-native module
-	if [ "$2" == "module-" ] ; then
+	if [ "$2" = "module-" ] ; then
 		echo "remove a react-native module"
 		if [ -n "$3" ] ; then
 			# react-native unlink $3
@@ -614,7 +616,7 @@ if [ "$1" == "rn" ] ; then
 			echo "please input moudle"
 		fi
 	fi
-	if [ "$2" == "module--" ] ; then
+	if [ "$2" = "module--" ] ; then
 		echo "remove a react-native module [with link]"
 		if [ -n "$3" ] ; then
 			react-native unlink $3
@@ -624,7 +626,7 @@ if [ "$1" == "rn" ] ; then
 		fi
 	fi
 
-	if [ "$2" == "clean" ] ; then
+	if [ "$2" = "clean" ] ; then
 		echo "clean a react-native project"
 		cd ios
 		xcodebuild clean 
@@ -635,7 +637,7 @@ if [ "$1" == "rn" ] ; then
 	fi
 
 	# change react-native version
-	if [ "$2" == "cv" ] ; then
+	if [ "$2" = "cv" ] ; then
 		if [ -n "$3" ] ; then
 			npm install react-native@$3
 		else
@@ -643,7 +645,7 @@ if [ "$1" == "rn" ] ; then
 		fi
 	fi
 	# upgrade react-native version
-	if [ "$2" == "uv" ] ; then
+	if [ "$2" = "uv" ] ; then
 		if [ -n "$3" ] ; then
 			npx react-native upgrade $3
 		else
@@ -654,15 +656,15 @@ if [ "$1" == "rn" ] ; then
 fi
 
 # docker
-if [ "$1" == "dk" ] ; then
+if [ "$1" = "dk" ] ; then
 
-	if [ "$2" == "i" ] ; then
+	if [ "$2" = "i" ] ; then
 		# image related
-		if  [ "$3" == "ins" ] ; then
+		if  [ "$3" = "ins" ] ; then
 			#inspect valume
 			echo "========== docker volume inspect 'Volume Name' ========== " 
 			docker volume inspect $4
-		elif  [ "$3" == "rm" ] ; then
+		elif  [ "$3" = "rm" ] ; then
 			echo "========== docker image rm $4 ========== " 
 			docker image rm $4
 		else
@@ -671,15 +673,15 @@ if [ "$1" == "dk" ] ; then
 			docker image ls
 		fi
 
-	elif [ "$2" == "c" ] ; then
+	elif [ "$2" = "c" ] ; then
 		# container related
-		if  [ "$3" == "ins" ] ; then
+		if  [ "$3" = "ins" ] ; then
 			echo "========== docker inspect 'container id'========== " 
 			docker inspect $4
-		elif  [ "$3" == "stop" ] ; then
+		elif  [ "$3" = "stop" ] ; then
 			echo "========== docker container stop 'Container ID' ========== " 
 			docker container stop $4
-		elif  [ "$3" == "rm" ] ; then
+		elif  [ "$3" = "rm" ] ; then
 			echo "========== docker container rm 'Container ID' ========== " 
 			docker container rm $4
 		else
@@ -688,13 +690,13 @@ if [ "$1" == "dk" ] ; then
 			docker container ls
 		fi
 		
-	elif [ "$2" == "v" ] ; then
+	elif [ "$2" = "v" ] ; then
 
-		if  [ "$3" == "ins" ] ; then
+		if  [ "$3" = "ins" ] ; then
 			#inspect valume
 			echo "========== docker volume inspect 'Volume Name' ========== " 
 			docker volume inspect $4
-		elif  [ "$3" == "rm" ] ; then
+		elif  [ "$3" = "rm" ] ; then
 			# inspect valume
 			echo "========== docker volume rm 'Volume Name' ========== " 
 			docker volume rm -f $4
@@ -703,7 +705,7 @@ if [ "$1" == "dk" ] ; then
 			docker volume ls
 		fi
 
-	elif [ "$2" == "bash" ] ; then
+	elif [ "$2" = "bash" ] ; then
 
 		if [ -n "$3" ] ; then
 			echo "========== docker exec -it $3 bash ========== " 
@@ -714,15 +716,15 @@ if [ "$1" == "dk" ] ; then
 			docker container ls
 		fi
 
-	elif [ "$2" == "clean" ] ; then
+	elif [ "$2" = "clean" ] ; then
 
-		if [ "$3" == "all" ] ; then
+		if [ "$3" = "all" ] ; then
 			# remove all stopped containers, all dangling images, all unused volumes, and all unused networks
 			echo "========== docker system prune --volumes ========== " 
 			# docker system prune
 			docker system prune --volumes
 
-		elif  [ "$3" == "i" ] ; then
+		elif  [ "$3" = "i" ] ; then
 			# remove image
 			if [ -n "$4" ] ; then
 				echo "========== docker image rm $4 ========== " 
@@ -744,16 +746,16 @@ if [ "$1" == "dk" ] ; then
 fi
 
 # docker-compose
-if [ "$1" == "dkc" ] ; then
+if [ "$1" = "dkc" ] ; then
 	if [ -n "$3" ] ; then
-		if [ "$2" == "up" ] ; then
+		if [ "$2" = "up" ] ; then
 			echo "========== docker-compose -f $3 up ========== " 
 			# docker-compose -f $3 up -d
 			docker-compose -f $3 up
-		elif [ "$2" == "down" ] ; then
+		elif [ "$2" = "down" ] ; then
 			echo "========== docker-compose -f $3 up ========== " 
 			docker-compose -f $3 down
-		elif [ "$2" == "r" ] ; then
+		elif [ "$2" = "r" ] ; then
 			echo "========== docker-compose -f $3 up ========== " 
 			docker-compose -f $3 down
 			docker-compose -f $3 up -d
@@ -761,12 +763,12 @@ if [ "$1" == "dkc" ] ; then
 			echo "========== docker-compose donothing ========== " 
 		fi
 	else
-		if [ "$2" == "up" ] ; then
+		if [ "$2" = "up" ] ; then
 			echo "========== docker-compose  ========== " 
 			docker-compose up -d
-		elif [ "$2" == "down" ] ; then
+		elif [ "$2" = "down" ] ; then
 			docker-compose down
-		elif [ "$2" == "r" ] ; then
+		elif [ "$2" = "r" ] ; then
 			docker-compose down
 			docker-compose up -d
 		else
@@ -776,66 +778,66 @@ if [ "$1" == "dkc" ] ; then
 fi
 
 # find content
-if [ "$1" == "grep" ] ; then
+if [ "$1" = "grep" ] ; then
 
 	grep -r $2 .
 
 fi
 
 # dmesg
-if [ "$1" == "dmesg" ] ; then
+if [ "$1" = "dmesg" ] ; then
 
 	adb shell cat /proc/kmsg | grep -v 'restore'
 
 fi
 
 # updata file's date tag
-if [ "$1" == "uf" ] ; then
+if [ "$1" = "uf" ] ; then
 
-	if [ "$2" == "wpas" ] ; then
+	if [ "$2" = "wpas" ] ; then
 
 		cd $prjRoot/$prjDir/android/external/wpa_supplicant_8
 		find . -name "*" -exec touch {} \;
 
 	fi
 	
-	if [ "$2" == "dhd" ] ; then
+	if [ "$2" = "dhd" ] ; then
 
 		cd $prjRoot/$prjDir/kernel/drivers/net/wireless/bcmdhd
 		find . -name "*" -exec touch {} \;
 	fi
 
-	if [ "$2" == "wl" ] ; then
+	if [ "$2" = "wl" ] ; then
 
 		cd $prjRoot/$prjDir/android/hardware/libhardware_legacy/wifi
 		find . -name "*" -exec touch {} \;
 	fi	
 	
-	if [ "$2" == "jni" ] ; then
+	if [ "$2" = "jni" ] ; then
 
 		cd $prjRoot/$prjDir/android/frameworks/base/core/jni
 		find . -name "android_net_wifi_Wifi.cpp" -exec touch {} \;
 	fi	
 
-	if [ "$2" == "fwb_wifi" ] ; then
+	if [ "$2" = "fwb_wifi" ] ; then
 
 		cd $prjRoot/$prjDir/android/frameworks/base/wifi/java/android/net
 		find . -name "*" -exec touch {} \;
 	fi		
 
-	if [ "$2" == "wpasl" ] ; then
+	if [ "$2" = "wpasl" ] ; then
 
 		cd $prjRoot/$prjDir/android/hardware/broadcom/wlan/bcmdhd/wpa_supplicant_8_lib
 		find . -name "*" -exec touch {} \;
 	fi	
 		
-	if [ "$2" == "wt" ] ; then
+	if [ "$2" = "wt" ] ; then
 
 		cd $prjRoot/$prjDir/android/system/extras/tests/wifi
 		find . -name "*" -exec touch {} \;
 	fi	
 	
-	if [ "$2" == "." ] ; then
+	if [ "$2" = "." ] ; then
 
 		find . -name "*" -exec touch {} \;
 	fi
@@ -844,62 +846,62 @@ fi
 
 
 # chmod -R 777
-if [ "$1" == "chmod" ] ; then
+if [ "$1" = "chmod" ] ; then
 
-	if [ "$2" == "wpas" ] ; then
+	if [ "$2" = "wpas" ] ; then
 
 		cd $prjRoot/$prjDir/android/external/
 		chmod -R 777 wpa*
 
 	fi
 	
-	if [ "$2" == "dhd" ] ; then
+	if [ "$2" = "dhd" ] ; then
 
 		cd $prjRoot/$prjDir/kernel/drivers/net/wireless
 		chmod -R 777 bcmdhd
 	fi
 
-	if [ "$2" == "wl" ] ; then
+	if [ "$2" = "wl" ] ; then
 
 		cd $prjRoot/$prjDir/android/hardware/libhardware_legacy/wifi
 		chmod -R 777 .
 	fi	
 
-	if [ "$2" == "fw_wifi" ] ; then
+	if [ "$2" = "fw_wifi" ] ; then
 
 		cd $prjRoot/$prjDir/android/frameworks/base/wifi
 		chmod -R 777 .
 	fi		
 
-	if [ "$2" == "fw_srv" ] ; then
+	if [ "$2" = "fw_srv" ] ; then
 
 		cd $prjRoot/$prjDir/android/frameworks/base/services
 		chmod -R 777 .
 	fi	
 	
-	if [ "$2" == "wpasl" ] ; then
+	if [ "$2" = "wpasl" ] ; then
 
 		cd $prjRoot/$prjDir/android/hardware/broadcom/wlan/bcmdhd/wpa_supplicant_8_lib
 		chmod -R 777 .
 	fi
 	
-	if [ "$2" == "wt" ] ; then
+	if [ "$2" = "wt" ] ; then
 
 		cd $prjRoot/$prjDir/android/system/extras/tests/wifi
 		chmod -R 777 .
 	fi	
 
-	if [ "$2" == "." ] ; then
+	if [ "$2" = "." ] ; then
 	
 		chmod -R 777 .
 	fi		
 fi
 
 # PJSIP
-if [ "$1" == "pj" ] ; then
+if [ "$1" = "pj" ] ; then
 	echo "pjsip...."
 	cd /Users/graylin/Work/Prj_RN/lib/source/Vialer-pjsip-iOS-master
-	if [ "$2" == "b" ] ; then
+	if [ "$2" = "b" ] ; then
 		echo "build...."
 		./vialerbuild --no-download-pjsip-src --no-clean-pjsip-src --no-bitcode
 		# ./vialerbuild --no-download-pjsip-src --no-bitcode
@@ -963,22 +965,22 @@ if [ "$1" = "unzip" ] ; then
     fi
 fi
 
-if [ "$1" == "ping" ] ; then
-	if [ "$2" == "aic" ] ; then
+if [ "$1" = "ping" ] ; then
+	if [ "$2" = "aic" ] ; then
 		echo "ping $ip_aicamera ..."
 		ping $ip_aicamera
 	fi
 fi
 
 # edit x
-if [ "$1" == "ex" ] ; then
+if [ "$1" = "ex" ] ; then
 	echo "edit x...."
 	cd $prjRoot/myPath
 	gedit x
 	echo "edit x....done"
 fi
 
-if [ "$1" == "size" ] ; then
+if [ "$1" = "size" ] ; then
     
     # must have a target path
     if [ -z "$2" ]; then
@@ -988,14 +990,14 @@ if [ "$1" == "size" ] ; then
     fi
     
     # === List directory size (one level) ===
-    if [ "$3" == "d" ]; then
+    if [ "$3" = "d" ]; then
         echo "sudo du -h -d 1 \"$2\" | sort -h"
         sudo du -h -d 1 "$2" | sort -h
         exit 0
     fi
     
     # === Max depth mode (m) ===
-    if [ "$3" == "m" ] && [ -n "$4" ] && [[ "$4" =~ ^[0-9]+$ ]]; then
+    if [ "$3" = "m" ] && [ -n "$4" ] && [[ "$4" =~ ^[0-9]+$ ]]; then
         echo "sudo du -h -d $4 \"$2\" | sort -h"
         sudo du -h -d "$4" "$2" | sort -h
         exit 0
@@ -1006,51 +1008,233 @@ if [ "$1" == "size" ] ; then
     sudo du -sh "$2"
 fi
 
-if [ "$1" == "c" ] ; then
+if [ "$1" = "c" ] ; then
 	echo "clear terminal..."
 	clear
 fi
 
 mac_cleansys() {
   local mode="${1:-check}"
+  local app_keyword="${2:-}"
+  local app_depth="${3:-1}"
+  local cleaned_any=0
 
-  echo "========== mac_cleansys: $mode =========="
+  _report_mac_space() {
+    echo
+    echo "[1/8] Disk usage"
+    df -h /
 
-  echo
-  echo "[1/8] Disk usage"
-  df -h /
+    echo
+    echo "[2/8] Top-level ~/Library usage"
+    du -hxd1 ~/Library 2>/dev/null | sort -hr | head -20
 
-  echo
-  echo "[2/8] Top-level ~/Library usage"
-  du -hxd1 ~/Library 2>/dev/null | sort -hr | head -20
+    echo
+    echo "[3/8] Cache usage"
+    du -sh ~/Library/Caches 2>/dev/null
+    sudo du -sh /Library/Caches 2>/dev/null
 
-  echo
-  echo "[3/8] Cache usage"
-  du -sh ~/Library/Caches 2>/dev/null
-  sudo du -sh /Library/Caches 2>/dev/null
+    echo
+    echo "[4/8] Logs usage"
+    du -sh ~/Library/Logs 2>/dev/null
+    sudo du -sh /private/var/log 2>/dev/null
 
-  echo
-  echo "[4/8] Logs usage"
-  du -sh ~/Library/Logs 2>/dev/null
-  sudo du -sh /private/var/log 2>/dev/null
+    echo
+    echo "[5/8] Xcode / Simulator usage"
+    du -sh ~/Library/Developer 2>/dev/null
+    sudo du -sh /Library/Developer/CoreSimulator 2>/dev/null
 
-  echo
-  echo "[5/8] Xcode / Simulator usage"
-  du -sh ~/Library/Developer 2>/dev/null
-  sudo du -sh /Library/Developer/CoreSimulator 2>/dev/null
+    echo
+    echo "[6/8] Docker Desktop usage"
+    du -sh ~/Library/Containers/com.docker.docker 2>/dev/null
+    du -sh ~/Library/Containers/com.docker.docker/Data/vms 2>/dev/null
 
-  echo
-  echo "[6/8] Docker Desktop usage"
-  du -sh ~/Library/Containers/com.docker.docker 2>/dev/null
-  du -sh ~/Library/Containers/com.docker.docker/Data/vms 2>/dev/null
+    echo
+    echo "[7/8] /private/var usage"
+    sudo du -hxd1 /private/var 2>/dev/null | sort -hr | head -20
 
-  echo
-  echo "[7/8] /private/var usage"
-  sudo du -hxd1 /private/var 2>/dev/null | sort -hr | head -20
+    echo
+    echo "[8/8] Time Machine snapshots"
+    tmutil listlocalsnapshots / 2>/dev/null || true
+  }
 
-  echo
-  echo "[8/8] Time Machine snapshots"
-  tmutil listlocalsnapshots / 2>/dev/null || true
+  _safe_empty_dir() {
+    local target="$1"
+
+    if [ -d "$target" ]; then
+      find "$target" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
+      cleaned_any=1
+    fi
+  }
+
+  _docker_cleanup() {
+    if ! command -v docker >/dev/null 2>&1; then
+      echo "  docker not available, skip."
+      return
+    fi
+
+    echo "- Docker builder prune"
+    docker builder prune -f >/dev/null 2>&1 || true
+
+    echo "- Docker image/container/network prune"
+    docker system prune -f >/dev/null 2>&1 || true
+
+    cleaned_any=1
+  }
+
+  _report_app_storage() {
+    echo
+    echo "[App 1/3] ~/Library/Application Support"
+    du -hxd1 ~/Library/Application\ Support 2>/dev/null | sort -hr | head -30
+
+    echo
+    echo "[App 2/3] ~/Library/Group Containers"
+    echo "  note: Group Containers are often counted by macOS as System Data"
+    du -hxd1 ~/Library/Group\ Containers 2>/dev/null | sort -hr | head -30
+
+    echo
+    echo "[App 3/3] ~/Library/Containers"
+    du -hxd1 ~/Library/Containers 2>/dev/null | sort -hr | head -30
+  }
+
+  _print_storage_hints() {
+    local path="$1"
+
+    case "$path" in
+      *"/Caches"|*"/Caches/"*|*"/tmp"|*"/tmp/"*)
+        echo "  hint: likely cache/tmp, usually safe after quitting the app"
+        ;;
+      *"/Group Containers/"*)
+        echo "  hint: Group Container data is often counted as System Data"
+        echo "  hint: may contain real user data, inspect before deleting"
+        ;;
+      *"/Containers/"*)
+        echo "  hint: sandbox container, may include caches plus app data"
+        ;;
+      *"/Application Support/"*)
+        echo "  hint: Application Support often ends up in System Data"
+        echo "  hint: may contain settings, databases, downloads, or caches"
+        ;;
+    esac
+  }
+
+  _print_match_report() {
+    local match_path="$1"
+    local depth="$2"
+
+    du -sh "$match_path" 2>/dev/null
+    _print_storage_hints "$match_path"
+    du -hxd"$depth" "$match_path" 2>/dev/null | sort -hr | head -30
+
+    if [ -d "$match_path/Real/Library/Data/Caches" ]; then
+      echo "  cache hot spot: $match_path/Real/Library/Data/Caches"
+    fi
+
+    if [ -d "$match_path/Data/Caches" ]; then
+      echo "  cache hot spot: $match_path/Data/Caches"
+    fi
+
+    echo
+  }
+
+  _print_remove_candidates() {
+    local keyword="$1"
+    local found_any=0
+    local match_path
+    local tmp_matches
+    local app_support_dir="${HOME}/Library/Application Support"
+    local group_containers_dir="${HOME}/Library/Group Containers"
+    local containers_dir="${HOME}/Library/Containers"
+
+    if [ -z "$keyword" ]; then
+      echo "Usage: mac_cleansys rmapp <keyword>"
+      return 1
+    fi
+
+    tmp_matches="/tmp/mac_cleansys_rmapp_$$.txt"
+    : > "$tmp_matches"
+
+    echo
+    echo "Dry run only. Review targets before deleting anything."
+    echo "Suggested order: quit app -> move to Trash or rm manually -> reinstall"
+
+    echo
+    echo "[Remove candidates 1/3] ~/Library/Application Support"
+    find "$app_support_dir" -mindepth 1 -maxdepth 1 -iname "*$keyword*" -print 2>/dev/null > "$tmp_matches"
+    while IFS= read -r match_path; do
+      found_any=1
+      du -sh "$match_path" 2>/dev/null
+      _print_storage_hints "$match_path"
+      echo "  rm -rf \"$match_path\""
+      echo
+    done < "$tmp_matches"
+
+    echo
+    echo "[Remove candidates 2/3] ~/Library/Group Containers"
+    find "$group_containers_dir" -mindepth 1 -maxdepth 1 -iname "*$keyword*" -print 2>/dev/null > "$tmp_matches"
+    while IFS= read -r match_path; do
+      found_any=1
+      du -sh "$match_path" 2>/dev/null
+      _print_storage_hints "$match_path"
+      echo "  rm -rf \"$match_path\""
+      echo
+    done < "$tmp_matches"
+
+    echo
+    echo "[Remove candidates 3/3] ~/Library/Containers"
+    find "$containers_dir" -mindepth 1 -maxdepth 1 -iname "*$keyword*" -print 2>/dev/null > "$tmp_matches"
+    while IFS= read -r match_path; do
+      found_any=1
+      du -sh "$match_path" 2>/dev/null
+      _print_storage_hints "$match_path"
+      echo "  rm -rf \"$match_path\""
+      echo
+    done < "$tmp_matches"
+
+    /bin/rm -f "$tmp_matches"
+
+    if [ "$found_any" = "0" ]; then
+      echo
+      echo "No matching app-owned storage found for keyword: $keyword"
+    fi
+  }
+
+  _inspect_app_keyword() {
+    local keyword="$1"
+    local depth="${2:-1}"
+
+    if [ -z "$keyword" ]; then
+      _report_app_storage
+      return
+    fi
+
+    echo
+    echo "Inspecting app storage for keyword: $keyword (depth=$depth)"
+
+    echo
+    echo "[Match 1/3] ~/Library/Application Support"
+    find ~/Library/Application\ Support -mindepth 1 -maxdepth 1 -iname "*$keyword*" -print 2>/dev/null | while IFS= read -r match_path; do
+      _print_match_report "$match_path" "$depth"
+    done
+
+    echo
+    echo "[Match 2/3] ~/Library/Group Containers"
+    find ~/Library/Group\ Containers -mindepth 1 -maxdepth 1 -iname "*$keyword*" -print 2>/dev/null | while IFS= read -r match_path; do
+      _print_match_report "$match_path" "$depth"
+    done
+
+    echo
+    echo "[Match 3/3] ~/Library/Containers"
+    find ~/Library/Containers -mindepth 1 -maxdepth 1 -iname "*$keyword*" -print 2>/dev/null | while IFS= read -r match_path; do
+      _print_match_report "$match_path" "$depth"
+    done
+  }
+
+  if [ "$mode" = "app" ] || [ "$mode" = "app2" ] || [ "$mode" = "app3" ] || [ "$mode" = "rmapp" ]; then
+    :
+  else
+    echo "========== mac_cleansys: $mode =========="
+    _report_mac_space
+  fi
 
   case "$mode" in
     check)
@@ -1063,10 +1247,10 @@ mac_cleansys() {
       echo "Cleaning safe items..."
 
       echo "- Clean user caches"
-      rm -rf ~/Library/Caches/* 2>/dev/null
+      _safe_empty_dir ~/Library/Caches
 
       echo "- Clean user logs"
-      rm -rf ~/Library/Logs/* 2>/dev/null
+      _safe_empty_dir ~/Library/Logs
 
       echo "- Clean old simulator runtimes (unavailable only)"
       if xcrun simctl list >/dev/null 2>&1; then
@@ -1080,7 +1264,7 @@ mac_cleansys() {
 
       echo
       echo "After clean:"
-      df -h /
+      _report_mac_space
       ;;
 
     deep)
@@ -1088,16 +1272,16 @@ mac_cleansys() {
       echo "Deep cleaning common dev junk..."
 
       echo "- Clean user caches"
-      rm -rf ~/Library/Caches/* 2>/dev/null
+      _safe_empty_dir ~/Library/Caches
 
       echo "- Clean user logs"
-      rm -rf ~/Library/Logs/* 2>/dev/null
+      _safe_empty_dir ~/Library/Logs
 
       echo "- Clean Xcode DerivedData"
-      rm -rf ~/Library/Developer/Xcode/DerivedData/* 2>/dev/null
+      _safe_empty_dir ~/Library/Developer/Xcode/DerivedData
 
       echo "- Clean Xcode Archives"
-      rm -rf ~/Library/Developer/Xcode/Archives/* 2>/dev/null
+      _safe_empty_dir ~/Library/Developer/Xcode/Archives
 
       echo "- Clean unavailable simulator devices"
       if xcrun simctl list >/dev/null 2>&1; then
@@ -1111,16 +1295,70 @@ mac_cleansys() {
 
       echo
       echo "After deep clean:"
-      df -h /
+      _report_mac_space
+      ;;
+
+    docker)
+      echo
+      echo "Cleaning Docker build/cache data..."
+      _docker_cleanup
+
+      echo
+      echo "After docker clean:"
+      _report_mac_space
+      ;;
+
+    app)
+      echo
+      if [ -n "$app_keyword" ]; then
+        echo "Inspecting app-owned storage for: $app_keyword"
+        _inspect_app_keyword "$app_keyword" "$app_depth"
+      else
+        echo "Inspecting app-owned storage..."
+        _report_app_storage
+      fi
+      ;;
+
+    app2)
+      echo
+      if [ -n "$app_keyword" ]; then
+        echo "Inspecting app-owned storage for: $app_keyword (deeper view)"
+        _inspect_app_keyword "$app_keyword" 2
+      else
+        echo "Usage: mac_cleansys app2 <keyword>"
+        return 1
+      fi
+      ;;
+
+    app3)
+      echo
+      if [ -n "$app_keyword" ]; then
+        echo "Inspecting app-owned storage for: $app_keyword (depth 3 view)"
+        _inspect_app_keyword "$app_keyword" 3
+      else
+        echo "Usage: mac_cleansys app3 <keyword>"
+        return 1
+      fi
+      ;;
+
+    rmapp)
+      echo
+      if [ -n "$app_keyword" ]; then
+        echo "Printing remove candidates for app-owned storage: $app_keyword"
+        _print_remove_candidates "$app_keyword"
+      else
+        echo "Usage: mac_cleansys rmapp <keyword>"
+        return 1
+      fi
       ;;
 
     *)
-      echo "Usage: mac_cleansys [check|clean|deep]"
+      echo "Usage: mac_cleansys [check|clean|deep|docker|app [keyword] [depth]|app2 <keyword>|app3 <keyword>|rmapp <keyword>]"
       return 1
       ;;
   esac
 }
 
 if [ "$1" = "cleansys" ]; then
-    mac_cleansys "${2:-check}"
+    mac_cleansys "${2:-check}" "${3:-}"
 fi
