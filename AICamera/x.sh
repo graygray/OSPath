@@ -522,6 +522,8 @@ if [ "$1" = "aic" ]; then
 			
 			if [ "$4" = "tee" ]; then
 				cmd="gst-launch-1.0 aravissrc ! videoconvert ! video/x-raw,format=NV12 ! tee name=t t. ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t. ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+			elif [ "$4" = "udp" ]; then
+				cmd='gst-launch-1.0 aravissrc do-timestamp=true ! queue ! videoconvert ! videoscale ! videorate ! video/x-raw,format=NV12,width=1280,height=720,framerate=30/1 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=10" capture-io-mode=dmabuf ! h264parse config-interval=-1 ! video/x-h264,stream-format=byte-stream,alignment=au ! mpegtsmux ! udpsink host=127.0.0.1 port=8891 sync=false async=false'
 			elif [ "$4" = "dp" ]; then
 				cmd='gst-launch-1.0 aravissrc ! videoconvert ! video/x-raw,format=NV12,width=1536,height=1024 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
 			elif [ "$4" = "dp2" ]; then
@@ -534,6 +536,8 @@ if [ "$1" = "aic" ]; then
 			
 			if [ "$4" = "tee" ]; then
 				cmd='gst-launch-1.0 videotestsrc is-live=true pattern=smpte ! video/x-raw,width=1280,height=720,framerate=30/1 ! videoconvert ! video/x-raw,format=NV12 ! tee name=t t. ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t. ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=10" capture-io-mode=dmabuf ! h264parse config-interval=-1 ! video/x-h264,stream-format=byte-stream,alignment=au ! rtspclientsink location=rtsp://localhost:8554/mystream'
+			elif [ "$4" = "udp" ]; then
+				cmd='gst-launch-1.0 videotestsrc is-live=true pattern=smpte ! video/x-raw,width=1280,height=720,framerate=30/1 ! videoconvert ! video/x-raw,format=NV12 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=10" capture-io-mode=dmabuf ! h264parse config-interval=-1 ! video/x-h264,stream-format=byte-stream,alignment=au ! mpegtsmux ! udpsink host=127.0.0.1 port=8891 sync=false async=false'
 			elif [ "$4" = "dp" ]; then
 				cmd='gst-launch-1.0 videotestsrc is-live=true pattern=smpte ! video/x-raw,width=1280,height=720,framerate=30/1 ! videoconvert ! video/x-raw,format=NV12 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
 			else
