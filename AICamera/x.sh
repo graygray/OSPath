@@ -1442,8 +1442,10 @@ if [ "$1" = "sys" ]; then
 
 		# list normal users
 		echo "========== User range =========="
+		echo "grep -E '^UID_MIN|^UID_MAX' /etc/login.defs"
 		grep -E '^UID_MIN|^UID_MAX' /etc/login.defs
 		echo "========== User info =========="
+		echo "getent passwd {1000..60000}"
 		getent passwd {1000..60000}
 
 	elif [ "$2" = "user" ]; then
