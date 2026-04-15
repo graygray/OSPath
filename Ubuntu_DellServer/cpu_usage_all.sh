@@ -39,6 +39,23 @@ read_total_jiffies() {
     }' /proc/stat
 }
 
+read_cpu_count() {
+    cpu_count="$(getconf _NPROCESSORS_ONLN 2>/dev/null || true)"
+
+    case "$cpu_count" in
+        ''|*[!0-9]*)
+            cpu_count="$(awk '/^cpu[0-9]+ / { count++ } END { print count + 0 }' /proc/stat)"
+            ;;
+    esac
+
+    if [ "$cpu_count" -le 0 ]; then
+        echo "Unable to determine online CPU count." >&2
+        exit 1
+    fi
+
+    printf '%s\n' "$cpu_count"
+}
+
 take_snapshot() {
     out_file="$1"
 
@@ -117,6 +134,7 @@ trap cleanup EXIT INT TERM
 
 start_user="$(read_total_user_jiffies)"
 start_total="$(read_total_jiffies)"
+cpu_count="$(read_cpu_count)"
 take_snapshot "$snapshot1"
 
 echo "Measuring total CPU usage from all user-space processes over ${DURATION} seconds..."
@@ -139,8 +157,8 @@ total_user_pct="$(awk -v user="$user_delta" -v total="$total_delta" 'BEGIN {
     printf "%.2f", (user / total) * 100
 }')"
 
-cores_busy="$(awk -v user="$user_delta" -v total="$total_delta" 'BEGIN {
-    printf "%.2f", user / total
+cores_busy="$(awk -v user="$user_delta" -v total="$total_delta" -v cpus="$cpu_count" 'BEGIN {
+    printf "%.2f", (user / total) * cpus
 }')"
 
 echo "Total user-space CPU usage: ${total_user_pct}% of machine capacity"
