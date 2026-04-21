@@ -1431,10 +1431,14 @@ if [ "$1" = "sys" ]; then
 		uname -a
 		echo "==== CPU info ( lscpu )===="
 		lscpu
+		echo "==== CPU frequency ===="
+		for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq; do echo "$f: $(cat $f)"; done
 		echo "==== Memory info ( free -mh )===="
 		free -mh
 		echo "==== Disk info ( df -h --total ) ===="
 		df -h --total
+		echo "==== ps -eLo pid,tid,psr,pcpu,comm --sort=-pcpu | head -30 ===="
+		ps -eLo pid,tid,psr,pcpu,comm --sort=-pcpu | head -30
 	elif [ "$2" = "users" ]; then
 		# awk -F: '{ print $1}' /etc/passwd
 		echo "========== online User =========="
@@ -1450,6 +1454,9 @@ if [ "$1" = "sys" ]; then
 
 	elif [ "$2" = "user" ]; then
 		id -nG $3
+
+	elif [ "$2" = "cpu" ]; then
+		watch -n 1 'for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq; do echo "$f: $(cat $f)"; done'	
 	else
 		echo "param 3 not match"
 		exit -1
