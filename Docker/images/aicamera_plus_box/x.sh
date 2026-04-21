@@ -2,7 +2,6 @@ xDir=~/"OSPath/Ubuntu"
 
 # docker
 dockderDir=~/"OSPath/Docker"
-# dockderDir=~/"Docker"
 
 # redmine
 redDir="$dockderDir/redmine"
@@ -22,7 +21,6 @@ gitBackupFile="1588961756_2020_05_08_12.9.3"
 
 # jenkins
 jksDir="$dockderDir/jenkins"
-jksDir_Home="/var/lib/docker/volumes/jenkins_vHome/_data"
 
 # Loop through all parameters passed to the script
 echo "xDir = $xDir"
@@ -116,6 +114,19 @@ if [ "$1" = "bb" ] ; then
 			echo "bitbake-layers create-recipe $4"
 			bitbake-layers create-recipe $4
 		fi
+
+	elif [ "$2" = "kill" ] ; then
+		echo "kill bitbake & bitbake server"
+		echo "ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep"
+		ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep
+		echo "pkill -9 -f bitbake"
+		pkill -9 -f bitbake
+		echo "pkill -9 -f bitbake-server"
+		pkill -9 -f bitbake-server
+		rm -f "$BUILD_DIR/bitbake-cookerdaemon.*"
+		rm -f "$BUILD_DIR/bitbake.sock"
+		echo "ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep"
+		ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep
 	fi
 fi
 
@@ -253,21 +264,6 @@ if [ "$1" = "yt" ] ; then
 			#aiot-flash
 		fi
 
-	elif [ "$2" = "repo" ] ; then
-		echo "repo..."
-		repo init -u https://gitlab.com/mediatek/aiot/bsp/manifest.git -b rity/kirkstone -m default.xml
- 		repo sync
-
-	elif [ "$2" = "git" ] ; then
-		echo "========== git clone org-169115935@github.com:PMX-CTC/C_AI-Camera-G2_FW.git =========="
-		git clone org-169115935@github.com:PMX-CTC/C_AI-Camera-G2_FW.git
-
-	elif [ "$2" = "us" ] ; then
-		echo "========== update yocto project =========="
-		cd ~/C_AI-Camera-G2_FW
-		git reset --hard HEAD
-		git pull
-
 	elif [ "$2" = "dtb2dts" ] ; then
 		echo "========== dtc -I dtb -O dts -o $3.dts $3.dtb =========="
 		dtc -I dtb -O dts -o $3.dts $3.dtb
@@ -343,8 +339,7 @@ if [ "$1" = "wd" ] ; then
 		elif [ "$2" = "jks" ] ; then
 			xfce4-terminal --geometry=160x40 \
 			--tab -T "Docker_Jenkins" --working-directory=$jksDir \
-			--tab -T "Docker_Jenkins2" --working-directory=$jksDir \
-			--tab -T "Jenkins_Home" --working-directory=$jksDir_Home 
+			--tab -T "Docker_Jenkins2" --working-directory=$jksDir
 		else
 			echo "param 3 not match"
 			exit -1
@@ -374,8 +369,7 @@ if [ "$1" = "wd" ] ; then
 		elif [ "$2" = "jks" ] ; then
 			gnome-terminal --geometry=150x40 \
 			--tab -t "Docker_Jenkins" --working-directory=$jksDir \
-			--tab -t "Docker_Jenkins2" --working-directory=$jksDir \
-			--tab -t "Jenkins_Home" --working-directory=$jksDir_Home 
+			--tab -t "Docker_Jenkins2" --working-directory=$jksDir
 		elif [ "$2" = "ros" ] ; then
 			xfce4-terminal --geometry=150x40 \
 			--tab -T "home" --working-directory=~ \
@@ -583,12 +577,16 @@ if [ "$1" = "user" ] ; then
 			# make a yocto build dir & user link
 			buildfolder="/mnt/disk3/yocto_build"
 			mkdir -p $buildfolder/$3
-			cp $buildfolder/misc/step* $buildfolder/$3
+			cp -f $buildfolder/misc/step* $buildfolder/$3
 			sudo chown $3:$mainGroup $buildfolder/$3
 			sudo chown $3:$mainGroup $buildfolder/$3/step*
 			cd /home/$3
-			sudo ln -s $buildfolder/$3 yocto_build
-			sudo chown $3:$mainGroup yocto_build
+			if [ -e yocto_build ] || [ -L yocto_build ] ; then
+				echo "yocto_build link exists, skip"
+			else
+				sudo ln -s $buildfolder/$3 yocto_build
+				sudo chown $3:$mainGroup yocto_build
+			fi
 		else
 			echo "param 3 needed"
 		fi
@@ -1000,10 +998,11 @@ if [ "$1" = "jks" ] ; then
 	elif [ "$2" = "bash" ] ; then
 		echo "========== docker exec -it -u root jenkins /bin/bash =========="
 		docker exec -it -u root jenkins /bin/bash
-elif [ "$2" = "log" ] ; then
+	elif [ "$2" = "log" ] ; then
 		echo "========== docker logs -tf jenkins =========="
 		docker logs -tf jenkins
 	else
+		echo "jksDir:$jksDir"
 		echo "param 2 not match"
 		exit -1
 	fi

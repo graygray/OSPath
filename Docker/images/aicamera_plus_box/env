@@ -18,7 +18,6 @@ alias econf='nano $PROJ_ROOT/build/conf/local.conf'
 alias elayer='nano $PROJ_ROOT/build/conf/bblayers.conf'
 alias ekconf='nano $BUILD_DIR/workspace/sources/linux-mtk/arch/arm64/configs/defconfig'
 alias ekconf2='nano $PROJ_ROOT/src/meta-mediatek-bsp/recipes-kernel/linux/linux-mtk/mt8390-evk.cfg'
-alias edts='nano $BUILD_DIR/workspace/sources/linux-mtk/arch/arm64/boot/dts/mediatek/genio-700-evk.dts'
 
 # dir
 alias dh='cd ~'                                                                                     # dir home
@@ -31,30 +30,26 @@ alias dftp='cd /mnt/disk2/FTP/Public/gray'
 alias dftppi='cd /mnt/disk2/FTP/Public/gray/privateImage'
 alias dftpaic='cd /mnt/disk2/FTP/Public/gray/aicamera'
 alias dftpvh='cd /mnt/disk2/FTP/Public/gray/visionhub'
+alias dd2='cd /mnt/disk2'
+alias dd3='cd /mnt/disk3'
 
 # dir yocto related
-alias dytb='cd /mnt/disk2/yocto_build_folder/gray'                                                  # dir yocto build                                   # dir home
+alias dytb='cd /mnt/disk3/yocto_build/gray.lin'                                                     # dir yocto build
 alias dpr='cd $PROJ_ROOT'                                                                           # dir project root
 alias dpb='cd $PROJ_ROOT/build'                                                                     # dir project build path
 alias dps='cd $PROJ_ROOT/src'                                                                       # dir project src path
-alias dpi='cd $BUILD_DIR/tmp/deploy/images/genio-700-evk'                                           # dir project build image path
 alias dpi2='cd $BUILD_DIR/tmp/deploy/images/00.0C.00'                                               # dir project packed OTA image path
 alias dppmx='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax'                                   # dir project primax
 alias dppmxsrc='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/src'           # dir project primax src
 alias dppmxsys='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot'       # dir project primax sysroot
-alias dppmxhome='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/primax/files/primax-1.0/sysroot/home/root'
+alias dppmxhome='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root'
 alias dppmxscript='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/script'
 alias dppmxmisc='cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc'
-alias dptof='cd $PROJ_ROOT/src/meta-primax/recipes-tof/st-tof-module'                               # dir project tof
-alias dpmtx='cd $PROJ_ROOT/src/meta-primax/recipes-mediamtx/mediamtx'                               # dir project tof
 alias dpbbS='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/primax-1.0'                     # dir project BB {S} path
 alias dpbbD='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/image/'                         # dir project BB {D} path
-alias dpinc='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/recipe-sysroot/usr/include'     # dir project build include path
-alias dplib='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/recipe-sysroot/usr/lib'         # dir project build lib path
+alias dpbbinc='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/recipe-sysroot/usr/include'   # dir project BB include path
+alias dpbblib='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/primax/1.0-r0/recipe-sysroot/usr/lib'       # dir project BB lib path
 alias dpk='cd $PROJ_ROOT/src/meta-mediatek-bsp/recipes-kernel/linux'                                # dir project kernal
-alias dpdtbo='cd $PROJ_ROOT/src/meta-mediatek-bsp/recipes-kernel/dtbo/genio-700-evk'                # dir project kernal dtbo
-alias dpbbKS='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/st-tof-module/1.0-r0'                        # dir project BB {S} path for kernel
-alias dpbbKD='cd $BUILD_DIR/tmp/work/armv8a-poky-linux/st-tof-module/1.0-r0/image'                  # dir project BB {D} path for kernel
 alias dpsmw='cd $PROJ_ROOT/src/meta-mediatek-bsp/recipes-multimedia/mtk-camisp-mw'
 
 alias dpws='cd $BUILD_DIR/workspace/sources/'                                                      # dir project workspace source
@@ -66,14 +61,37 @@ alias dpwiq2='cd $BUILD_DIR/workspace/sources/mtk-camisp-mw/mtkcam-yocto/custom/
 dpaic() {
     cd /mnt/disk3/yocto_build/gray.lin/C_AI-Camera-Plus_FW_Yocto/ || return
     export project_string="aicamera"
+    spe700
 }
 dpvh() {
     cd /mnt/disk3/yocto_build/gray.lin/C_Vision-Hub-Plus_FW_Yocto/ || return
     export project_string="visionhub"
+    spe700
 }
 dpamr() {
     cd /mnt/disk3/yocto_build/gray.lin/C_AMR-G2_FW_Yocto/ || return
+    spe700
     export project_string="amr"
+}
+dp720() {
+    cd /mnt/disk3/yocto_build/gray.lin/g720/ || return
+    spe720
+    export project_string="g720"
+}
+require_machine() {
+    [ -n "$MACHINE" ] || { echo "[machine] ERROR: MACHINE is not set. Run spe700/spe720 or export MACHINE first."; return 1; }
+}
+dpi() {
+    require_machine || return 1
+    cd "$BUILD_DIR/tmp/deploy/images/$MACHINE" || return
+}
+dpdtbo() {
+    require_machine || return 1
+    cd "$PROJ_ROOT/src/meta-mediatek-bsp/recipes-kernel/dtbo/$MACHINE" || return
+}
+edts() {
+    require_machine || return 1
+    nano "$BUILD_DIR/workspace/sources/linux-mtk/arch/arm64/boot/dts/mediatek/$MACHINE.dts"
 }
 
 # update
@@ -83,21 +101,175 @@ alias ua='ux && ue'             # update all
 alias uyt='dppmxsys && cd home/root/OSPath/AICamera/ && cp -f ~/OSPath/AICamera/env . && cp -f ~/OSPath/AICamera/x.sh . && dpb && mkdir -p /mnt/disk2/FTP/Public/gray/aicamera/OSPath/AICamera && cp -f ~/OSPath/AICamera/* /mnt/disk2/FTP/Public/gray/aicamera/OSPath/AICamera'
 
 # env
-alias spp='export PROJ_ROOT=`pwd`'                                          # set yocto project path
-alias env1='export TEMPLATECONF=$PROJ_ROOT/src/meta-rity/meta/conf/'
-alias env2='source $PROJ_ROOT/src/poky/oe-init-build-env'
-alias env3='export BUILD_DIR=$PROJ_ROOT/build'
-alias env_mtk='env1 && env2 && env3 && MACHINE=genio-700-evk'
-alias spe='git branch && spp && env_mtk'                                    # set project env
-alias spe2='spp && env_mtk'                                                 # set project env
-alias bCommit='echo "$(git rev-parse HEAD)" > $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc/build_commit'
-alias bDate='echo "$(date "+%Y%m%d-%H%M")" > $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc/build_date'
-alias bBranch='echo "$(git branch --show-current)" > $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/sysroot/home/root/primax/misc/build_branch'
+spp() {
+    local root
+    root="$(git rev-parse --show-toplevel 2>/dev/null)" || root="$(pwd)"
+    export PROJ_ROOT="$root"
+    echo "[spp] PROJ_ROOT=$PROJ_ROOT"
+}
+env1() {
+    [ -n "$PROJ_ROOT" ] || { echo "[env1] ERROR: run 'spp' first"; return 1; }
+
+    local base="$PROJ_ROOT/src/meta-rity/meta/conf"
+    local new="$base/templates/default"
+
+    if [ -d "$new" ]; then
+        export TEMPLATECONF="$new"
+        echo "[env1] TEMPLATECONF=$TEMPLATECONF"
+    elif [ -d "$base" ]; then
+        export TEMPLATECONF="$base"
+        echo "[env1] TEMPLATECONF=$TEMPLATECONF"
+    else
+        echo "[env1] ERROR: TEMPLATECONF path not found"
+        return 1
+    fi
+}
+env3() {
+    [ -n "$PROJ_ROOT" ] || { echo "[env3] ERROR: run 'spp' first"; return 1; }
+    export BUILD_DIR="$PROJ_ROOT/build"
+    echo "[env3] BUILD_DIR=$BUILD_DIR"
+}
+env2() {
+    [ -n "$PROJ_ROOT" ] || { echo "[env2] ERROR: run 'spp' first"; return 1; }
+
+    local init_script="$PROJ_ROOT/src/poky/oe-init-build-env"
+    [ -f "$init_script" ] || { echo "[env2] ERROR: $init_script not found"; return 1; }
+
+    source "$init_script" "$BUILD_DIR"
+}
+env_mtk700() {
+    spp || return 1
+    env1 || return 1
+    env3 || return 1
+    export MACHINE="genio-700-evk"
+    echo "[env_mtk700] MACHINE=$MACHINE"
+    env2
+}
+env_mtk720() {
+    spp || return 1
+    env1 || return 1
+    env3 || return 1
+    export MACHINE="genio-720-evk"
+    echo "[env_mtk720] MACHINE=$MACHINE"
+    env2
+}
+spe700() {
+    git branch --show-current 2>/dev/null || true
+    env_mtk700
+}
+spe720() {
+    git branch --show-current 2>/dev/null || true
+    env_mtk720
+}
+alias spe='spe700'
+
+primax_recipe_dir() {
+    [ -n "$PROJ_ROOT" ] || { echo "[primax] ERROR: PROJ_ROOT is not set"; return 1; }
+
+    local recipe_dir="$PROJ_ROOT/src/meta-primax/recipes-primax/primax"
+    [ -d "$recipe_dir" ] || { echo "[primax] INFO: $recipe_dir not found, skip build metadata"; return 1; }
+
+    printf '%s\n' "$recipe_dir"
+}
+primax_git_dir() {
+    [ -n "$PROJ_ROOT" ] || { echo "[primax] ERROR: PROJ_ROOT is not set"; return 1; }
+
+    local candidate
+    for candidate in \
+        "$PROJ_ROOT" \
+        "$PROJ_ROOT/src/meta-primax" \
+        "$PROJ_ROOT/src/meta-primax/recipes-primax/primax"
+    do
+        if [ -d "$candidate" ] && git -C "$candidate" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+
+    echo "[primax] INFO: no git repository found for build metadata" >&2
+    return 1
+}
+primax_misc_dir() {
+    local recipe_dir
+    recipe_dir="$(primax_recipe_dir)" || return 1
+
+    local misc_dir="$recipe_dir/files/primax-1.0/sysroot/home/root/primax/misc"
+    mkdir -p "$misc_dir" || return 1
+    printf '%s\n' "$misc_dir"
+}
+bCommit() {
+    local misc_dir
+    misc_dir="$(primax_misc_dir)" || return 0
+
+    local git_dir
+    git_dir="$(primax_git_dir)" || return 0
+    git -C "$git_dir" rev-parse --short=8 HEAD > "$misc_dir/build_commit"
+}
+bDate() {
+    local misc_dir
+    misc_dir="$(primax_misc_dir)" || return 0
+    date "+%Y%m%d-%H%M" > "$misc_dir/build_date"
+}
+bBranch() {
+    local misc_dir
+    misc_dir="$(primax_misc_dir)" || return 0
+
+    local git_dir
+    git_dir="$(primax_git_dir)" || return 0
+    git -C "$git_dir" branch --show-current > "$misc_dir/build_branch"
+}
+primax_build_meta() {
+    bDate &&
+    bCommit &&
+    bBranch
+}
+ytb_machine() {
+    [ -n "$MACHINE" ] || { echo "[ytb] ERROR: MACHINE is not set. Run spe700/spe720 or export MACHINE first."; return 1; }
+    printf '%s\n' "$MACHINE"
+}
+ytb_build() {
+    local machine
+    machine="$(ytb_machine)" || return 1
+    primax_build_meta || return 1
+    DISTRO=rity-demo MACHINE="$machine" bitbake rity-demo-image
+}
+ytb_build_clean_primax() {
+    local machine
+    machine="$(ytb_machine)" || return 1
+    primax_build_meta || return 1
+    x bb c primax || return 1
+    DISTRO=rity-demo MACHINE="$machine" bitbake rity-demo-image
+}
+
 alias ytp='dpr && ./pack_image.bash'
-alias ytb='bDate && bCommit && bBranch && DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image'
-alias ytb2='bDate && bCommit && bBranch && x bb c primax && DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image'
+alias ytb='ytb_build'
+alias ytb2='ytb_build_clean_primax'
 alias ytb3='ytb2 && ytp'
-alias ytb_docker='bCommit && bBranch && DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image'
+alias ytb_docker='ytb_build'
+
+gflash_up() {
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml up -d &&
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml exec genio-flash bash
+}
+
+gflash_run() {
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml up -d &&
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml exec genio-flash \
+        bash -lc 'genio-flash -i rity-demo-image --unload-dtbo display-dsi.dtbo --load-dtbo display-dpoc.dtbo'
+}
+
+gflash_down() {
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml down
+}
+
+gflash() {
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml up -d || return $?
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml exec genio-flash \
+        bash -lc 'genio-flash -i rity-demo-image --unload-dtbo display-dsi.dtbo --load-dtbo display-dpoc.dtbo'
+    local rc=$?
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml down
+    return $rc
+}
 
 alias ep='[ -f ~/tmp/p1 ] && export p1=$(cat ~/tmp/p1); [ -f ~/tmp/p2 ] && export p2=$(cat ~/tmp/p2)'
 alias sp1='mkdir -p ~/tmp && echo `pwd` > ~/tmp/p1 && ep'
