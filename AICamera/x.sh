@@ -27,12 +27,19 @@ product=$(fw_printenv | grep '^product=' | cut -d '=' -f2)
 # ai_camera_plus or vision_hub_plus 
 echo "product:$product"
 
-hostname_prefix=$(hostname | awk -F'-' '{print $1}')
+hostname_value=$(hostname)
+hostname_prefix=$(echo "$hostname_value" | awk -F'-' '{print $1}')
 # aicamera, aibox or visionhub
 echo "hostname_prefix:$hostname_prefix"
 
+primax_dir="/home/root/primax"
+if [ "$hostname_value" = "genio-720-evk" ]; then
+  primax_dir="/root/primax"
+fi
+echo "primax_dir:$primax_dir"
+
 # Load device path from config
-camera_uvc_conf=~/primax/misc/camera_uvc.conf
+camera_uvc_conf="$primax_dir/misc/camera_uvc.conf"
 if [ -f "$camera_uvc_conf" ]; then
   device_uvc=$(cat "$camera_uvc_conf")
 fi
@@ -90,7 +97,7 @@ fi
 
 if [ "$1" = "ccm" ]; then
 		echo "ccm..."
-		dir_ccm="/home/root/primax/10.1.13.207/ccm_db"
+		dir_ccm="$primax_dir/10.1.13.207/ccm_db"
 		dir_iq_dev="/usr/share/mtkcam/DataSet/SQLiteModule/db"
 		filePath="tuning_DB/imx214_mipi_raw"
 		fileName1="ISP_param.db"
@@ -366,9 +373,9 @@ if [ "$1" = "aic" ]; then
 			echo "=============================="
 			echo "hostname : $(hostname)"
 			echo ""
-			/root/primax/script/slot_build_info.sh current
-			if [ -s /home/root/primax/misc/application_tag ]; then
-				echo "App Tag:" && cat /home/root/primax/misc/application_tag && echo
+			"$primax_dir/script/slot_build_info.sh" current
+			if [ -s "$primax_dir/misc/application_tag" ]; then
+				echo "App Tag:" && cat "$primax_dir/misc/application_tag" && echo
 			fi
 			echo "FW process... ps aux | grep -E --color=auto \"vision_box|mediamtx|fw|gst\""
 			ps aux | grep -E --color=auto "vision_box|mediamtx|fw|gst|wpa_s|hostapd"
@@ -396,9 +403,9 @@ if [ "$1" = "aic" ]; then
 
 	elif [ "$2" = "c" ]; then
 		echo "clean..."
-		rm /home/root/primax/*.png 
-		rm /home/root/primax/*.jpg 
-		rm /home/root/primax/*.bmp
+		rm "$primax_dir"/*.png 
+		rm "$primax_dir"/*.jpg 
+		rm "$primax_dir"/*.bmp
 		rm /mnt/reserved/logs/*.log
 
 	elif [ "$2" = "rp" ]; then
@@ -443,9 +450,9 @@ if [ "$1" = "aic" ]; then
 			arv-tool-0.8 control DeviceReset
 
 		elif [ "$3" = "utility" ]; then
-			echo "/usr/bin/python3 /home/root/primax/misc/utility_gui.py &"
+			echo "/usr/bin/python3 $primax_dir/misc/utility_gui.py &"
 			pkill -f utility_gui.py
-			/usr/bin/python3 /home/root/primax/misc/utility_gui.py &
+			/usr/bin/python3 "$primax_dir/misc/utility_gui.py" &
 
 		elif [ "$3" = "ntp" ]; then
 			echo " Restart time sync daemon "
@@ -830,7 +837,7 @@ if [ "$1" = "aic" ]; then
 		dir_ftp_remote="Public/gray/$dir_prj"
 		dir_local="/mnt/reserved"
 		dir_local_cache="$dir_local/$ftp_host"
-		dir_exec=~/"primax"
+		dir_exec="$primax_dir"
 
 		stop_runtime_processes() {
 			pkill fw_watchdog.sh
