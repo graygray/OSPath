@@ -203,7 +203,7 @@ bCommit() {
 
     local git_dir
     git_dir="$(primax_git_dir)" || return 0
-    git -C "$git_dir" rev-parse --short=8 HEAD > "$misc_dir/build_commit"
+    git -C "$git_dir" rev-parse --short=7 HEAD > "$misc_dir/build_commit"
 }
 bDate() {
     local misc_dir
