@@ -118,12 +118,12 @@ if /i "!arg2!"=="init2" (
 
 if /i "!arg2!"=="start" (
     if /i "!arg3!"=="capture" (
-        call :ndd_open_preview
+        call :ndd_open_preview !arg4!
         timeout /t 1 /nobreak >nul
         adb shell "bash -lc 'sh /data/vendor/camera_close.sh'"
         adb shell "bash -lc 'sh /data/vendor/camera_open_capture.sh'"
     ) else (
-        call :ndd_open_preview
+        call :ndd_open_preview !arg3!
         cd /d "!dir_ndd_dump!"
         call 03_NDD_preview_start.bat
     )
@@ -360,9 +360,22 @@ adb shell chmod 777 /data/vendor/camera_close.sh
 goto :eof
 
 :ndd_open_preview
+set "preview_mode=%~1"
+if "!preview_mode!"=="" set "preview_mode=mtx"
+
+if /i "!preview_mode!"=="dp" (
+    set "preview_script=/data/vendor/camera_open_preview_dp.sh"
+) else if /i "!preview_mode!"=="mtx" (
+    set "preview_script=/data/vendor/camera_open_preview_mtx.sh"
+) else (
+    echo [ERROR] Unsupported preview mode: "!preview_mode!"
+    echo [NDD] Supported modes: dp, mtx
+    goto :eof
+)
+
 echo [NDD] Launch preview via adb shell through bash and nohup...
-@REM adb shell "bash -lc 'nohup sh /data/vendor/camera_open_preview_dp.sh'"
-adb shell "bash -lc 'nohup sh /data/vendor/camera_open_preview_mtx.sh'"
+echo [NDD] Preview mode: !preview_mode!
+adb shell "bash -lc 'nohup sh !preview_script!'"
 goto :eof
 
 :ndd_prepare_start
