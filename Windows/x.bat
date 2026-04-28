@@ -29,8 +29,8 @@ REM =====================================================
 REM ===================== IQ ============================
 REM =====================================================
 :cmd_iq
-@REM set "dir_cct=D:\project\MediaToolKit_IoTYocto_240522"
-set "dir_cct=D:\project\MediaToolKit_0129"
+set "dir_cct=D:\project\MediaToolKit_IoTYocto_240522"
+@REM set "dir_cct=D:\project\MediaToolKit_0129"
 set "dir_cct_dumpraw=!dir_cct!\svn\install\DataSet\CamCaliTool\SensorCalibrationDumpRaw"
 set "dir_cct_db=!dir_cct!\svn\install\DataSet\SQLiteModule"
 set "dir_dev_db=/mnt/reserved/10.1.13.207/IQ_DB/"
@@ -90,10 +90,11 @@ REM =====================================================
 REM ===================== NDD ===========================
 REM =====================================================
 :cmd_ndd
-set "dir_ndd_root=D:\project\MT8395_IoTYocto_NDD_Dump_Scripts_r230614_new"
+set "dir_ndd_root=D:\project\MT8395_IoTYocto_NDD_Dump_Scripts_r230614"
 set "dir_ndd_dump=!dir_ndd_root!\Ndd_Dump_Scripts"
 set "dir_ndd_camera=!dir_ndd_root!\CameraOpenClose"
 set "dir_ndd_dev=/mnt/reserved/camera_dump"
+set "dir_ndd_dev_log=/data/debuglogger"
 set "file_ndd_cfg=ndd_autogen_cfg_ISP7.0_coArch_v2.cfg"
 
 if not exist "!dir_ndd_root!" (
@@ -105,6 +106,13 @@ if /i "!arg2!"=="init" (
     call :ndd_prepare_start
     call :ndd_push_camera_scripts
     call :ndd_init
+    goto :eof
+)
+
+if /i "!arg2!"=="init2" (
+    call :ndd_prepare_start
+    call :ndd_push_camera_scripts
+    call :ndd_init2
     goto :eof
 )
 
@@ -308,28 +316,59 @@ adb shell setprop vendor.debug.camera.img3o.dump 1
 adb shell setprop vendor.debug.ndd.action_enable -1
 goto :eof
 
+:ndd_init2
+adb root
+@REM adb remount
+adb shell "rm -rf !dir_ndd_dev_log!/"
+adb shell "rm -rf !dir_ndd_dev_log!"
+adb shell "mkdir -p !dir_ndd_dev_log!"
+adb shell "chmod 777 !dir_ndd_dev_log!"
+adb shell setenforce 0
+adb shell setprop vendor.persist.hal3a.log_level 4
+adb shell setprop vendor.debug.awb_log.enable 1
+adb shell setprop debug.awb_log.enable 1
+adb shell setprop vendor.debug.awb_mgr.enable 1
+adb shell setprop vendor.debug.awb.enable 1
+adb shell setprop vendor.debug.isp_mgr_awb.enable 1
+adb shell setprop vendor.debug.mapping_mgr.enable 2
+adb shell setprop debug.aaa_log.enable 1
+adb shell setprop debug.aaa_hal.enable 1
+adb shell setprop debug.aaa.pvlog.enable 1
+adb shell setprop camcalcamcal.log 1
+adb shell setprop camcaldrv.log 1
+adb shell setprop debug.cam.drawid 1
+adb shell setprop vendor.debug.camera.SttBufQ.enable 500
+adb shell setprop vendor.debug.camera.AAO.dump 1
+adb shell pkill cameraserver
+adb shell pkill camerahalserver
+goto :eof
+
 :ndd_push_camera_scripts
 if not exist "!dir_ndd_camera!" (
     echo [ERROR] NDD camera dir not found: "!dir_ndd_camera!"
     goto :eof
 )
 adb shell mkdir -p /data/vendor
-adb push "!dir_ndd_camera!\camera_open_preview.sh" /data/vendor/camera_open_preview.sh
+adb push "!dir_ndd_camera!\camera_open_preview_dp.sh" /data/vendor/camera_open_preview_dp.sh
+adb push "!dir_ndd_camera!\camera_open_preview_mtx.sh" /data/vendor/camera_open_preview_mtx.sh
 adb push "!dir_ndd_camera!\camera_open_capture.sh" /data/vendor/camera_open_capture.sh
 adb push "!dir_ndd_camera!\camera_close.sh" /data/vendor/camera_close.sh
-adb shell chmod 777 /data/vendor/camera_open_preview.sh
+adb shell chmod 777 /data/vendor/camera_open_preview_dp.sh
+adb shell chmod 777 /data/vendor/camera_open_preview_mtx.sh
 adb shell chmod 777 /data/vendor/camera_open_capture.sh
 adb shell chmod 777 /data/vendor/camera_close.sh
 goto :eof
 
 :ndd_open_preview
 echo [NDD] Launch preview via adb shell through bash and nohup...
-adb shell "bash -lc 'nohup sh /data/vendor/camera_open_preview.sh'"
+@REM adb shell "bash -lc 'nohup sh /data/vendor/camera_open_preview_dp.sh'"
+adb shell "bash -lc 'nohup sh /data/vendor/camera_open_preview_mtx.sh'"
 goto :eof
 
 :ndd_prepare_start
 echo [NDD] Clean previous dump data...
 adb shell "rm -rf !dir_ndd_dev!/*"
+adb shell "rm -rf !dir_ndd_dev_log!/*"
 echo [NDD] Stop running GStreamer instances...
 adb shell "pkill -f gst"
 goto :eof
@@ -408,6 +447,7 @@ goto :eof
 echo.
 echo NDD Usage:
 echo   x ndd init
+echo   x ndd init2
 echo   x ndd start [capture]
 echo   x ndd stop
 echo   x ndd dump
