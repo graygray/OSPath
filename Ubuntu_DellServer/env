@@ -153,6 +153,14 @@ env_mtk720() {
     echo "[env_mtk720] MACHINE=$MACHINE"
     env2
 }
+env_mtk720ufs() {
+    spp || return 1
+    env1 || return 1
+    env3 || return 1
+    export MACHINE="genio-720-evk-ufs"
+    echo "[env_mtk720] MACHINE=$MACHINE"
+    env2
+}
 spe700() {
     git branch --show-current 2>/dev/null || true
     env_mtk700
