@@ -153,13 +153,22 @@ env_mtk720() {
     echo "[env_mtk720] MACHINE=$MACHINE"
     env2
 }
+env_mtk720ufs() {
+    spp || return 1
+    env1 || return 1
+    env3 || return 1
+    export MACHINE="genio-720-evk-ufs"
+    echo "[env_mtk720] MACHINE=$MACHINE"
+    env2
+}
 spe700() {
     git branch --show-current 2>/dev/null || true
     env_mtk700
 }
 spe720() {
     git branch --show-current 2>/dev/null || true
-    env_mtk720
+    # env_mtk720
+    env_mtk720ufs
 }
 alias spe='spe700'
 
@@ -203,7 +212,7 @@ bCommit() {
 
     local git_dir
     git_dir="$(primax_git_dir)" || return 0
-    git -C "$git_dir" rev-parse --short=8 HEAD > "$misc_dir/build_commit"
+    git -C "$git_dir" rev-parse --short=7 HEAD > "$misc_dir/build_commit"
 }
 bDate() {
     local misc_dir

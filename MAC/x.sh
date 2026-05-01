@@ -23,7 +23,7 @@ ip_visionhub="visionhub-f015.local"
 ip_aibox="aibox-07B3.local"
 ip_amr="192.168.1.66"
 ip_testDevice1="aicamera-d14b.local"
-ip_testDevice2="genio-720-evk.local"
+ip_testDevice2="genio-720-evk-ufs.local"
 
 # nfs
 if [ "$1" = "nfs" ] ; then

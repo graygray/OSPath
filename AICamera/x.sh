@@ -33,9 +33,7 @@ hostname_prefix=$(echo "$hostname_value" | awk -F'-' '{print $1}')
 echo "hostname_prefix:$hostname_prefix"
 
 primax_dir="/home/root/primax"
-if [ "$hostname_value" = "genio-720-evk" ]; then
-  primax_dir="/root/primax"
-fi
+[ -d "$primax_dir" ] || primax_dir="/root/primax"
 echo "primax_dir:$primax_dir"
 
 # Load device path from config
