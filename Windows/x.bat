@@ -334,6 +334,14 @@ adb shell setprop vendor.debug.mapping_mgr.enable 2
 adb shell setprop debug.aaa_log.enable 1
 adb shell setprop debug.aaa_hal.enable 1
 adb shell setprop debug.aaa.pvlog.enable 1
+adb shell setprop persist.mtk.camera.log_level 4
+adb shell setprop persist.vendor.mtk.camera.log_level 4
+adb shell setprop vendor.debug.ae.log.enable 1
+adb shell setprop vendor.debug.ae_mgr.log.level 4
+adb shell setprop vendor.debug.flicker_mgr.log.level 2
+adb shell setprop vendor.debug.flicker_algo.log.level 2
+adb shell setprop vendor.debug.aaa.pvlog.enable 1
+adb shell setprop vendor.debug.camera.dbginfo 1
 adb shell setprop camcalcamcal.log 1
 adb shell setprop camcaldrv.log 1
 adb shell setprop debug.cam.drawid 1
