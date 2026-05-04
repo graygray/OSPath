@@ -209,6 +209,16 @@ if [ "$1" = "aic" ] ; then
 		cp -f $dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam "$dir_ftp/$project_string/"
 		cp -f $dir_work/primax-1.0/src/Test_C_yocto/fw_daemon "$dir_ftp/$project_string/"
 
+	elif [ "$2" = "cpipk" ] ; then
+		echo "========== copy *.ipk files to FTP =========="
+		dir_work="$PROJ_ROOT/build/tmp/deploy/ipk/armv8a"
+
+		if [ "$3" = "mw" ] ; then
+			cp -f $dir_work/mtk-camisp-mw_1.0-r0_armv8a.ipk "$dir_ftp/$project_string/"
+		elif [ "$3" = "lora" ] ; then
+			echo "--"
+		fi
+
 	else
 		primax_version_file="$PROJ_ROOT/src/meta-primax/recipes-primax/primax-version/files/primax_version"
 		echo "primax_version : $(cat "$primax_version_file")"
