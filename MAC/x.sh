@@ -159,7 +159,7 @@ if [ "$1" = "ssh" ]; then
 
 	elif [ "$2" = "usb" ]; then
 		device_ip=""
-		for ip_last in 190 191 192 193 194 195; do
+		for ip_last in 190 191 192 193 194 195 196 197 198 199; do
 			candidate_ip="192.168.1.$ip_last"
 			if nc -z -w 1 "$candidate_ip" 22 >/dev/null 2>&1; then
 				device_ip="$candidate_ip"

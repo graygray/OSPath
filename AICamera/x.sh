@@ -171,8 +171,15 @@ fi
 # AICamera 
 if [ "$1" = "aic" ]; then
 
-	if [ "$2" = "jobs" ]; then
-		pm2 list
+	if [ "$2" = "log" ]; then
+		if [ "$3" = "j" ]; then
+			journalctl -f --no-pager -o short-iso
+		elif [ "$3" = "k" ]; then
+			dmesg -wT
+		elif [ "$3" = "c" ]; then
+			journalctl --rotate && journalctl --vacuum-time=1s
+			dmesg -C
+		fi
 
 	elif [ "$2" = "ck" ]; then
 		if [ "$3" = "dp" ]; then
