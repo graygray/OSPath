@@ -211,6 +211,7 @@ if [ "$1" = "aic" ] ; then
 
 	elif [ "$2" = "cpipk" ] ; then
 		echo "========== copy *.ipk files to FTP =========="
+		dir_ftp="/mnt/disk2/FTP/Public/gray"
 		dir_work="$PROJ_ROOT/build/tmp/deploy/ipk/armv8a"
 
 		if [ "$3" = "mw" ] ; then
