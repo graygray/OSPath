@@ -174,9 +174,9 @@ if [ "$1" = "aic" ]; then
 	if [ "$2" = "log" ]; then
 		if [ "$3" = "j" ]; then
 			if [ "$4" = "f" ]; then
-				journalctl -f --no-pager -o short-iso
-			else
 				journalctl -f --no-pager -o short-iso | stdbuf -oL tee log.txt
+			else
+				journalctl -f --no-pager -o short-iso
 			fi	
 		elif [ "$3" = "k" ]; then
 			dmesg -wT
