@@ -380,10 +380,8 @@ if [ "$1" = "aic" ]; then
 		else
 			echo ""
 			echo "=============================="
-			echo "hostname : $(hostname)"
 			echo "hostnamectl :"
 			hostnamectl
-			echo ""
 			"$primax_dir/script/slot_build_info.sh" current
 			if [ -s "$primax_dir/misc/application_tag" ]; then
 				echo "App Tag:" && cat "$primax_dir/misc/application_tag" && echo
