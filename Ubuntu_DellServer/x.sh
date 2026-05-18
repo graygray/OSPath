@@ -1168,7 +1168,7 @@ if [ "$1" == "git" ] ; then
 		echo "git log --oneline"
 		git log --oneline
 	elif [ "$2" = "c" ] ; then
-		echo "git commit -a -m $3"
+		echo "git commit -a -m \"$3\""
 		git commit -a -m "$3"
 	else
 		echo "git status"
