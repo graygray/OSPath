@@ -31,4 +31,4 @@ services:
       - TZ=Asia/Taipei
     volumes:
       - /mnt/disk3/yocto_build/docker:/home/gray.lin/build
-      - /mnt/disk2/FTP/Public/Jenkins:/ftp
+      - /FTP/Public/Jenkins:/ftp
