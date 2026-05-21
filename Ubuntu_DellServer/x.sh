@@ -478,7 +478,7 @@ if [ "$1" = "ftp" ] ; then
 		echo "sudo setfacl -Rdm g:$4:rwx $3"
 		sudo setfacl -Rdm g:$4:rwx $3
 	elif [ "$2" = "config" ] ; then
-		code /etc/vsftpd.conf
+		nano /etc/vsftpd.conf
 	else
 		echo "param 2 not match"
 		exit -1
