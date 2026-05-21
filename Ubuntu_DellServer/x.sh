@@ -1,4 +1,5 @@
 xDir=~/"OSPath/Ubuntu"
+FTP_DIR="${FTP_DIR:-/FTP/Public}"
 
 # docker
 dockderDir=~/"OSPath/Docker"
@@ -141,7 +142,7 @@ if [ "$1" = "lora" ] ; then
 	elif [ "$2" = "ftp" ]; then
 		echo "copy lora ipk to ftp... "
 		file2copy="lora-rylr993_0.0.1-r0_armv8a.ipk"
-		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$file2copy" "/mnt/disk2/FTP/Public/gray/aicamera/"
+		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$file2copy" "$FTP_DIR/gray/aicamera/"
 	fi
 fi
 
@@ -204,7 +205,7 @@ if [ "$1" = "aic" ] ; then
 
 	elif [ "$2" = "ftp" ] ; then
 		echo "========== update files to FTP =========="
-		dir_ftp="/mnt/disk2/FTP/Public/gray"
+		dir_ftp="$FTP_DIR/gray"
 
 		targetPlatform="armv8a-poky-linux"
 		dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0-r0"
@@ -215,7 +216,7 @@ if [ "$1" = "aic" ] ; then
 
 	elif [ "$2" = "cpipk" ] ; then
 		echo "========== copy *.ipk files to FTP =========="
-		dir_ftp="/mnt/disk2/FTP/Public/gray"
+		dir_ftp="$FTP_DIR/gray"
 		dir_work="$PROJ_ROOT/build/tmp/deploy/ipk/armv8a"
 
 		if [ "$3" = "mw" ] ; then
@@ -301,7 +302,7 @@ if [ "$1" = "vb" ] ; then
 	echo "VisionHub..."
 	if [ "$2" = "f" ] ; then
 		echo "flash image..."
-		cd /mnt/disk2/FTP/joe_handover/3_VisionHub_AICamera/3_11_images
+		cd /FTP/joe_handover/3_VisionHub_AICamera/3_11_images
 
 		if [ "$3" = "barcode" ] ; then
 			echo "barcode..."
@@ -323,7 +324,6 @@ if [ "$1" = "vb" ] ; then
 	else
 		echo "else..."
 	fi
-
 fi
 
 # system related 
@@ -376,10 +376,10 @@ if [ "$1" = "cp" ]; then
 
     case "$2" in
         h)     path="$HOME";   use_basename=1 ;;
-        ftp)   path="/mnt/disk2/FTP/Public/gray";   use_basename=1 ;;
-        ftppi)  path="/mnt/disk2/FTP/Public/gray/privateImage"; use_basename=1 ;;
-        ftpaic)   path="/mnt/disk2/FTP/Public/gray/aicamera"; use_basename=1 ;;
-		ftpvh)   path="/mnt/disk2/FTP/Public/gray/visionhub"; use_basename=1 ;;
+        ftp)   path="$FTP_DIR/gray";   use_basename=1 ;;
+        ftppi)  path="$FTP_DIR/gray/privateImage"; use_basename=1 ;;
+        ftpaic)   path="$FTP_DIR/gray/aicamera"; use_basename=1 ;;
+		ftpvh)   path="$FTP_DIR/gray/visionhub"; use_basename=1 ;;
         p1)    path="$p1"; use_basename=0 ;;
         p2)    path="$p2"; use_basename=0 ;;
         *)
@@ -1177,7 +1177,7 @@ if [ "$1" == "git" ] ; then
 fi
 
 backup_build() {
-    local BASE_DIR="/mnt/disk2/FTP/Public/Jenkins"
+    local BASE_DIR="$FTP_DIR/Jenkins"
     local SRC_FOLDER="$1"
     local DST_DIR="$BASE_DIR/backup_images/$SRC_FOLDER"
     local SRC_PATH="$BASE_DIR/$SRC_FOLDER"
