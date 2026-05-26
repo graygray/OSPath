@@ -214,6 +214,15 @@ if [ "$1" = "aic" ] ; then
 		cp -f $dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam "$dir_ftp/$project_string/"
 		cp -f $dir_work/primax-1.0/src/Test_C_yocto/fw_daemon "$dir_ftp/$project_string/"
 
+		if [ "$3" = "k" ] ; then
+			echo "copy kernel update files..."
+			path_kernel="$PROJ_ROOT/build/tmp/work/genio_720_evk_ufs-poky-linux/linux-mtk/6.6.92/deploy-linux-mtk/"
+			cd $path_kernel
+			mkdir -p "$dir_ftp/$project_string/kernel"
+			rsync -aL fitImage modules-genio-720-evk-ufs.tgz "$dir_ftp/$project_string/kernel"
+			# rsync -aL fitImage modules-genio-720-evk-ufs.tgz root@<device-ip>:/root/primax-update/
+		fi
+
 	elif [ "$2" = "cpipk" ] ; then
 		echo "========== copy *.ipk files to FTP =========="
 		dir_ftp="$FTP_DIR/gray"

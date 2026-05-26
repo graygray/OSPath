@@ -20,9 +20,9 @@ ip_dellServer="10.1.13.207"
 # ai camera/box/amr
 ip_aicamera="aicamera-0687.local"
 ip_visionhub="visionhub-f015.local"
-ip_aibox="aibox-07B3.local"
+ip_aibox="aibox-17ad.local"
 ip_amr="192.168.1.66"
-ip_testDevice1="aicamera-d14b.local"
+ip_testDevice1="aicamera-17ad.local"
 ip_testDevice2="genio-720-evk-ufs.local"
 
 # nfs
