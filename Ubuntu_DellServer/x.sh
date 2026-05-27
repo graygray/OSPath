@@ -210,12 +210,11 @@ if [ "$1" = "aic" ] ; then
 
 		targetPlatform="armv8a-poky-linux"
 
-		# todo $MACHINE include 700
 		dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0-r0"
-
-		# todo $MACHINE include 720
-		dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0"
-
+		if [ "$project_string" = "g720" ] ; then
+			dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0"
+		fi
+		
 		cp -f $dir_work/temp/log.do_compile $dir_ftp/
 		cp -f $dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam "$dir_ftp/$project_string/"
 		cp -f $dir_work/primax-1.0/src/Test_C_yocto/fw_daemon "$dir_ftp/$project_string/"
