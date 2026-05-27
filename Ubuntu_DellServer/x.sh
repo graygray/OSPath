@@ -214,17 +214,29 @@ if [ "$1" = "aic" ] ; then
 		if [ "$project_string" = "g720" ] ; then
 			dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0"
 		fi
-		
-		cp -f $dir_work/temp/log.do_compile $dir_ftp/
-		cp -f $dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam "$dir_ftp/$project_string/"
-		cp -f $dir_work/primax-1.0/src/Test_C_yocto/fw_daemon "$dir_ftp/$project_string/"
+
+		if [ -z "$project_string" ] ; then
+			echo "[ftp] ERROR: project_string is empty"
+			return 1
+		fi
+
+		target_dir="$dir_ftp/$project_string"
+		if [ -e "$target_dir" ] && [ ! -d "$target_dir" ] ; then
+			echo "[ftp] ERROR: destination exists but is not a directory: $target_dir"
+			return 1
+		fi
+		mkdir -p "$target_dir"
+
+		cp -f "$dir_work/temp/log.do_compile" "$dir_ftp/"
+		cp -f "$dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam" "$target_dir/"
+		cp -f "$dir_work/primax-1.0/src/Test_C_yocto/fw_daemon" "$target_dir/"
 
 		if [ "$3" = "k" ] ; then
 			echo "copy kernel update files..."
 			path_kernel="$PROJ_ROOT/build/tmp/work/genio_720_evk_ufs-poky-linux/linux-mtk/6.6.92/deploy-linux-mtk/"
-			cd $path_kernel
-			mkdir -p "$dir_ftp/$project_string/kernel"
-			rsync -aL fitImage modules-genio-720-evk-ufs.tgz "$dir_ftp/$project_string/kernel"
+			cd "$path_kernel" || return 1
+			mkdir -p "$target_dir/kernel"
+			rsync -aL fitImage modules-genio-720-evk-ufs.tgz "$target_dir/kernel/"
 			# rsync -aL fitImage modules-genio-720-evk-ufs.tgz root@<device-ip>:/root/primax-update/
 		fi
 
@@ -234,7 +246,13 @@ if [ "$1" = "aic" ] ; then
 		dir_work="$PROJ_ROOT/build/tmp/deploy/ipk/armv8a"
 
 		if [ "$3" = "mw" ] ; then
-			cp -f $dir_work/mtk-camisp-mw_1.0-r0_armv8a.ipk "$dir_ftp/$project_string/"
+			target_dir="$dir_ftp/$project_string"
+			if [ -e "$target_dir" ] && [ ! -d "$target_dir" ] ; then
+				echo "[ftp] ERROR: destination exists but is not a directory: $target_dir"
+				return 1
+			fi
+			mkdir -p "$target_dir"
+			cp -f "$dir_work/mtk-camisp-mw_1.0-r0_armv8a.ipk" "$target_dir/"
 		elif [ "$3" = "lora" ] ; then
 			echo "--"
 		fi
