@@ -837,10 +837,17 @@ if [ "$1" = "aic" ]; then
 		ftp_user="gray.lin"
 		ftp_pass="Zx03310331"
 		ftp_host="10.1.13.207"
+		project_string_file="$primax_dir/misc/project_string"
 
-		dir_prj="aicamera"
-		if is_visionhub ; then
-			dir_prj="visionhub"
+		if [ -f "$project_string_file" ]; then
+			dir_prj=$(tr -d '\r\n' < "$project_string_file")
+		fi
+
+		if [ -z "$dir_prj" ]; then
+			dir_prj="aicamera"
+			if is_visionhub ; then
+				dir_prj="visionhub"
+			fi
 		fi
 
 		dir_ssh_remote="/mnt/disk2/FTP/Public/gray/$dir_prj"
