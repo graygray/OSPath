@@ -149,6 +149,7 @@ fi
 # AI Camera
 if [ "$1" = "aic" ] ; then
 
+	echo "========== MACHINE:$MACHINE =========="
 	echo "========== PROJ_ROOT:$PROJ_ROOT =========="
 
 	if [ "$2" = "dk" ] ; then
@@ -208,7 +209,12 @@ if [ "$1" = "aic" ] ; then
 		dir_ftp="$FTP_DIR/gray"
 
 		targetPlatform="armv8a-poky-linux"
+
+		# todo $MACHINE include 700
 		dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0-r0"
+
+		# todo $MACHINE include 720
+		dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0"
 
 		cp -f $dir_work/temp/log.do_compile $dir_ftp/
 		cp -f $dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam "$dir_ftp/$project_string/"
