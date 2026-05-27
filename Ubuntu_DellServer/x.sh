@@ -233,7 +233,7 @@ if [ "$1" = "aic" ] ; then
 
 		if [ "$3" = "k" ] ; then
 			echo "copy kernel update files..."
-			path_kernel="$PROJ_ROOT/build/tmp/work/genio_720_evk_ufs-poky-linux/linux-mtk/6.6.92/deploy-linux-mtk/"
+			path_kernel="$PROJ_ROOT/build/tmp/deploy/images/genio-720-evk-ufs/"
 			cd "$path_kernel" || return 1
 			mkdir -p "$target_dir/kernel"
 			rsync -aL fitImage modules-genio-720-evk-ufs.tgz "$target_dir/kernel/"
