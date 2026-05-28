@@ -2158,8 +2158,8 @@ fi
 
 # format and mount disk
 if [ "$2" == "df" ] ; then
-	device="/dev/sda1"
 	fs_type="$3"
+	device="${4:-/dev/sda1}"
 	mount_point="${4:-/mnt/sda1}"
 
 	echo "what to do..."
