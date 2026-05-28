@@ -1,7 +1,6 @@
 
-redDir_Home="/var/lib/docker/volumes/redmine_vHome/_data"
-redDir_Postgres="/var/lib/docker/volumes/redmine_vPostgres/_data"
-redDir_Files="/var/lib/docker/volumes/redmine_vFiles/_data"
+redDir_Postgres="/home/gray.lin/redmine/postgresql-data"
+redDir_Files="/home/gray.lin/redmine/files"
 backupDir="/mnt/disk2/backups/redmine"
 
 cd $backupDir
@@ -15,14 +14,7 @@ chmod 777 $TODAY
 cd $TODAY
 
 # backup DB ================================================================================
-## use yaml_db >>  backup & restore ok
-## dump contents of database to db/data.yml
-docker exec redmine rake db:data:dump
-cp $redDir_Home/db/data.yml .
-
-## use pg_dump >> pg_restore get lots of warning, still need to try
-# docker exec -it postgres pg_dump -U postgres -Fc --file=var/lib/postgresql/redmine.sqlc redmine
-docker exec postgres pg_dump -U postgres -Fc --file=var/lib/postgresql/redmine.sqlc redmine
+docker exec postgres pg_dump -U redmine -d redmine -Fc --file=/var/lib/postgresql/data/redmine.sqlc
 cp $redDir_Postgres/redmine.sqlc .
 
 # backup files folder ================================================================================
