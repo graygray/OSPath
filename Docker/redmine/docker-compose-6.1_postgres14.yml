@@ -1,5 +1,3 @@
-version: '2'
-
 services:
 
   postgres:
@@ -11,7 +9,7 @@ services:
     ports:
       - 5432:5432
     environment:
-      POSTGRES_USER: redmine
+      # These init variables only apply when the PostgreSQL data directory is empty.
       POSTGRES_PASSWORD: redmine
       POSTGRES_DB: redmine
     volumes:
@@ -32,7 +30,8 @@ services:
       - 30002:3000
     environment:
       REDMINE_DB_POSTGRES: postgres
-      REDMINE_DB_USERNAME: redmine
+      # Use the default PostgreSQL superuser for compatibility with existing volumes.
+      REDMINE_DB_USERNAME: postgres
       REDMINE_DB_PASSWORD: redmine
       REDMINE_DB_DATABASE: redmine
       REDMINE_SECRET_KEY_BASE: supersecretkey
