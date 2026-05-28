@@ -2156,6 +2156,49 @@ if [ "$1" == "tree" ] ; then
 	tree -L 3 $2
 fi
 
+# format and mount disk
+if [ "$2" == "df" ] ; then
+	device="/dev/sda1"
+	fs_type="$3"
+	mount_point="${4:-/mnt/sda1}"
+
+	echo "what to do..."
+	echo "device: $device"
+	echo "filesystem: $fs_type"
+	echo "mount point: $mount_point"
+
+	if [ "$fs_type" == "ext4" ] ; then
+		echo "umount $mount_point"
+		umount "$mount_point"
+		echo "mkfs.ext4 -F -L USBDISK $device"
+		mkfs.ext4 -F -L USBDISK "$device"
+		echo "mkdir -p $mount_point"
+		mkdir -p "$mount_point"
+		echo "mount -o noatime $device $mount_point"
+		mount -o noatime "$device" "$mount_point"
+		echo "lsblk -f"
+		lsblk -f
+		echo "df -h $mount_point"
+		df -h "$mount_point"
+	elif [ "$fs_type" == "fat32" ] || [ "$fs_type" == "vfat" ] ; then
+		echo "umount $mount_point"
+		umount "$mount_point"
+		echo "mkfs.vfat -F 32 -n USBDISK $device"
+		mkfs.vfat -F 32 -n USBDISK "$device"
+		echo "mkdir -p $mount_point"
+		mkdir -p "$mount_point"
+		echo "mount $device $mount_point"
+		mount "$device" "$mount_point"
+		echo "lsblk -f"
+		lsblk -f
+		echo "df -h $mount_point"
+		df -h "$mount_point"
+	else
+		echo "Usage: $0 <cmd> df <ext4|fat32|vfat> [mount_point]"
+		exit 1
+	fi
+fi
+
 if [ "$1" == "c" ] ; then
 	echo "clear ..."
 	clear
