@@ -2159,8 +2159,9 @@ fi
 # format and mount disk
 if [ "$1" == "df" ] ; then
 	fs_type="$2"
-	device="${3:-/dev/sda1}"
 	mount_point="${3:-/mnt/sda1}"
+	mount_name="$(basename "${mount_point%/}")"
+	device="/dev/$mount_name"
 
 	echo "what to do..."
 	echo "device: $device"
@@ -2194,7 +2195,7 @@ if [ "$1" == "df" ] ; then
 		echo "df -h $mount_point"
 		df -h "$mount_point"
 	else
-		echo "Usage: $0 <cmd> df <ext4|fat32|vfat> [mount_point]"
+		echo "Usage: $0 df <ext4|fat32|vfat> [mount_point]"
 		exit 1
 	fi
 fi
