@@ -32,7 +32,7 @@ services:
       REDMINE_DB_POSTGRES: postgres
       # Use the default PostgreSQL superuser for compatibility with existing volumes.
       REDMINE_DB_USERNAME: postgres
-      REDMINE_DB_PASSWORD: redmine
+      REDMINE_DB_PASSWORD: E8e6Hd82
       REDMINE_DB_DATABASE: redmine
       REDMINE_SECRET_KEY_BASE: supersecretkey
     volumes:
