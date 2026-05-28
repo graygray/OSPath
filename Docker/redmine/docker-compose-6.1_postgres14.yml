@@ -37,7 +37,6 @@ services:
       REDMINE_SECRET_KEY_BASE: supersecretkey
     volumes:
       - /home/gray.lin/redmine/files:/usr/src/redmine/files
-      - ./configuration.yml:/usr/src/redmine/config/configuration.yml:ro
     networks:
       - netRedmine
 
