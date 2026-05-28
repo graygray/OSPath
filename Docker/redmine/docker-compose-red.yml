@@ -1,7 +1,6 @@
 services:
 
   postgres:
-    # Existing PostgreSQL 12 volumes need dump/restore or pg_upgrade before using 14.
     container_name: postgres
     hostname: postgres
     image: postgres:14
@@ -9,11 +8,15 @@ services:
     ports:
       - 5432:5432
     environment:
-      # These init variables only apply when the PostgreSQL data directory is empty.
+      POSTGRES_USER: redmine
       POSTGRES_PASSWORD: redmine
       POSTGRES_DB: redmine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U redmine -d redmine"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     volumes:
-      - /home/gray.lin/redmine/postgresql:/var/lib/postgresql
       - /home/gray.lin/redmine/postgresql-data:/var/lib/postgresql/data
     networks:
       - netRedmine
@@ -25,14 +28,14 @@ services:
     image: redmine:6.1.2
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - 30002:3000
     environment:
       REDMINE_DB_POSTGRES: postgres
-      # Use the default PostgreSQL superuser for compatibility with existing volumes.
-      REDMINE_DB_USERNAME: postgres
-      REDMINE_DB_PASSWORD: E8e6Hd82
+      REDMINE_DB_USERNAME: redmine
+      REDMINE_DB_PASSWORD: redmine
       REDMINE_DB_DATABASE: redmine
       REDMINE_SECRET_KEY_BASE: supersecretkey
     volumes:
