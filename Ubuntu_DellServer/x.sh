@@ -550,7 +550,7 @@ if [ "$1" = "user" ] ; then
 			# make a yocto build dir & user link
 			buildfolder="/mnt/disk3/yocto_build"
 			mkdir -p $buildfolder/$3
-			cp -f $buildfolder/misc/step* $buildfolder/$3
+			sudo cp -f $buildfolder/misc/step* $buildfolder/$3
 			sudo chown $3:$mainGroup $buildfolder/$3
 			sudo chown $3:$mainGroup $buildfolder/$3/step*
 			cd /home/$3
