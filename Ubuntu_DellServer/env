@@ -252,11 +252,11 @@ ytb_build_clean_primax() {
     DISTRO=rity-demo MACHINE="$machine" bitbake rity-demo-image
 }
 
-alias ytp='dpr && ./pack_image.bash'
 alias ytb='ytb_build'
 alias ytb2='ytb_build_clean_primax'
 alias ytb3='ytb2 && ytp'
 alias ytb4='ytb && ytp'
+alias ytp='dpr && ./pack_image.bash'
 alias ytb_docker='ytb_build'
 
 gflash_up() {

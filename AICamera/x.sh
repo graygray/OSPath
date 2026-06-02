@@ -181,8 +181,20 @@ if [ "$1" = "aic" ]; then
 		elif [ "$3" = "k" ]; then
 			dmesg -wT
 		elif [ "$3" = "c" ]; then
-			journalctl --rotate && journalctl --vacuum-time=1s
+			journalctl --rotate
+			journalctl --vacuum-time=1s
+
 			dmesg -C
+
+			for f in \
+				/var/log/syslog \
+				/var/log/messages \
+				/var/log/kern.log
+			do
+				[ -f "$f" ] && truncate -s 0 "$f"
+			done
+
+			sync
 		fi
 
 	elif [ "$2" = "ck" ]; then

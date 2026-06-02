@@ -236,6 +236,8 @@ if [ "$1" = "aic" ] ; then
 			path_kernel="$PROJ_ROOT/build/tmp/deploy/images/genio-720-evk-ufs/"
 			cd "$path_kernel" || return 1
 			mkdir -p "$target_dir/kernel"
+			ls -al fitImage
+			ls -al modules-genio-720-evk-ufs.tgz
 			rsync -aL fitImage modules-genio-720-evk-ufs.tgz "$target_dir/kernel/"
 			# rsync -aL fitImage modules-genio-720-evk-ufs.tgz root@<device-ip>:/root/primax-update/
 		fi
