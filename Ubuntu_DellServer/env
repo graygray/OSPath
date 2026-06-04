@@ -257,6 +257,7 @@ alias ytb2='ytb_build_clean_primax'
 alias ytb3='ytb2 && ytp'
 alias ytb4='ytb && ytp'
 alias ytp='dpr && ./pack_image.bash'
+alias ytpf='dpr && PACK_FULL_ARCHIVE=1 ./pack_image.bash'
 alias ytb_docker='ytb_build'
 
 gflash_up() {
