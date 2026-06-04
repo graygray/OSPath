@@ -1133,6 +1133,11 @@ if [ "$1" == "diff" ] ; then
 	echo "diff -rq $2 $3"
 	diff -rq $2 $3
 fi
+# diff
+if [ "$1" == "diffp" ] ; then
+	echo "use p1 & p2 path to diff same file"
+	diff -rq "$p1/$2" "$p2/$2"
+fi
 
 # git
 if [ "$1" == "git" ] ; then
