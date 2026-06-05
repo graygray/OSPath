@@ -414,7 +414,8 @@ if [ "$1" = "cp" ]; then
         ftppi)  path="$FTP_DIR/gray/privateImage"; use_basename=1 ;;
         ftpaic)   path="$FTP_DIR/gray/aicamera"; use_basename=1 ;;
 		ftpvh)   path="$FTP_DIR/gray/visionhub"; use_basename=1 ;;
-		ftpprj)   path="$FTP_DIR/gray/$project_string"; use_basename=1 ;;
+		ftp720)   path="$FTP_DIR/gray/g720"; use_basename=1 ;;
+		ftpp)   path="$FTP_DIR/gray/$project_string"; use_basename=1 ;;
         p1)    path="$p1"; use_basename=0 ;;
         p2)    path="$p2"; use_basename=0 ;;
         *)

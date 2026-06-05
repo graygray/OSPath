@@ -3,14 +3,6 @@ xDir=~/"OSPath/AICamera"
 # docker
 dockderDir=~/"Docker"
 
-# gitlab
-gitDir="$dockderDir/gitlab"
-gitDir_Data="/var/lib/docker/volumes/gitlab_vData/_data"
-gitDir_Config="/var/lib/docker/volumes/gitlab_vConfig/_data"
-gitDir_ConfigR="/var/lib/docker/volumes/gitlab_vConfig_r/_data"
-gitDir_Logs="/var/lib/docker/volumes/gitlab_vLogs/_data"
-gitBackupFile="1588961756_2020_05_08_12.9.3"
-
 # Loop through all parameters passed to the script
 echo "param 0: $0"
 i=1
@@ -35,6 +27,9 @@ echo "hostname_prefix:$hostname_prefix"
 primax_dir="/home/root/primax"
 [ -d "$primax_dir" ] || primax_dir="/root/primax"
 echo "primax_dir:$primax_dir"
+
+project_string=$(cat "$primax_dir/misc/project_string")
+echo "project_string:"$project_string
 
 # Load device path from config
 camera_uvc_conf="$primax_dir/misc/camera_uvc.conf"
@@ -1818,141 +1813,6 @@ if [ "$1" = "scp" ]; then
 	fi
 fi
 
-# gitlab
-if [ "$1" = "git" ]; then
-	if [ "$2" = "up" ]; then
-		docker-compose -f "$gitDir/docker-compose-git.yml" up -d
-		# docker-compose -f "$gitDir/docker-compose-git.yml" up
-	elif [ "$2" = "down" ]; then
-		docker-compose -f "$gitDir/docker-compose-git.yml" down
-	elif [ "$2" = "stop" ]; then
-		docker stop gitlab
-		
-	elif [ "$2" = "chmod" ]; then
-		sudo chmod 755 $gitDir_Data/backups/
-		sudo chmod 755 $gitDir_Data/backups/
-		sudo chmod 777 $gitDir_Config/gitlab.rb
-		sudo chmod 777 $gitDir_Config/gitlab-secrets.json 
-
-	elif [ "$2" = "tar" ]; then
-		# backup tar file
-		sudo chmod 755 $gitDir_Data/backups/
-		if [ "$3" = "in" ]; then
-			sudo mv $gitDir/$gitBackupFile"_gitlab_backup.tar" $gitDir_Data/backups/
-		elif [ "$3" = "out" ]; then
-			sudo mv $gitDir_Data/backups/$gitBackupFile"_gitlab_backup.tar" $gitDir/
-		else
-			echo ">> param 3 should be 'in' or 'out'"
-		fi
-	elif [ "$2" = "compose" ]; then
-		# open compose file
-		code $gitDir/docker-compose-git.yml
-		
-	elif [ "$2" = "config" ]; then
-		if [ "$3" = "code" ]; then
-			code $gitDir/config/gitlab.rb
-			code $gitDir/config/gitlab.yml
-		elif [ "$3" = "in" ]; then
-			cp -rf $gitDir/config/gitlab.rb $gitDir_Config
-		elif [ "$3" = "out" ]; then
-			sudo chmod 755 $gitDir_ConfigR
-			sudo chmod 666 $gitDir_Config/gitlab.rb
-			sudo chmod 666 $gitDir_ConfigR/gitlab.yml 
-			cp $gitDir_Config/gitlab.rb $gitDir/config/
-			cp $gitDir_ConfigR/gitlab.yml $gitDir/config
-		elif [ "$3" = "update" ]; then
-			cp -rf $gitDir/config/gitlab.rb $gitDir_Config
-			echo "========== docker exec -it gitlab gitlab-ctl reconfigure =========="
-			docker exec -it gitlab gitlab-ctl reconfigure
-			echo "========== docker exec -it gitlab gitlab-ctl restart =========="
-			docker exec -it gitlab gitlab-ctl restart
-		else
-			echo ">> param 3 not match"
-		fi
-	elif [ "$2" = "check" ]; then
-		echo "========== docker exec -it gitlab gitlab-rake gitlab:check SANITIZE=true =========="
-		docker exec -ti gitlab gitlab-rake gitlab:check SANITIZE=true
-	elif [ "$2" = "info" ]; then
-		echo "========== docker exec -ti gitlab gitlab-rake gitlab:env:info =========="
-		docker exec -ti gitlab gitlab-rake gitlab:env:info
-	elif [ "$2" = "bash" ]; then
-		echo "========== docker exec -it gitlab /bin/bash =========="
-		docker exec -ti gitlab /bin/bash
-	elif [ "$2" = "psql" ]; then
-		echo "========== docker exec -it gitlab gitlab-psql =========="
-		docker exec -ti gitlab gitlab-psql
-	elif [ "$2" = "rail" ]; then
-		echo "========== docker exec -it gitlab gitlab-rails console =========="
-		docker exec -ti gitlab gitlab-rails console
-	elif [ "$2" = "log" ]; then
-		echo "========== docker logs -tf gitlab =========="
-		docker logs -tf --since 1m gitlab
-	elif [ "$2" = "backup" ]; then
-		echo "========== docker exec -it gitlab gitlab-rake gitlab:backup:create =========="
-			docker exec -ti gitlab gitlab-backup create
-
-			# GitLab 12.1 and earlier
-			# docker exec -ti gitlab gitlab-rake gitlab:backup:create
-	elif [ "$2" = "restore" ]; then
-		if [ "$3" = "1" ]; then
-			echo "========== step 1 : stop connectivity services ==========" 
-			# docker exec -it gitlab gitlab-ctl stop unicorn
-			docker exec -it gitlab gitlab-ctl stop puma
-			docker exec -it gitlab gitlab-ctl stop sidekiq
-			docker exec -it gitlab gitlab-ctl status
-		elif [ "$3" = "2" ]; then
-			echo "========== step 2 : restore from backup tar : $gitBackupFile ==========" 
-			docker exec -it gitlab gitlab-backup restore BACKUP=$gitBackupFile
-
-			# gitlab-backup restore BACKUP=1643394275_2022_01_28_14.1.6
-			# GitLab 12.1 and earlier
-			# docker exec -it gitlab gitlab-rake gitlab:backup:restore BACKUP=$gitBackupFile
-		elif [ "$3" = "3" ]; then
-			echo "========== step 3 : re-configure & re-start ==========" 
-			echo "========== docker exec -it gitlab gitlab-ctl reconfigure =========="
-			docker exec -it gitlab gitlab-ctl reconfigure
-			echo "========== docker exec -it gitlab gitlab-ctl restart =========="
-			docker exec -it gitlab gitlab-ctl restart
-
-		elif [ "$3" = "4" ]; then
-			# config
-			cp -rf $gitDir/config/gitlab.rb $gitDir_Config
-		else
-			echo ">> param 3 not match"
-		fi
-
-	elif [ "$2" = "sp" ]; then
-		# show related path
-		echo "========== gitlab paths  ==========" 
-		echo "# docker mapping dir in host" 
-		echo "gitDir_Data:$gitDir_Data"
-		echo "gitDir_Config:$gitDir_Config"
-		echo "gitDir_Logs:$gitDir_Logs"
-		echo "" 
-		echo "# gitlab home (Omnibus)" 
-		echo "/var/opt/gitlab/"
-		echo "" 
-		echo "# gitlab home (Source)" 
-		echo "/home/git/gitlab/"
-		echo "" 
-		echo "# configuration file" 
-		echo "/etc/gitlab/gitlab.rb"
-		echo "" 
-		echo "# generated configuration file" 
-		echo "/opt/gitlab/embedded/service/gitlab-rails/config"
-		echo "" 
-		echo "# backup folder" 
-		echo "/var/opt/gitlab/backups/"
-		echo "" 
-		echo "# ssl cert folder" 
-		echo "/etc/gitlab/ssl/"
-		
-	else
-		echo "param 2 not match"
-		exit -1
-	fi
-fi
-
 # docker
 if [ "$1" = "dk" ]; then
 
@@ -2079,13 +1939,6 @@ if [ "$1" = "dkc" ]; then
 	fi
 fi
 
-# # update x
-# if [ "$1" == "ux" ]; then
-# 	cd ~/OSPath
-# 	git reset --hard HEAD
-# 	git pull
-# 	sudo chmod 777 AICamera/x.sh
-# fi
 # update x
 if [ "$1" == "ux" ]; then
     REPO=~/OSPath
