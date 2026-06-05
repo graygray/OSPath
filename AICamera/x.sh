@@ -424,6 +424,9 @@ if [ "$1" = "aic" ]; then
 		rm "$primax_dir"/*.bmp
 		rm /mnt/reserved/logs/*.log
 
+		rm "$primax_dir"/*.png 
+
+
 	elif [ "$2" = "rp" ]; then
 		echo "run .py..."
 

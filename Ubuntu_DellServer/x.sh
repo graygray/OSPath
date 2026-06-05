@@ -674,6 +674,23 @@ if [ "$1" = "unzip" ] ; then
 			echo "No 7z extractor found. Install p7zip (7z/7zr/7za)."
 			exit 1
 		fi
+	elif [[ "$2" == *.rar ]]; then
+		if command -v unrar >/dev/null 2>&1; then
+			echo "unrar x \"$2\""
+			unrar x "$2"
+		elif command -v 7z >/dev/null 2>&1; then
+			echo "7z x \"$2\""
+			7z x "$2"
+		elif command -v 7zr >/dev/null 2>&1; then
+			echo "7zr x \"$2\""
+			7zr x "$2"
+		elif command -v 7za >/dev/null 2>&1; then
+			echo "7za x \"$2\""
+			7za x "$2"
+		else
+			echo "No RAR extractor found. Install unrar or p7zip (7z/7zr/7za)."
+			exit 1
+		fi
 	elif [[ "$2" == *.zip ]]; then
 		echo "unzip \"$2\""
 		unzip "$2"
