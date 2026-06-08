@@ -1164,6 +1164,9 @@ if [ "$1" == "git" ] ; then
 	elif [ "$2" = "c" ] ; then
 		echo "git commit -a -m \"$3\""
 		git commit -a -m "$3"
+	elif [ "$2" = "p" ] ; then
+		echo "git format-patch \"$3\"..\"$4\""
+		git format-patch "$3".."$4"
 	else
 		echo "git status"
 		git status
