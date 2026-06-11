@@ -208,7 +208,7 @@ if [ "$1" = "aic" ]; then
 
 		elif [ "$3" = "1715" ]; then
 			echo "RT1715..."
-			if [ "$4" != "int" ]; then
+			if [ "$4" = "int" ]; then
 				echo "interrupt..."
 				cat /proc/interrupts | grep -iE 'rt171|tcp|tcpc|gpio|55'
 			elif [ "$4" = "k" ]; then
