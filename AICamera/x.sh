@@ -206,6 +206,30 @@ if [ "$1" = "aic" ]; then
 			echo "cat /sys/class/drm/card0-DP-1/status"
 			cat /sys/class/drm/card0-DP-1/status
 
+		elif [ "$3" = "1715" ]; then
+			echo "RT1715..."
+			if [ "$4" != "int" ]; then
+				echo "interrupt..."
+				cat /proc/interrupts | grep -iE 'rt171|tcp|tcpc|gpio|55'
+			elif [ "$4" = "k" ]; then
+				echo "dmesg -w | grep -iE 'rt1715|rt1711|tcpm|type.?c|usb|xhci|dp|altmode'"
+				dmesg -w | grep -iE 'rt1715|rt1711|tcpm|type.?c|usb|xhci|dp|altmode'
+			elif [ "$4" = "udev" ]; then
+				echo "udevadm monitor --kernel --udev | grep -iE 'typec|usb|drm|display|connector'"
+				udevadm monitor --kernel --udev | grep -iE 'typec|usb|drm|display|connector'
+			elif [ "$4" = "gpio" ]; then
+				echo "gpiomon --chip gpiochip0 --num-events=0 55"
+				gpiomon --chip gpiochip0 --num-events=0 55
+			elif [ "$4" = "cc" ]; then
+				echo "cat /sys/kernel/debug/usb/tcpm-7-004e/log"
+				cat /sys/kernel/debug/usb/tcpm-7-004e/log
+			else
+				echo "i2cdetect -r -y 7"
+				i2cdetect -r -y 7
+				gpioget --chip gpiochip0 55	
+
+			fi
+
 		elif [ "$3" = "pkg" ]; then
 			echo "opkg list-installed..."
 			if [ "$4" != "" ]; then

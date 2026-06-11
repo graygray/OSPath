@@ -15,6 +15,7 @@ done
 currentDateTime=`date "+%m%d%H%M"`
 
 # dell server
+dell_host_bonjour="TM205462.local"
 ip_dellServer="10.1.13.207"
 
 # ai camera/box/amr
@@ -148,13 +149,23 @@ if [ "$1" = "ssh" ]; then
 		##   ./x.sh ssh dell
 		##   ./x.sh ssh dell root
 		##   ./x.sh ssh dell gray.lin
+		dell_user="${3:-gray.lin}"
+		dell_primary="$dell_host_bonjour"
+		dell_fallback="$ip_dellServer"
+		dell_ssh_opts=(-o ConnectTimeout=3 -o StrictHostKeyChecking=accept-new)
 		if [ -n "$3" ]; then
-			echo "ssh $3@$ip_dellServer"
-			ssh "$3@$ip_dellServer"
+			echo "ssh ${dell_ssh_opts[*]} $dell_user@$dell_primary"
+			if ! ssh "${dell_ssh_opts[@]}" "$dell_user@$dell_primary"; then
+				echo "ssh ${dell_ssh_opts[*]} $dell_user@$dell_fallback"
+				ssh "${dell_ssh_opts[@]}" "$dell_user@$dell_fallback"
+			fi
 		else
-			echo "sshpass -p 'Zx03310331' ssh gray.lin@$ip_dellServer"
-			sshpass -p 'Zx03310331' ssh "gray.lin@$ip_dellServer"
-			# ssh "gray.lin@$ip_dellServer"
+			echo "sshpass -p 'Zx03310331' ssh ${dell_ssh_opts[*]} $dell_user@$dell_primary"
+			if ! sshpass -p 'Zx03310331' ssh "${dell_ssh_opts[@]}" "$dell_user@$dell_primary"; then
+				echo "sshpass -p 'Zx03310331' ssh ${dell_ssh_opts[*]} $dell_user@$dell_fallback"
+				sshpass -p 'Zx03310331' ssh "${dell_ssh_opts[@]}" "$dell_user@$dell_fallback"
+			fi
+			# ssh "$dell_user@$dell_primary"
 		fi
 
 	elif [ "$2" = "usb" ]; then
