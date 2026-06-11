@@ -226,7 +226,8 @@ if [ "$1" = "aic" ]; then
 			else
 				echo "i2cdetect -r -y 7"
 				i2cdetect -r -y 7
-				gpioget --chip gpiochip0 55	
+				echo "gpioget --chip gpiochip0 55"
+				gpioget --chip gpiochip0 55
 
 			fi
 
