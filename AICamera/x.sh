@@ -206,6 +206,10 @@ if [ "$1" = "aic" ]; then
 			echo "cat /sys/class/drm/card0-DP-1/status"
 			cat /sys/class/drm/card0-DP-1/status
 
+		elif [ "$3" = "bl" ]; then
+			echo "fw_printenv | grep boot_conf"
+			fw_printenv | grep boot_conf
+
 		elif [ "$3" = "1715" ]; then
 			echo "RT1715..."
 			if [ "$4" = "int" ]; then
