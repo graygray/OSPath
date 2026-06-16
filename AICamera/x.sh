@@ -1204,20 +1204,14 @@ if [ "$1" = "aic" ]; then
 					1)
 						led_red_gpio=8
 						led_green_gpio=9
-						led_red_path="$1"
-						led_green_path="$2"
 						;;
 					2)
 						led_red_gpio=10
 						led_green_gpio=11
-						led_red_path="$3"
-						led_green_path="$4"
 						;;
 					3)
 						led_red_gpio=2
 						led_green_gpio=77
-						led_red_path="$5"
-						led_green_path="$6"
 						;;
 					*)
 						echo "Usage for g720:"
@@ -1226,18 +1220,27 @@ if [ "$1" = "aic" ]; then
 						;;
 				esac
 
-				for led_path in /sys/class/leds/*gpio${led_red_gpio}*; do
-					if [ -d "$led_path" ]; then
-						led_red_path="$led_path"
-						break
-					fi
-				done
-				for led_path in /sys/class/leds/*gpio${led_green_gpio}*; do
-					if [ -d "$led_path" ]; then
-						led_green_path="$led_path"
-						break
-					fi
-				done
+				led_red_path="/sys/class/leds/status:led${led_index}:red"
+				led_green_path="/sys/class/leds/status:led${led_index}:green"
+
+				if [ ! -d "$led_red_path" ]; then
+					led_red_path=""
+					for led_path in /sys/class/leds/*gpio${led_red_gpio}*; do
+						if [ -d "$led_path" ]; then
+							led_red_path="$led_path"
+							break
+						fi
+					done
+				fi
+				if [ ! -d "$led_green_path" ]; then
+					led_green_path=""
+					for led_path in /sys/class/leds/*gpio${led_green_gpio}*; do
+						if [ -d "$led_path" ]; then
+							led_green_path="$led_path"
+							break
+						fi
+					done
+				fi
 
 				if [ -z "$led_red_path" ] || [ ! -d "$led_red_path" ] || [ -z "$led_green_path" ] || [ ! -d "$led_green_path" ]; then
 					echo "LED index $led_index is not available"
