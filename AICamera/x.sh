@@ -28,7 +28,17 @@ primax_dir="/home/root/primax"
 [ -d "$primax_dir" ] || primax_dir="/root/primax"
 echo "primax_dir:$primax_dir"
 
-project_string=$(cat "$primax_dir/misc/project_string")
+project_string_file="$primax_dir/misc/project_string"
+if [ -f "$project_string_file" ]; then
+	project_string=$(tr -d '\r\n' < "$project_string_file")
+fi
+if [ -z "$project_string" ]; then
+	if [[ "$hostname_prefix" == "visionhub" || "$product" == "vision_hub_plus" ]]; then
+		project_string="visionhub"
+	else
+		project_string="aicamera"
+	fi
+fi
 echo "project_string:"$project_string
 
 # Load device path from config
@@ -80,8 +90,157 @@ upload_path_with_rsync() {
 		rsync_src_path="$abs_path/"
 	fi
 
-	echo "Uploading $abs_path -> $remote_user@$remote_host:$remote_dir/"
-	rsync -avz -e ssh "$rsync_src_path" "$remote_user@$remote_host:$remote_dir/"
+echo "Uploading $abs_path -> $remote_user@$remote_host:$remote_dir/"
+rsync -avz -e ssh "$rsync_src_path" "$remote_user@$remote_host:$remote_dir/"
+}
+
+run_device_ftp_command() {
+	local action="$1"
+	local arg1="$2"
+	local arg2="$3"
+	local arg3="$4"
+	local ftp_user="gray.lin"
+	local ftp_pass="Zx03310331"
+	local ftp_host="10.1.13.207"
+	local dir_prj="$project_string"
+	local dir_ssh_remote
+	local dir_ftp_remote
+	local dir_local="/mnt/reserved"
+	local dir_local_cache="$dir_local/$ftp_host"
+	local dir_exec="$primax_dir"
+
+	if [ -z "$dir_prj" ]; then
+		dir_prj="aicamera"
+		if is_visionhub ; then
+			dir_prj="visionhub"
+		fi
+	fi
+
+	dir_ssh_remote="/FTP/Public/gray/$dir_prj"
+	dir_ftp_remote="Public/gray/$dir_prj"
+
+	stop_runtime_processes() {
+		pkill fw_watchdog.sh
+		pkill vision_box
+		pkill fw_daemon
+	}
+
+	sync_runtime_files() {
+		if [ ! -d "$dir_local_cache" ]; then
+			echo "Local cache not found: $dir_local_cache"
+			return 1
+		fi
+
+		if [ -f "$dir_local_cache/vision_box_DualCam" ]; then
+			cp -f "$dir_local_cache/vision_box_DualCam" "$dir_exec/" || return 1
+			chmod 755 "$dir_exec/vision_box_DualCam"
+		fi
+
+		if [ -f "$dir_local_cache/fw_daemon" ]; then
+			cp -f "$dir_local_cache/fw_daemon" "$dir_exec/" || return 1
+			chmod 755 "$dir_exec/fw_daemon"
+		fi
+
+		if [ -f "$dir_local_cache/fw_ota.sh" ]; then
+			chmod 755 "$dir_local_cache/fw_ota.sh"
+		fi
+	}
+
+	mkdir -p "$dir_local_cache" || return 1
+
+	if [ "$action" = "sync" ]; then
+		echo "use rsync..."
+
+		case "$arg1" in
+			up)
+				echo "rsync -avz -e ssh $dir_local_cache/ $ftp_user@$ftp_host:$dir_ssh_remote/"
+				rsync -avz -e ssh \
+					"$dir_local_cache/" \
+					"$ftp_user@$ftp_host:$dir_ssh_remote/"
+				;;
+			down)
+				stop_runtime_processes
+				if [ "$arg2" = "all" ]; then
+					rsync -avz -e ssh \
+						"$ftp_user@$ftp_host:$dir_ssh_remote/" \
+						"$dir_local_cache/"
+				else
+					rsync -avz -e ssh \
+						--exclude 'IQ_DB/' \
+						--exclude 'hikrobot/' \
+						"$ftp_user@$ftp_host:$dir_ssh_remote/" \
+						"$dir_local_cache/"
+				fi
+
+				sync_runtime_files || return 1
+				;;
+			*)
+				echo "Usage: $0 aic ftp sync {up|down} [all]"
+				return 1
+				;;
+		esac
+
+	elif [ "$action" = "up" ]; then
+		echo "upload path..."
+
+		if [ "$arg1" = "mac" ]; then
+			local host_PC="MAC206554.local"
+			local user_PC="test"
+			local dir_PC_default="/Users/test/Downloads"
+			local path_to_upload="$arg2"
+			local dir_PC="${arg3:-$dir_PC_default}"
+
+			if [ -z "$path_to_upload" ]; then
+				echo "Usage: $0 aic ftp up mac <file-or-dir> [remote_dir]"
+				return 1
+			fi
+
+			upload_path_with_rsync "$path_to_upload" "$user_PC" "$host_PC" "$dir_PC" || return 1
+		else
+			local path_to_upload="$arg1"
+
+			if [ -z "$path_to_upload" ]; then
+				echo "Usage: $0 aic ftp up <file-or-dir>"
+				echo "Usage: $0 aic ftp up mac <file-or-dir> [remote_dir]"
+				return 1
+			fi
+
+			upload_path_with_rsync "$path_to_upload" "$ftp_user" "$ftp_host" "$dir_ssh_remote" || return 1
+		fi
+
+	else
+		echo "use wget..."
+		stop_runtime_processes
+		mkdir -p "$dir_local" || return 1
+		cd "$dir_local" || return 1
+
+		if [ "$action" = "all" ]; then
+			echo "wget --mirror ftp://$ftp_host/$dir_ftp_remote/"
+			wget --mirror \
+				--cut-dirs=3 \
+				--no-parent \
+				--user="$ftp_user" \
+				--password="$ftp_pass" \
+				"ftp://$ftp_host/$dir_ftp_remote/"
+		else
+			echo "wget --mirror ftp://$ftp_host/$dir_ftp_remote/ (exclude IQ_DB hikrobot)"
+			wget --mirror \
+				--cut-dirs=3 \
+				--no-parent \
+				--user="$ftp_user" \
+				--password="$ftp_pass" \
+				--exclude-directories="$dir_ftp_remote/IQ_DB,$dir_ftp_remote/hikrobot" \
+				"ftp://$ftp_host/$dir_ftp_remote/"
+		fi
+
+		if is_aicamera || is_visionhub; then
+			echo "Updating firmware files..."
+			sync_runtime_files || return 1
+			echo "Update done"
+		else
+			echo "Skip..."
+		fi
+	fi
 }
 
 if [ "$1" = "fixt" ]; then
@@ -872,151 +1031,7 @@ if [ "$1" = "aic" ]; then
 		fi
 
 	elif [ "$2" = "ftp" ]; then
-
-		ftp_user="gray.lin"
-		ftp_pass="Zx03310331"
-		ftp_host="10.1.13.207"
-		project_string_file="$primax_dir/misc/project_string"
-
-		if [ -f "$project_string_file" ]; then
-			dir_prj=$(tr -d '\r\n' < "$project_string_file")
-		fi
-
-		if [ -z "$dir_prj" ]; then
-			dir_prj="aicamera"
-			if is_visionhub ; then
-				dir_prj="visionhub"
-			fi
-		fi
-
-		dir_ssh_remote="/FTP/Public/gray/$dir_prj"
-		dir_ftp_remote="Public/gray/$dir_prj"
-		dir_local="/mnt/reserved"
-		dir_local_cache="$dir_local/$ftp_host"
-		dir_exec="$primax_dir"
-
-		stop_runtime_processes() {
-			pkill fw_watchdog.sh
-			pkill vision_box
-			pkill fw_daemon
-		}
-
-		sync_runtime_files() {
-			if [ ! -d "$dir_local_cache" ]; then
-				echo "Local cache not found: $dir_local_cache"
-				return 1
-			fi
-
-			if [ -f "$dir_local_cache/vision_box_DualCam" ]; then
-				cp -f "$dir_local_cache/vision_box_DualCam" "$dir_exec/" || return 1
-				chmod 755 "$dir_exec/vision_box_DualCam"
-			fi
-
-			if [ -f "$dir_local_cache/fw_daemon" ]; then
-				cp -f "$dir_local_cache/fw_daemon" "$dir_exec/" || return 1
-				chmod 755 "$dir_exec/fw_daemon"
-			fi
-
-			if [ -f "$dir_local_cache/fw_ota.sh" ]; then
-				chmod 755 "$dir_local_cache/fw_ota.sh"
-			fi
-		}
-
-		mkdir -p "$dir_local_cache" || exit 1
-
-		if [ "$3" = "sync" ]; then
-			echo "use rsync..."
-
-			case "$4" in
-				up)
-					echo "rsync -avz -e ssh $dir_local_cache/ $ftp_user@$ftp_host:$dir_ssh_remote/"
-					rsync -avz -e ssh \
-						"$dir_local_cache/" \
-						"$ftp_user@$ftp_host:$dir_ssh_remote/"
-					;;
-				down)
-					stop_runtime_processes
-					if [ "$5" = "all" ]; then
-						rsync -avz -e ssh \
-							"$ftp_user@$ftp_host:$dir_ssh_remote/" \
-							"$dir_local_cache/"
-					else
-						rsync -avz -e ssh \
-							--exclude 'IQ_DB/' \
-							--exclude 'hikrobot/' \
-							"$ftp_user@$ftp_host:$dir_ssh_remote/" \
-							"$dir_local_cache/"
-					fi
-
-					sync_runtime_files || exit 1
-					;;
-				*)
-					echo "Usage: $0 aic ftp sync {up|down} [all]"
-					exit 1
-					;;
-			esac
-
-		elif [ "$3" = "up" ]; then
-			echo "upload path..."
-
-			if [ "$4" = "mac" ]; then
-				host_PC="MAC206554.local"
-				user_PC="test"
-				dir_PC_default="/Users/test/Downloads"
-				path_to_upload="$5"
-				dir_PC="${6:-$dir_PC_default}"
-
-				if [ -z "$path_to_upload" ]; then
-					echo "Usage: $0 aic ftp up mac <file-or-dir> [remote_dir]"
-					exit 1
-				fi
-
-				upload_path_with_rsync "$path_to_upload" "$user_PC" "$host_PC" "$dir_PC" || exit 1
-			else
-				path_to_upload="$4"
-
-				if [ -z "$path_to_upload" ]; then
-					echo "Usage: $0 aic ftp up <file-or-dir>"
-					echo "Usage: $0 aic ftp up mac <file-or-dir> [remote_dir]"
-					exit 1
-				fi
-
-				upload_path_with_rsync "$path_to_upload" "$ftp_user" "$ftp_host" "$dir_ssh_remote" || exit 1
-			fi
-
-		else
-			echo "use wget..."
-			stop_runtime_processes
-			mkdir -p "$dir_local" || exit 1
-			cd "$dir_local" || exit 1
-
-			if [ "$3" = "all" ]; then
-				echo "wget --mirror ftp://$ftp_host/$dir_ftp_remote/"
-				wget --mirror \
-					--cut-dirs=3 \
-					--no-parent \
-					--user="$ftp_user" \
-					--password="$ftp_pass" \
-					"ftp://$ftp_host/$dir_ftp_remote/"
-			else
-				echo "wget --mirror ftp://$ftp_host/$dir_ftp_remote/ (exclude IQ_DB hikrobot)"
-				wget --mirror \
-					--cut-dirs=3 \
-					--no-parent \
-					--user="$ftp_user" \
-					--password="$ftp_pass" \
-					--exclude-directories="$dir_ftp_remote/IQ_DB,$dir_ftp_remote/hikrobot" \
-					"ftp://$ftp_host/$dir_ftp_remote/"
-			fi
-
-			if is_aicamera || is_visionhub; then
-				echo "Updating firmware files..."
-				sync_runtime_files || exit 1
-				echo "Update done"
-			else
-				echo "Skip..."
-			fi
-		fi
+		run_device_ftp_command "$3" "$4" "$5" "$6" || exit 1
 
 	elif [ "$2" = "uota" ]; then
 		echo "=== OTA from USB ==="
@@ -1179,7 +1194,7 @@ if [ "$1" = "aic" ]; then
 				echo "LED3_G = GPIO77"
 				echo ""
 				echo "ls /sys/class/leds"
-				ls /sys/class/leds
+				ls -al /sys/class/leds
 				echo ""
 				echo "Run LED test..."
 				for led in /sys/class/leds/status:*; do
@@ -1709,7 +1724,9 @@ fi
 
 # ftp
 if [ "$1" = "ftp" ]; then
-	if [ "$2" = "restart" ]; then
+	if ( is_aicamera || is_visionhub ) && [[ "$2" == "sync" || "$2" == "up" || "$2" == "all" ]]; then
+		run_device_ftp_command "$2" "$3" "$4" "$5" || exit 1
+	elif [ "$2" = "restart" ]; then
 		service vsftpd restart
 		sleep 1
 		service vsftpd status
