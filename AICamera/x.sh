@@ -1193,7 +1193,7 @@ if [ "$1" = "aic" ]; then
 			else
 				main_cmd="$1"
 				led_index="$3"
-				led_action="$4"
+				led_state="$4"
 				set -- /sys/class/leds/status:*
 				if [ "$1" = "/sys/class/leds/status:*" ]; then
 					echo "No status LEDs found under /sys/class/leds"
@@ -1201,32 +1201,73 @@ if [ "$1" = "aic" ]; then
 				fi
 
 				case "$led_index" in
-					1) led_path="$1" ;;
-					2) led_path="$2" ;;
-					3) led_path="$3" ;;
+					1)
+						led_red_gpio=8
+						led_green_gpio=9
+						led_red_path="$1"
+						led_green_path="$2"
+						;;
+					2)
+						led_red_gpio=10
+						led_green_gpio=11
+						led_red_path="$3"
+						led_green_path="$4"
+						;;
+					3)
+						led_red_gpio=2
+						led_green_gpio=77
+						led_red_path="$5"
+						led_green_path="$6"
+						;;
 					*)
 						echo "Usage for g720:"
-						echo "$0 $main_cmd led [1|2|3] [on|off]"
+						echo "$0 $main_cmd led [1|2|3] [red|green|orange|off]"
 						exit 1
 						;;
 				esac
 
-				if [ -z "$led_path" ] || [ ! -d "$led_path" ]; then
+				for led_path in /sys/class/leds/*gpio${led_red_gpio}*; do
+					if [ -d "$led_path" ]; then
+						led_red_path="$led_path"
+						break
+					fi
+				done
+				for led_path in /sys/class/leds/*gpio${led_green_gpio}*; do
+					if [ -d "$led_path" ]; then
+						led_green_path="$led_path"
+						break
+					fi
+				done
+
+				if [ -z "$led_red_path" ] || [ ! -d "$led_red_path" ] || [ -z "$led_green_path" ] || [ ! -d "$led_green_path" ]; then
 					echo "LED index $led_index is not available"
 					exit 1
 				fi
 
-				echo "control $led_path -> $led_action"
-				echo none > "$led_path/trigger"
-				if [ "$led_action" = "on" ]; then
-					echo 1 > "$led_path/brightness"
-				elif [ "$led_action" = "off" ]; then
-					echo 0 > "$led_path/brightness"
+				if [ "$led_state" = "red" ]; then
+					status_red=1
+					status_green=0
+				elif [ "$led_state" = "green" ]; then
+					status_red=0
+					status_green=1
+				elif [ "$led_state" = "orange" ]; then
+					status_red=1
+					status_green=1
+				elif [ "$led_state" = "off" ]; then
+					status_red=0
+					status_green=0
 				else
 					echo "Usage for g720:"
-					echo "$0 $main_cmd led [1|2|3] [on|off]"
+					echo "$0 $main_cmd led [1|2|3] [red|green|orange|off]"
 					exit 1
 				fi
+
+				echo "control LED${led_index}_R $led_red_path -> $status_red"
+				echo none > "$led_red_path/trigger"
+				echo "$status_red" > "$led_red_path/brightness"
+				echo "control LED${led_index}_G $led_green_path -> $status_green"
+				echo none > "$led_green_path/trigger"
+				echo "$status_green" > "$led_green_path/brightness"
 			fi
 		else
 			if [ "$3" = "green" ]; then
