@@ -889,7 +889,7 @@ if [ "$1" = "aic" ]; then
 			fi
 		fi
 
-		dir_ssh_remote="/mnt/disk2/FTP/Public/gray/$dir_prj"
+		dir_ssh_remote="/FTP/Public/gray/$dir_prj"
 		dir_ftp_remote="Public/gray/$dir_prj"
 		dir_local="/mnt/reserved"
 		dir_local_cache="$dir_local/$ftp_host"
@@ -1168,36 +1168,98 @@ if [ "$1" = "aic" ]; then
 
 	elif [ "$2" = "led" ]; then
 		echo "led..."
-		if [ "$3" = "green" ]; then
-			status_red=0
-			status_green=1
-		elif [ "$3" = "red" ]; then
-			status_red=1
-			status_green=0
-		elif [ "$3" = "orange" ]; then
-			status_red=1
-			status_green=1
+		if [ "$project_string" = "g720" ]; then
+			if [ -z "$3" ]; then
+				echo "GPIO info:"
+				echo "LED1_R = GPIO8"
+				echo "LED1_G = GPIO9"
+				echo "LED2_R = GPIO10"
+				echo "LED2_G = GPIO11"
+				echo "LED3_R = GPIO2"
+				echo "LED3_G = GPIO77"
+				echo ""
+				echo "ls /sys/class/leds"
+				ls /sys/class/leds
+				echo ""
+				echo "Run LED test..."
+				for led in /sys/class/leds/status:*; do
+					[ -d "$led" ] || continue
+					echo "test $led"
+					echo none > "$led/trigger"
+					echo 1 > "$led/brightness"
+					sleep 1
+					echo 0 > "$led/brightness"
+				done
+			else
+				main_cmd="$1"
+				led_index="$3"
+				led_action="$4"
+				set -- /sys/class/leds/status:*
+				if [ "$1" = "/sys/class/leds/status:*" ]; then
+					echo "No status LEDs found under /sys/class/leds"
+					exit 1
+				fi
+
+				case "$led_index" in
+					1) led_path="$1" ;;
+					2) led_path="$2" ;;
+					3) led_path="$3" ;;
+					*)
+						echo "Usage for g720:"
+						echo "$0 $main_cmd led [1|2|3] [on|off]"
+						exit 1
+						;;
+				esac
+
+				if [ -z "$led_path" ] || [ ! -d "$led_path" ]; then
+					echo "LED index $led_index is not available"
+					exit 1
+				fi
+
+				echo "control $led_path -> $led_action"
+				echo none > "$led_path/trigger"
+				if [ "$led_action" = "on" ]; then
+					echo 1 > "$led_path/brightness"
+				elif [ "$led_action" = "off" ]; then
+					echo 0 > "$led_path/brightness"
+				else
+					echo "Usage for g720:"
+					echo "$0 $main_cmd led [1|2|3] [on|off]"
+					exit 1
+				fi
+			fi
 		else
-			status_red=0
-			status_green=0
-		fi
+			if [ "$3" = "green" ]; then
+				status_red=0
+				status_green=1
+			elif [ "$3" = "red" ]; then
+				status_red=1
+				status_green=0
+			elif [ "$3" = "orange" ]; then
+				status_red=1
+				status_green=1
+			else
+				status_red=0
+				status_green=0
+			fi
 
-		echo "led 1 : gpioset 0 79=$status_red 80=$status_green"
-		gpioset 0 79=$status_red 80=$status_green
-		sleep 0.5
-		echo "led 2 : gpioset 0 81=$status_red 82=$status_green"
-		gpioset 0 81=$status_red 82=$status_green
-		sleep 0.5
-		echo "led 3 : gpioset 0 114=$status_red 115=$status_green"
-		gpioset 0 114=$status_red 115=$status_green
-		sleep 0.5
-
-		if is_visionhub ; then
-			echo "led 4 : gpioset 0 116=$status_red 117=$status_green"
-			gpioset 0 116=$status_red 117=$status_green
+			echo "led 1 : gpioset 0 79=$status_red 80=$status_green"
+			gpioset 0 79=$status_red 80=$status_green
 			sleep 0.5
-			echo "led 5 : gpioset 0 119=$status_red 120=$status_green"
-			gpioset 0 119=$status_red 120=$status_green
+			echo "led 2 : gpioset 0 81=$status_red 82=$status_green"
+			gpioset 0 81=$status_red 82=$status_green
+			sleep 0.5
+			echo "led 3 : gpioset 0 114=$status_red 115=$status_green"
+			gpioset 0 114=$status_red 115=$status_green
+			sleep 0.5
+
+			if is_visionhub ; then
+				echo "led 4 : gpioset 0 116=$status_red 117=$status_green"
+				gpioset 0 116=$status_red 117=$status_green
+				sleep 0.5
+				echo "led 5 : gpioset 0 119=$status_red 120=$status_green"
+				gpioset 0 119=$status_red 120=$status_green
+			fi
 		fi
 
 	elif [ "$2" = "rtc" ]; then
