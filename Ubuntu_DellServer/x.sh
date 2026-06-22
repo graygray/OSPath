@@ -1227,3 +1227,10 @@ if [ "$1" == "c" ] ; then
 	echo "clear ..."
 	clear
 fi
+
+if [ "$1" == "update" ] ; then
+	echo "update common tools ..."
+	echo "codex cli : curl -fsSL https://chatgpt.com/codex/install.sh | sh"
+	curl -fsSL https://chatgpt.com/codex/install.sh | sh
+fi
+
