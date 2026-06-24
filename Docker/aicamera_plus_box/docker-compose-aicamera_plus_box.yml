@@ -42,7 +42,7 @@ services:
     privileged: true
     restart: always
     ports:
-      - '54332:22'
+      - '54342:22'
     environment:
       - TZ=Asia/Taipei
     volumes:
