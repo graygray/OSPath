@@ -32,3 +32,19 @@ services:
     volumes:
       - /mnt/disk3/yocto_build/docker:/home/gray.lin/build
       - /FTP/Public/Jenkins:/ftp
+
+  g720:
+    image: graygray/aicamera_plus_box
+    container_name: build_g720
+    stdin_open: true  # Keep the container running and open for interactive mode
+    tty: true  # Allocate a pseudo-TTY (useful for running bash)
+    command: /bin/bash  # Run bash as the command
+    privileged: true
+    restart: always
+    ports:
+      - '54332:22'
+    environment:
+      - TZ=Asia/Taipei
+    volumes:
+      - /mnt/disk3/yocto_build/docker:/home/gray.lin/build
+      - /FTP/Public/Jenkins:/ftp
