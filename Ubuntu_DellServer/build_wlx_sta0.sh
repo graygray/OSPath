@@ -73,3 +73,5 @@ echo
 echo "Connection status:"
 run_root wpa_cli -i "${STA_IF}" status | grep -E '^(ssid|bssid|freq|wpa_state|ip_address|address)=' || true
 ip addr show dev "${STA_IF}" || run_root ip addr show dev "${STA_IF}"
+
+sudo ip route replace 10.0.0.0/8 via 10.1.13.254 dev enp0s31f6 src 10.1.13.207 metric 10
