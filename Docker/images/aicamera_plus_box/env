@@ -171,6 +171,7 @@ spe720() {
     git branch --show-current 2>/dev/null || true
     # env_mtk720
     env_mtk720ufs
+    export project_string="g720"
 }
 alias spe='spe700'
 
