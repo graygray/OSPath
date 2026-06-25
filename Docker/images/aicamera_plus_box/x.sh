@@ -1,4 +1,5 @@
 xDir=~/"OSPath/Ubuntu"
+FTP_DIR="${FTP_DIR:-/FTP/Public}"
 
 # docker
 dockderDir=~/"OSPath/Docker"
@@ -60,9 +61,13 @@ fi
 if [ "$1" = "bb" ] ; then
 	echo "BitBake..."
 	if [  "$2" = "c" ] ; then
-		echo "clean recipe, bitbake -c cleanall $3"
-		# bitbake -c cleansstate $3
-		bitbake -c cleanall $3
+		if [ "$3" = "all" ] ; then
+			echo "force clean recipe, bitbake -c cleanall $4"
+			bitbake -c cleanall "$4"
+		else
+			echo "clean recipe, bitbake -c cleansstate $3"
+			bitbake -c cleansstate "$3"
+		fi
 		
 	elif [ "$2" = "b" ] ; then
 		echo "build recipe, bitbake $3"
@@ -137,13 +142,14 @@ if [ "$1" = "lora" ] ; then
 	elif [ "$2" = "ftp" ]; then
 		echo "copy lora ipk to ftp... "
 		file2copy="lora-rylr993_0.0.1-r0_armv8a.ipk"
-		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$file2copy" "/mnt/disk2/FTP/Public/gray/aicamera/"
+		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$file2copy" "$FTP_DIR/gray/aicamera/"
 	fi
 fi
 
 # AI Camera
 if [ "$1" = "aic" ] ; then
 
+	echo "========== MACHINE:$MACHINE =========="
 	echo "========== PROJ_ROOT:$PROJ_ROOT =========="
 
 	if [ "$2" = "dk" ] ; then
@@ -200,14 +206,58 @@ if [ "$1" = "aic" ] ; then
 
 	elif [ "$2" = "ftp" ] ; then
 		echo "========== update files to FTP =========="
-		dir_ftp="/mnt/disk2/FTP/Public/gray"
+		dir_ftp="$FTP_DIR/gray"
 
 		targetPlatform="armv8a-poky-linux"
-		dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0-r0"
 
-		cp -f $dir_work/temp/log.do_compile $dir_ftp/
-		cp -f $dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam "$dir_ftp/$project_string/"
-		cp -f $dir_work/primax-1.0/src/Test_C_yocto/fw_daemon "$dir_ftp/$project_string/"
+		dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0-r0"
+		if [ "$project_string" = "g720" ] ; then
+			dir_work="$PROJ_ROOT/build/tmp/work/$targetPlatform/primax/1.0"
+		fi
+
+		if [ -z "$project_string" ] ; then
+			echo "[ftp] ERROR: project_string is empty"
+			return 1
+		fi
+
+		target_dir="$dir_ftp/$project_string"
+		if [ -e "$target_dir" ] && [ ! -d "$target_dir" ] ; then
+			echo "[ftp] ERROR: destination exists but is not a directory: $target_dir"
+			return 1
+		fi
+		mkdir -p "$target_dir"
+
+		cp -f "$dir_work/temp/log.do_compile" "$dir_ftp/"
+		cp -f "$dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam" "$target_dir/"
+		cp -f "$dir_work/primax-1.0/src/Test_C_yocto/fw_daemon" "$target_dir/"
+
+		if [ "$3" = "k" ] ; then
+			echo "copy kernel update files..."
+			path_kernel="$PROJ_ROOT/build/tmp/deploy/images/genio-720-evk-ufs/"
+			cd "$path_kernel" || return 1
+			mkdir -p "$target_dir/kernel"
+			ls -al fitImage
+			ls -al modules-genio-720-evk-ufs.tgz
+			rsync -aL fitImage modules-genio-720-evk-ufs.tgz "$target_dir/kernel/"
+			# rsync -aL fitImage modules-genio-720-evk-ufs.tgz root@<device-ip>:/root/primax-update/
+		fi
+
+	elif [ "$2" = "cpipk" ] ; then
+		echo "========== copy *.ipk files to FTP =========="
+		dir_ftp="$FTP_DIR/gray"
+		dir_work="$PROJ_ROOT/build/tmp/deploy/ipk/armv8a"
+
+		if [ "$3" = "mw" ] ; then
+			target_dir="$dir_ftp/$project_string"
+			if [ -e "$target_dir" ] && [ ! -d "$target_dir" ] ; then
+				echo "[ftp] ERROR: destination exists but is not a directory: $target_dir"
+				return 1
+			fi
+			mkdir -p "$target_dir"
+			cp -f "$dir_work/mtk-camisp-mw_1.0-r0_armv8a.ipk" "$target_dir/"
+		elif [ "$3" = "lora" ] ; then
+			echo "--"
+		fi
 
 	else
 		primax_version_file="$PROJ_ROOT/src/meta-primax/recipes-primax/primax-version/files/primax_version"
@@ -286,7 +336,7 @@ if [ "$1" = "vb" ] ; then
 	echo "VisionHub..."
 	if [ "$2" = "f" ] ; then
 		echo "flash image..."
-		cd /mnt/disk2/FTP/joe_handover/3_VisionHub_AICamera/3_11_images
+		cd /FTP/joe_handover/3_VisionHub_AICamera/3_11_images
 
 		if [ "$3" = "barcode" ] ; then
 			echo "barcode..."
@@ -307,82 +357,6 @@ if [ "$1" = "vb" ] ; then
 		fi
 	else
 		echo "else..."
-	fi
-
-fi
-
-# working directory 
-if [ "$1" = "wd" ] ; then
-	echo "XDG_CURRENT_DESKTOP=$XDG_CURRENT_DESKTOP" 
-	if [  "$XDG_CURRENT_DESKTOP" = "KDE" ] ; then
-
-		if [ "$2" = "git" ] ; then
-			xfce4-terminal --geometry=160x40 \
-			--tab -T "Docker_Gitlab" --working-directory=$gitDir \
-			--tab -T "Docker_Gitlab2" --working-directory=$gitDir \
-			--tab -T "Gitlab_Data" --working-directory=$gitDir_Data \
-			--tab -T "gitDir_Config" --working-directory=$gitDir_Config \
-			--tab -T "Home/Gray" --working-directory=$xDir
-		elif [ "$2" = "red" ] ; then
-			xfce4-terminal --geometry=160x40 \
-			--tab -T "Docker_Redmine" --working-directory=$redDir \
-			--tab -T "Docker_Redmine2" --working-directory=$redDir \
-			--tab -T "Redmine_Home" --working-directory=$redDir_Home \
-			--tab -T "Redmine_File" --working-directory=$redDir_Files \
-			--tab -T "Redmine_Config" --working-directory=$redDir_Config \
-			--tab -T "Postgres" --working-directory=$redDir_Postgres
-		elif [ "$2" = "ftp" ] ; then
-			xfce4-terminal --geometry=160x40 \
-			--tab -T "FTP Data" --working-directory="/home/test/FTP/" \
-			--tab -T "FTP /etc" --working-directory="/etc" \
-			--tab -T "FTP /etc/vsftpd" --working-directory="/etc/vsftpd"
-		elif [ "$2" = "jks" ] ; then
-			xfce4-terminal --geometry=160x40 \
-			--tab -T "Docker_Jenkins" --working-directory=$jksDir \
-			--tab -T "Docker_Jenkins2" --working-directory=$jksDir
-		else
-			echo "param 3 not match"
-			exit -1
-		fi
-
-	elif [ "$XDG_CURRENT_DESKTOP" = "GNOME" ] || [ "$XDG_CURRENT_DESKTOP" = "ubuntu:GNOME" ] ; then
-		if [ "$2" = "git" ] ; then
-			gnome-terminal --geometry=140x40 \
-			--tab -t "Docker_Gitlab" --working-directory=$gitDir \
-			--tab -t "Docker_Gitlab2" --working-directory=$gitDir \
-			--tab -t "Gitlab_Data" --working-directory=$gitDir_Data \
-			--tab -t "gitDir_Config" --working-directory=$gitDir_Config \
-			--tab -t "Home/Gray" --working-directory=$xDir
-		elif [ "$2" = "red" ] ; then
-			gnome-terminal --geometry=150x40 \
-			--tab -t "Docker_Redmine" --working-directory=$redDir \
-			--tab -t "Docker_Redmine2" --working-directory=$redDir \
-			--tab -t "Redmine_Home" --working-directory=$redDir_Home \
-			--tab -t "Redmine_File" --working-directory=$redDir_Files \
-			--tab -t "Redmine_Config" --working-directory=$redDir_Config \
-			--tab -t "Postgres" --working-directory=$redDir_Postgres
-		elif [ "$2" = "ftp" ] ; then
-			gnome-terminal --geometry=150x40 \
-			--tab -t "FTP Data" --working-directory="/home/test/FTP/" \
-			--tab -t "FTP /etc" --working-directory="/etc" \
-			--tab -t "FTP /etc/vsftpd" --working-directory="/etc/vsftpd"
-		elif [ "$2" = "jks" ] ; then
-			gnome-terminal --geometry=150x40 \
-			--tab -t "Docker_Jenkins" --working-directory=$jksDir \
-			--tab -t "Docker_Jenkins2" --working-directory=$jksDir
-		elif [ "$2" = "ros" ] ; then
-			xfce4-terminal --geometry=150x40 \
-			--tab -T "home" --working-directory=~ \
-			--tab -T "wheeltec" --working-directory=~ \
-			--tab -T "ROS node" --working-directory=$nodeDir \
-			--tab -T "ROS install dir" --working-directory=$rosDir_Home
-		else
-			echo "param 3 not match"
-			exit -1
-		fi
-	else
-		echo "param 2 not match"
-		exit -1
 	fi
 fi
 
@@ -436,10 +410,12 @@ if [ "$1" = "cp" ]; then
 
     case "$2" in
         h)     path="$HOME";   use_basename=1 ;;
-        ftp)   path="/mnt/disk2/FTP/Public/gray";   use_basename=1 ;;
-        ftppi)  path="/mnt/disk2/FTP/Public/gray/privateImage"; use_basename=1 ;;
-        ftpaic)   path="/mnt/disk2/FTP/Public/gray/aicamera"; use_basename=1 ;;
-		ftpvh)   path="/mnt/disk2/FTP/Public/gray/visionhub"; use_basename=1 ;;
+        ftp)   path="$FTP_DIR/gray";   use_basename=1 ;;
+        ftppi)  path="$FTP_DIR/gray/privateImage"; use_basename=1 ;;
+        ftpaic)   path="$FTP_DIR/gray/aicamera"; use_basename=1 ;;
+		ftpvh)   path="$FTP_DIR/gray/visionhub"; use_basename=1 ;;
+		ftp720)   path="$FTP_DIR/gray/g720"; use_basename=1 ;;
+		ftpp)   path="$FTP_DIR/gray/$project_string"; use_basename=1 ;;
         p1)    path="$p1"; use_basename=0 ;;
         p2)    path="$p2"; use_basename=0 ;;
         *)
@@ -538,7 +514,7 @@ if [ "$1" = "ftp" ] ; then
 		echo "sudo setfacl -Rdm g:$4:rwx $3"
 		sudo setfacl -Rdm g:$4:rwx $3
 	elif [ "$2" = "config" ] ; then
-		code /etc/vsftpd.conf
+		nano /etc/vsftpd.conf
 	else
 		echo "param 2 not match"
 		exit -1
@@ -577,7 +553,7 @@ if [ "$1" = "user" ] ; then
 			# make a yocto build dir & user link
 			buildfolder="/mnt/disk3/yocto_build"
 			mkdir -p $buildfolder/$3
-			cp -f $buildfolder/misc/step* $buildfolder/$3
+			sudo cp -f $buildfolder/misc/step* $buildfolder/$3
 			sudo chown $3:$mainGroup $buildfolder/$3
 			sudo chown $3:$mainGroup $buildfolder/$3/step*
 			cd /home/$3
@@ -698,6 +674,23 @@ if [ "$1" = "unzip" ] ; then
 			echo "No 7z extractor found. Install p7zip (7z/7zr/7za)."
 			exit 1
 		fi
+	elif [[ "$2" == *.rar ]]; then
+		if command -v unrar >/dev/null 2>&1; then
+			echo "unrar x \"$2\""
+			unrar x "$2"
+		elif command -v 7z >/dev/null 2>&1; then
+			echo "7z x \"$2\""
+			7z x "$2"
+		elif command -v 7zr >/dev/null 2>&1; then
+			echo "7zr x \"$2\""
+			7zr x "$2"
+		elif command -v 7za >/dev/null 2>&1; then
+			echo "7za x \"$2\""
+			7za x "$2"
+		else
+			echo "No RAR extractor found. Install unrar or p7zip (7z/7zr/7za)."
+			exit 1
+		fi
 	elif [[ "$2" == *.zip ]]; then
 		echo "unzip \"$2\""
 		unzip "$2"
@@ -753,202 +746,191 @@ if [ "$1" = "ssh" ] ; then
 	fi
 fi
 
-# redmine
-if [ "$1" = "red" ] ; then
-
-	if [ "$2" = "up" ] ; then
-		docker-compose -f "$redDir/docker-compose-red.yml" up -d
-		# docker-compose -f "$redDir/docker-compose-red.yml" up
-	elif [ "$2" = "down" ] ; then
-		docker-compose -f "$redDir/docker-compose-red.yml" down
-	elif [ "$2" = "start" ] ; then
-		docker-compose -f "$redDir/docker-compose-red.yml" start
-	elif [ "$2" = "stop" ] ; then
-		docker-compose -f "$redDir/docker-compose-red.yml" stop
-	elif [ "$2" = "bash" ] ; then
-		echo "========== docker exec -it redmine /bin/bash =========="
-		docker exec -ti redmine /bin/bash
-	elif [ "$2" = "chmod" ] ; then
-		sudo chmod 777 $redDir_Files/
-		sudo chmod 777 $redDir_Postgres/
-	elif [ "$2" = "psql" ] ; then
-		# postgres bash
-		echo "========== docker exec -it postgres /bin/bash =========="
-		docker exec -ti postgres /bin/bash
-	elif [ "$2" = "log" ] ; then
-		echo "========== docker logs -tf redmine =========="
-		docker logs -tf redmine
-	elif [ "$2" = "backup" ] ; then
-		docker exec -it postgres pg_dump -U redmine -d redmine -Fc -f /var/lib/postgresql/data/redmine.sqlc
-	elif [ "$2" = "compose" ] ; then
-		# open compose file
-		code $redDir/docker-compose-red.yml
-	else
-		echo "param 2 not match"
-		exit -1
-	fi
-fi
-
-# gitlab
-if [ "$1" = "git" ] ; then
-	if [ "$2" = "up" ] ; then
-		docker-compose -f "$gitDir/docker-compose-git.yml" up -d
-		# docker-compose -f "$gitDir/docker-compose-git.yml" up
-	elif [ "$2" = "down" ] ; then
-		docker-compose -f "$gitDir/docker-compose-git.yml" down
-	elif [ "$2" = "stop" ] ; then
-		docker stop gitlab
-		
-	elif [ "$2" = "chmod" ] ; then
-		sudo chmod 755 $gitDir_Data/backups/
-		sudo chmod 755 $gitDir_Data/backups/
-		sudo chmod 777 $gitDir_Config/gitlab.rb
-		sudo chmod 777 $gitDir_Config/gitlab-secrets.json 
-
-	elif [ "$2" = "tar" ] ; then
-		# backup tar file
-		sudo chmod 755 $gitDir_Data/backups/
-		if [ "$3" = "in" ] ; then
-			sudo mv $gitDir/$gitBackupFile"_gitlab_backup.tar" $gitDir_Data/backups/
-		elif [ "$3" = "out" ] ; then
-			sudo mv $gitDir_Data/backups/$gitBackupFile"_gitlab_backup.tar" $gitDir/
-		else
-			echo ">> param 3 should be 'in' or 'out'"
-		fi
-	elif [ "$2" = "compose" ] ; then
-		# open compose file
-		code $gitDir/docker-compose-git.yml
-		
-	elif [ "$2" = "config" ] ; then
-		if [ "$3" = "code" ] ; then
-			code $gitDir/config/gitlab.rb
-			code $gitDir/config/gitlab.yml
-		elif [ "$3" = "in" ] ; then
-			cp -rf $gitDir/config/gitlab.rb $gitDir_Config
-		elif [ "$3" = "out" ] ; then
-			sudo chmod 755 $gitDir_ConfigR
-sudo chmod 666 $gitDir_Config/gitlab.rb
-			sudo chmod 666 $gitDir_ConfigR/gitlab.yml 
-			cp $gitDir_Config/gitlab.rb $gitDir/config/
-			cp $gitDir_ConfigR/gitlab.yml $gitDir/config
-		elif [ "$3" = "update" ] ; then
-			cp -rf $gitDir/config/gitlab.rb $gitDir_Config
-			echo "========== docker exec -it gitlab gitlab-ctl reconfigure =========="
-			docker exec -it gitlab gitlab-ctl reconfigure
-			echo "========== docker exec -it gitlab gitlab-ctl restart =========="
-			docker exec -it gitlab gitlab-ctl restart
-		else
-			echo ">> param 3 not match"
-		fi
-	elif [ "$2" = "check" ] ; then
-		echo "========== docker exec -it gitlab gitlab-rake gitlab:check SANITIZE=true =========="
-		docker exec -ti gitlab gitlab-rake gitlab:check SANITIZE=true
-	elif [ "$2" = "info" ] ; then
-		echo "========== docker exec -ti gitlab gitlab-rake gitlab:env:info =========="
-		docker exec -ti gitlab gitlab-rake gitlab:env:info
-	elif [ "$2" = "bash" ] ; then
-		echo "========== docker exec -it gitlab /bin/bash =========="
-		docker exec -ti gitlab /bin/bash
-	elif [ "$2" = "psql" ] ; then
-		echo "========== docker exec -it gitlab gitlab-psql =========="
-		docker exec -ti gitlab gitlab-psql
-	elif [ "$2" = "rail" ] ; then
-		echo "========== docker exec -it gitlab gitlab-rails console =========="
-		docker exec -ti gitlab gitlab-rails console
-	elif [ "$2" = "log" ] ; then
-		echo "========== docker logs -tf gitlab =========="
-		docker logs -tf --since 1m gitlab
-	elif [ "$2" = "backup" ] ; then
-		echo "========== docker exec -it gitlab gitlab-rake gitlab:backup:create =========="
-			docker exec -ti gitlab gitlab-backup create
-
-			# GitLab 12.1 and earlier
-			# docker exec -ti gitlab gitlab-rake gitlab:backup:create
-	elif [ "$2" = "restore" ] ; then
-		if [ "$3" = "1" ] ; then
-			echo "========== step 1 : stop connectivity services ==========" 
-			# docker exec -it gitlab gitlab-ctl stop unicorn
-docker exec -it gitlab gitlab-ctl stop puma
-			docker exec -it gitlab gitlab-ctl stop sidekiq
-			docker exec -it gitlab gitlab-ctl status
-		elif [ "$3" = "2" ] ; then
-			echo "========== step 2 : restore from backup tar : $gitBackupFile ==========" 
-			docker exec -it gitlab gitlab-backup restore BACKUP=$gitBackupFile
-
-# gitlab-backup restore BACKUP=1643394275_2022_01_28_14.1.6
-			# GitLab 12.1 and earlier
-			# docker exec -it gitlab gitlab-rake gitlab:backup:restore BACKUP=$gitBackupFile
-		elif [ "$3" = "3" ] ; then
-			echo "========== step 3 : re-configure & re-start ==========" 
-			echo "========== docker exec -it gitlab gitlab-ctl reconfigure =========="
-			docker exec -it gitlab gitlab-ctl reconfigure
-			echo "========== docker exec -it gitlab gitlab-ctl restart =========="
-			docker exec -it gitlab gitlab-ctl restart
-
-		elif [ "$3" = "4" ] ; then
-			# config
-			cp -rf $gitDir/config/gitlab.rb $gitDir_Config
-		else
-			echo ">> param 3 not match"
-		fi
-
-	elif [ "$2" = "sp" ] ; then
-		# show related path
-		echo "========== gitlab paths  ==========" 
-		echo "# docker mapping dir in host" 
-		echo "gitDir_Data:$gitDir_Data"
-		echo "gitDir_Config:$gitDir_Config"
-		echo "gitDir_Logs:$gitDir_Logs"
-		echo "" 
-		echo "# gitlab home (Omnibus)" 
-		echo "/var/opt/gitlab/"
-		echo "" 
-		echo "# gitlab home (Source)" 
-		echo "/home/git/gitlab/"
-		echo "" 
-		echo "# configuration file" 
-		echo "/etc/gitlab/gitlab.rb"
-		echo "" 
-		echo "# generated configuration file" 
-		echo "/opt/gitlab/embedded/service/gitlab-rails/config"
-		echo "" 
-		echo "# backup folder" 
-		echo "/var/opt/gitlab/backups/"
-		echo "" 
-		echo "# ssl cert folder" 
-		echo "/etc/gitlab/ssl/"
-		
-	else
-		echo "param 2 not match"
-		exit -1
-	fi
-fi
-
-# jenkins
-if [ "$1" = "jks" ] ; then
-
-	if [ "$2" = "up" ] ; then
-		docker-compose -f "$jksDir/docker-compose-jenkins.yml" up -d
-		# docker-compose -f "$jksDir/docker-compose-jenkins.yml" up
-	elif [ "$2" = "down" ] ; then
-		docker-compose -f "$jksDir/docker-compose-jenkins.yml" down
-	elif [ "$2" = "bash" ] ; then
-		echo "========== docker exec -it -u root jenkins /bin/bash =========="
-		docker exec -it -u root jenkins /bin/bash
-	elif [ "$2" = "log" ] ; then
-		echo "========== docker logs -tf jenkins =========="
-		docker logs -tf jenkins
-	else
-		echo "jksDir:$jksDir"
-		echo "param 2 not match"
-		exit -1
-	fi
-fi
-
 # docker
 if [ "$1" = "dk" ] ; then
 
-	if [ "$2" = "i" ] ; then
+	# redmine
+	if [ "$2" = "red" ] ; then
+		if [ "$3" = "up" ] ; then
+			docker-compose -f "$redDir/docker-compose-red.yml" up -d
+			# docker-compose -f "$redDir/docker-compose-red.yml" up
+		elif [ "$3" = "down" ] ; then
+			docker-compose -f "$redDir/docker-compose-red.yml" down
+		elif [ "$3" = "start" ] ; then
+			docker-compose -f "$redDir/docker-compose-red.yml" start
+		elif [ "$3" = "stop" ] ; then
+			docker-compose -f "$redDir/docker-compose-red.yml" stop
+		elif [ "$3" = "bash" ] ; then
+			echo "========== docker exec -it redmine /bin/bash =========="
+			docker exec -ti redmine /bin/bash
+		elif [ "$3" = "chmod" ] ; then
+			sudo chmod 777 $redDir_Files/
+			sudo chmod 777 $redDir_Postgres/
+		elif [ "$3" = "psql" ] ; then
+			# postgres bash
+			echo "========== docker exec -it postgres /bin/bash =========="
+			docker exec -ti postgres /bin/bash
+		elif [ "$3" = "log" ] ; then
+			echo "========== docker logs -tf redmine =========="
+			docker logs -tf redmine
+		elif [ "$3" = "backup" ] ; then
+			docker exec -it postgres pg_dump -U redmine -d redmine -Fc -f /var/lib/postgresql/data/redmine.sqlc
+		elif [ "$3" = "compose" ] ; then
+			# open compose file
+			code $redDir/docker-compose-red.yml
+		else
+			echo "param 3 not match"
+			exit -1
+		fi
+	# jenkins
+	elif [ "$2" = "jks" ] ; then
+		if [ "$3" = "up" ] ; then
+			docker-compose -f "$jksDir/docker-compose-jenkins.yml" up -d
+			# docker-compose -f "$jksDir/docker-compose-jenkins.yml" up
+		elif [ "$3" = "down" ] ; then
+			docker-compose -f "$jksDir/docker-compose-jenkins.yml" down
+		elif [ "$3" = "bash" ] ; then
+			echo "========== docker exec -it -u root jenkins /bin/bash =========="
+			docker exec -it -u root jenkins /bin/bash
+		elif [ "$3" = "log" ] ; then
+			echo "========== docker logs -tf jenkins =========="
+			docker logs -tf jenkins
+		else
+			echo "jksDir:$jksDir"
+			echo "param 3 not match"
+			exit -1
+		fi
+	# gitlab
+	elif [ "$2" = "git" ] ; then
+		if [ "$3" = "up" ] ; then
+			docker-compose -f "$gitDir/docker-compose-git.yml" up -d
+			# docker-compose -f "$gitDir/docker-compose-git.yml" up
+		elif [ "$3" = "down" ] ; then
+			docker-compose -f "$gitDir/docker-compose-git.yml" down
+		elif [ "$3" = "stop" ] ; then
+			docker stop gitlab
+			
+		elif [ "$3" = "chmod" ] ; then
+			sudo chmod 755 $gitDir_Data/backups/
+			sudo chmod 755 $gitDir_Data/backups/
+			sudo chmod 777 $gitDir_Config/gitlab.rb
+			sudo chmod 777 $gitDir_Config/gitlab-secrets.json 
+
+		elif [ "$3" = "tar" ] ; then
+			# backup tar file
+			sudo chmod 755 $gitDir_Data/backups/
+			if [ "$4" = "in" ] ; then
+				sudo mv $gitDir/$gitBackupFile"_gitlab_backup.tar" $gitDir_Data/backups/
+			elif [ "$4" = "out" ] ; then
+				sudo mv $gitDir_Data/backups/$gitBackupFile"_gitlab_backup.tar" $gitDir/
+			else
+				echo ">> param 4 should be 'in' or 'out'"
+			fi
+		elif [ "$3" = "compose" ] ; then
+			# open compose file
+			code $gitDir/docker-compose-git.yml
+			
+		elif [ "$3" = "config" ] ; then
+			if [ "$4" = "code" ] ; then
+				code $gitDir/config/gitlab.rb
+				code $gitDir/config/gitlab.yml
+			elif [ "$4" = "in" ] ; then
+				cp -rf $gitDir/config/gitlab.rb $gitDir_Config
+			elif [ "$4" = "out" ] ; then
+				sudo chmod 755 $gitDir_ConfigR
+				sudo chmod 666 $gitDir_Config/gitlab.rb
+				sudo chmod 666 $gitDir_ConfigR/gitlab.yml 
+				cp $gitDir_Config/gitlab.rb $gitDir/config/
+				cp $gitDir_ConfigR/gitlab.yml $gitDir/config
+			elif [ "$4" = "update" ] ; then
+				cp -rf $gitDir/config/gitlab.rb $gitDir_Config
+				echo "========== docker exec -it gitlab gitlab-ctl reconfigure =========="
+				docker exec -it gitlab gitlab-ctl reconfigure
+				echo "========== docker exec -it gitlab gitlab-ctl restart =========="
+				docker exec -it gitlab gitlab-ctl restart
+			else
+				echo ">> param 4 not match"
+			fi
+		elif [ "$3" = "check" ] ; then
+			echo "========== docker exec -it gitlab gitlab-rake gitlab:check SANITIZE=true =========="
+			docker exec -ti gitlab gitlab-rake gitlab:check SANITIZE=true
+		elif [ "$3" = "info" ] ; then
+			echo "========== docker exec -ti gitlab gitlab-rake gitlab:env:info =========="
+			docker exec -ti gitlab gitlab-rake gitlab:env:info
+		elif [ "$3" = "bash" ] ; then
+			echo "========== docker exec -it gitlab /bin/bash =========="
+			docker exec -ti gitlab /bin/bash
+		elif [ "$3" = "psql" ] ; then
+			echo "========== docker exec -it gitlab gitlab-psql =========="
+			docker exec -ti gitlab gitlab-psql
+		elif [ "$3" = "rail" ] ; then
+			echo "========== docker exec -it gitlab gitlab-rails console =========="
+			docker exec -ti gitlab gitlab-rails console
+		elif [ "$3" = "log" ] ; then
+			echo "========== docker logs -tf gitlab =========="
+			docker logs -tf --since 1m gitlab
+		elif [ "$3" = "backup" ] ; then
+			echo "========== docker exec -it gitlab gitlab-rake gitlab:backup:create =========="
+				docker exec -ti gitlab gitlab-backup create
+
+				# GitLab 12.1 and earlier
+				# docker exec -ti gitlab gitlab-rake gitlab:backup:create
+		elif [ "$3" = "restore" ] ; then
+			if [ "$4" = "1" ] ; then
+				echo "========== step 1 : stop connectivity services ==========" 
+				# docker exec -it gitlab gitlab-ctl stop unicorn
+				docker exec -it gitlab gitlab-ctl stop puma
+				docker exec -it gitlab gitlab-ctl stop sidekiq
+				docker exec -it gitlab gitlab-ctl status
+			elif [ "$4" = "2" ] ; then
+				echo "========== step 2 : restore from backup tar : $gitBackupFile ==========" 
+				docker exec -it gitlab gitlab-backup restore BACKUP=$gitBackupFile
+
+			elif [ "$4" = "3" ] ; then
+				echo "========== step 3 : re-configure & re-start ==========" 
+				echo "========== docker exec -it gitlab gitlab-ctl reconfigure =========="
+				docker exec -it gitlab gitlab-ctl reconfigure
+				echo "========== docker exec -it gitlab gitlab-ctl restart =========="
+				docker exec -it gitlab gitlab-ctl restart
+
+			elif [ "$4" = "4" ] ; then
+				# config
+				cp -rf $gitDir/config/gitlab.rb $gitDir_Config
+			else
+				echo ">> param 4 not match"
+			fi
+
+		elif [ "$3" = "sp" ] ; then
+			# show related path
+			echo "========== gitlab paths  ==========" 
+			echo "# docker mapping dir in host" 
+			echo "gitDir_Data:$gitDir_Data"
+			echo "gitDir_Config:$gitDir_Config"
+			echo "gitDir_Logs:$gitDir_Logs"
+			echo "" 
+			echo "# gitlab home (Omnibus)" 
+			echo "/var/opt/gitlab/"
+			echo "" 
+			echo "# gitlab home (Source)" 
+			echo "/home/git/gitlab/"
+			echo "" 
+			echo "# configuration file" 
+			echo "/etc/gitlab/gitlab.rb"
+			echo "" 
+			echo "# generated configuration file" 
+			echo "/opt/gitlab/embedded/service/gitlab-rails/config"
+			echo "" 
+			echo "# backup folder" 
+			echo "/var/opt/gitlab/backups/"
+			echo "" 
+			echo "# ssl cert folder" 
+			echo "/etc/gitlab/ssl/"
+			
+		else
+			echo "param 3 not match"
+			exit -1
+		fi
+	elif [ "$2" = "i" ] ; then
 		# image related
 		if  [ "$3" = "ins" ] ; then
 			#inspect volume
@@ -1169,9 +1151,30 @@ if [ "$1" == "diff" ] ; then
 	echo "diff -rq $2 $3"
 	diff -rq $2 $3
 fi
+if [ "$1" == "diffp" ] ; then
+	echo "use p1 & p2 path to diff same file"
+	diff "$p1/$2" "$p2/$2"
+fi
+
+# git
+if [ "$1" == "git" ] ; then
+    if [ "$2" == "l" ]; then
+		echo "git log --oneline"
+		git log --oneline
+	elif [ "$2" = "c" ] ; then
+		echo "git commit -a -m \"$3\""
+		git commit -a -m "$3"
+	elif [ "$2" = "p" ] ; then
+		echo "git format-patch \"$3\"..\"$4\""
+		git format-patch "$3".."$4"
+	else
+		echo "git status"
+		git status
+	fi
+fi
 
 backup_build() {
-    local BASE_DIR="/mnt/disk2/FTP/Public/Jenkins"
+    local BASE_DIR="$FTP_DIR/Jenkins"
     local SRC_FOLDER="$1"
     local DST_DIR="$BASE_DIR/backup_images/$SRC_FOLDER"
     local SRC_PATH="$BASE_DIR/$SRC_FOLDER"
@@ -1224,3 +1227,10 @@ if [ "$1" == "c" ] ; then
 	echo "clear ..."
 	clear
 fi
+
+if [ "$1" == "update" ] ; then
+	echo "update common tools ..."
+	echo "codex cli : curl -fsSL https://chatgpt.com/codex/install.sh | sh"
+	curl -fsSL https://chatgpt.com/codex/install.sh | sh
+fi
+

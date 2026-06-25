@@ -3,6 +3,8 @@ PATH=~/OSPath/$InHost:$PATH
 PATH=~/bin:$PATH
 PATH=~:$PATH
 
+FTP_DIR="/FTP/Public"
+
 alias x='x.sh'
 alias p3='python3'
 
@@ -25,11 +27,11 @@ alias d--='cd $OLDPWD'                                                          
 alias d-2='cd ../..'
 alias d-3='cd ../../..'
 alias d-4='cd ../../../..'
-alias djks='cd /mnt/disk2/FTP/Public/Jenkins'
-alias dftp='cd /mnt/disk2/FTP/Public/gray'
-alias dftppi='cd /mnt/disk2/FTP/Public/gray/privateImage'
-alias dftpaic='cd /mnt/disk2/FTP/Public/gray/aicamera'
-alias dftpvh='cd /mnt/disk2/FTP/Public/gray/visionhub'
+alias djks='cd $FTP_DIR/Jenkins'
+alias dftp='cd $FTP_DIR/gray'
+alias dftppi='cd $FTP_DIR/gray/privateImage'
+alias dftpaic='cd $FTP_DIR/gray/aicamera'
+alias dftpvh='cd $FTP_DIR/gray/visionhub'
 alias dd2='cd /mnt/disk2'
 alias dd3='cd /mnt/disk3'
 
@@ -98,7 +100,7 @@ edts() {
 alias ue='source ~/.bashrc'     # update env
 alias ux='x ux'                 # update x.sh
 alias ua='ux && ue'             # update all
-alias uyt='dppmxsys && cd home/root/OSPath/AICamera/ && cp -f ~/OSPath/AICamera/env . && cp -f ~/OSPath/AICamera/x.sh . && dpb && mkdir -p /mnt/disk2/FTP/Public/gray/aicamera/OSPath/AICamera && cp -f ~/OSPath/AICamera/* /mnt/disk2/FTP/Public/gray/aicamera/OSPath/AICamera'
+alias uyt='dppmxsys && cd home/root/OSPath/AICamera/ && cp -f ~/OSPath/AICamera/env . && cp -f ~/OSPath/AICamera/x.sh . && dpb && mkdir -p $FTP_DIR/gray/aicamera/OSPath/AICamera && cp -f ~/OSPath/AICamera/* $FTP_DIR/gray/aicamera/OSPath/AICamera'
 
 # env
 spp() {
@@ -250,10 +252,12 @@ ytb_build_clean_primax() {
     DISTRO=rity-demo MACHINE="$machine" bitbake rity-demo-image
 }
 
-alias ytp='dpr && ./pack_image.bash'
 alias ytb='ytb_build'
 alias ytb2='ytb_build_clean_primax'
 alias ytb3='ytb2 && ytp'
+alias ytb4='ytb && ytp'
+alias ytp='dpr && ./pack_image.bash'
+alias ytpf='dpr && PACK_FULL_ARCHIVE=1 ./pack_image.bash'
 alias ytb_docker='ytb_build'
 
 gflash_up() {
@@ -289,8 +293,9 @@ alias aic='x aic'
 alias aicb='x aic usv && x aic ust && x bb b primax'
 alias aicbv='x aic usv && x bb ocv primax'
 alias aicbt='x aic ust && x bb oct primax'                                 # build test code 
+alias xgit='x git'
 
 # git 
-alias gx='cd ~ && rm -r OSPath && git clone https://github.com/PMX-GrayLin/OSPath.git && cd OSPath && find . -name "*.sh" -exec chmod +x {} \; && cd ~'
+alias gx='cd ~ && sudo rm -r OSPath && git clone https://github.com/graygray/OSPath.git && cd OSPath && find . -name "*.sh" -exec chmod +x {} \; && cd ~'
 alias gct='sudo rm -r Test_C_yocto && git clone git@github.com:PMX-GrayLin/Test_C_yocto.git'
 alias gcv='sudo rm -r vision_box_DualCam && git clone git@github.com:PMX-GrayLin/vision_box_DualCam.git'
