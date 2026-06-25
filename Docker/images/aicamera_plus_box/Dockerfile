@@ -1,33 +1,3 @@
-# ===============================
-# Stage 1: Build Python 3.9 + pip
-# ===============================
-FROM ubuntu:22.04 AS python-build
-
-ARG DEBIAN_FRONTEND=noninteractive
-ENV TZ=Asia/Taiwan
-
-SHELL ["/bin/bash", "-c"]
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl wget ca-certificates build-essential \
-    libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
-    libncurses5-dev libncursesw5-dev tk-dev libffi-dev liblzma-dev \
-    llvm make xz-utils \
-    && rm -rf /var/lib/apt/lists/*
-
-# Build Python from source
-RUN cd /tmp && \
-    wget https://www.python.org/ftp/python/3.9.21/Python-3.9.21.tgz && \
-    tar -xzf Python-3.9.21.tgz && \
-    cd Python-3.9.21 && \
-    ./configure --enable-optimizations && \
-    make -j$(nproc) && \
-    make altinstall && \
-    curl -sS https://bootstrap.pypa.io/get-pip.py | /usr/local/bin/python3.9
-
-# ===============================
-# Stage 2: Final runtime image
-# ===============================
 FROM ubuntu:22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -46,6 +16,7 @@ RUN echo "deb http://security.ubuntu.com/ubuntu focal-security main" | tee /etc/
     gawk wget git diffstat unzip texinfo gcc build-essential chrpath \
     socat cpio libstdc++-12-dev xz-utils debianutils iputils-ping \
     libegl1-mesa libsdl1.2-dev pylint xterm mesa-common-dev gfortran \
+    python3 python3-pip python-is-python3 \
     git-lfs lbzip2 e2fsprogs parted \
     openssh-client partclone libssl1.1 \
     libc6:i386 libncurses5:i386 libstdc++6:i386 \
@@ -54,13 +25,9 @@ RUN echo "deb http://security.ubuntu.com/ubuntu focal-security main" | tee /etc/
     && dpkg-reconfigure -f noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python from build stage
-COPY --from=python-build /usr/local /usr/local
-
 # Install Python packages
-RUN python3.9 -m pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir pexpect gitpython jinja2 python-subunit && \
-    update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.9 1
+RUN python3 -m pip install --no-cache-dir --upgrade pip && \
+    python3 -m pip install --no-cache-dir pexpect gitpython jinja2 python-subunit
 
 # Install repo tool
 RUN curl -s https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin/repo && \

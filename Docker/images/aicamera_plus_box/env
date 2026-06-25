@@ -258,7 +258,7 @@ alias ytb3='ytb2 && ytp'
 alias ytb4='ytb && ytp'
 alias ytp='dpr && ./pack_image.bash'
 alias ytpf='dpr && PACK_FULL_ARCHIVE=1 ./pack_image.bash'
-alias ytb_docker='ytb_build'
+alias ytb_docker='ytb_build && ytp'
 
 gflash_up() {
     IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml up -d &&
