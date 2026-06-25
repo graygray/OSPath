@@ -17,7 +17,7 @@ RUN echo "deb http://security.ubuntu.com/ubuntu focal-security main" | tee /etc/
     socat cpio libstdc++-12-dev xz-utils debianutils iputils-ping \
     libegl1-mesa libsdl1.2-dev pylint xterm mesa-common-dev gfortran \
     python3 python3-pip python-is-python3 \
-    git-lfs lbzip2 e2fsprogs parted \
+    git-lfs lbzip2 e2fsprogs parted android-sdk-libsparse-utils \
     openssh-client partclone libssl1.1 \
     libc6:i386 libncurses5:i386 libstdc++6:i386 \
     tzdata \
