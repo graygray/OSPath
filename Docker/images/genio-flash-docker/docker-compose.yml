@@ -1,6 +1,6 @@
 services:
   genio-flash:
-    image: genio-flash:ubuntu22.04
+    image: graygray/genio-flash
     container_name: genio-flash
     privileged: true
     stdin_open: true
