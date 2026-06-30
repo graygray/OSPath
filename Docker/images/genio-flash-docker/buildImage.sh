@@ -1,1 +1,1 @@
-docker build -t graygray/genio_flash_docker .
+docker build -t graygray/genio-flash .

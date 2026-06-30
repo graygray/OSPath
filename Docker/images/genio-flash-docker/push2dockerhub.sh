@@ -1,1 +1,1 @@
-docker push graygray/genio_flash_docker
+docker push graygray/genio-flash
