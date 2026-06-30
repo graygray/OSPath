@@ -1,1 +1,1 @@
-docker push graygray/aicamera_plus_box
+docker push graygray/genio_flash_docker

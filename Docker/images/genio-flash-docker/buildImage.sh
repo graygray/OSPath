@@ -1,1 +1,1 @@
-docker build -t graygray/aicamera_plus_box .
+docker build -t graygray/genio_flash_docker .
