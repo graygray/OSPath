@@ -36,10 +36,10 @@ echo "PROJ_ROOT:"$PROJ_ROOT
 echo "BUILD_DIR:"$BUILD_DIR
 echo "project_string:"$project_string
 
-if [ -f ~/tmp/p1 ]; then
+if [ -n "$p1" ]; then
 	echo "p1:$p1"
 fi
-if [ -f ~/tmp/p2 ]; then
+if [ -n "$p2" ]; then
 	echo "p2:$p2"
 fi
 
@@ -1233,4 +1233,3 @@ if [ "$1" == "update" ] ; then
 	echo "codex cli : curl -fsSL https://chatgpt.com/codex/install.sh | sh"
 	curl -fsSL https://chatgpt.com/codex/install.sh | sh
 fi
-
