@@ -1,5 +1,5 @@
 InHost="Ubuntu_DellServer"
-PATH=~/OSPath$InHost:$PATH
+PATH=~/OSPath/$InHost:$PATH
 PATH=~:$PATH
 PATH=~/script:$PATH
 
