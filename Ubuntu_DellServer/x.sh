@@ -36,6 +36,8 @@ echo "PROJ_ROOT:"$PROJ_ROOT
 echo "BUILD_DIR:"$BUILD_DIR
 echo "project_string:"$project_string
 
+p1=$([ -f "$HOME/tmp/p1" ] && cat "$HOME/tmp/p1")
+p2=$([ -f "$HOME/tmp/p2" ] && cat "$HOME/tmp/p2")
 if [ -n "$p1" ]; then
 	echo "p1:$p1"
 fi
