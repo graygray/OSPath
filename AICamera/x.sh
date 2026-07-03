@@ -66,6 +66,33 @@ is_visionhub() {
   fi
 }
 
+setup_wayland_env() {
+	local runtime_dir_candidate
+	local wayland_candidate
+	local socket_path
+
+	if [ -n "$XDG_RUNTIME_DIR" ] && [ -n "$WAYLAND_DISPLAY" ] && [ -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; then
+		return 0
+	fi
+
+	for socket_path in \
+		"/run/user/$(id -u)/wayland-0" \
+		"/run/user/$(id -u)/wayland-1" \
+		"/run/wayland-0" \
+		"/run/wayland-1"; do
+		if [ -S "$socket_path" ]; then
+			runtime_dir_candidate=$(dirname "$socket_path")
+			wayland_candidate=$(basename "$socket_path")
+			export XDG_RUNTIME_DIR="$runtime_dir_candidate"
+			export WAYLAND_DISPLAY="$wayland_candidate"
+			return 0
+		fi
+	done
+
+	echo "Warning: No Wayland socket found; continuing without Wayland environment." >&2
+	return 1
+}
+
 upload_path_with_rsync() {
 	local src_path="$1"
 	local remote_user="$2"
@@ -686,6 +713,7 @@ if [ "$1" = "aic" ]; then
 		fi
 
 	elif [ "$2" = "gst" ]; then
+		setup_wayland_env || true
 
 		if [ "$3" = "usb" ] || [ "$3" = "uvc" ]; then
 			echo "usb..."
