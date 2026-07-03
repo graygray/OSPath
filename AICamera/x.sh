@@ -650,7 +650,12 @@ if [ "$1" = "aic" ]; then
 			fw_watchdog.sh &
 
 		elif [ "$3" = "net" ]; then
+			echo "systemctl restart systemd-networkd"
 			systemctl restart systemd-networkd
+
+		elif [ "$3" = "cam" ]; then
+			echo "systemctl restart camd.service"
+			systemctl restart camd.service
 
 		elif [ "$3" = "gige" ]; then
 			echo "arv-tool-0.8 control DeviceReset"

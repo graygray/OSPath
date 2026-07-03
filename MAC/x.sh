@@ -111,6 +111,40 @@ scp_transfer() {
 	fi
 }
 
+find_usb_device_ip() {
+	local usb_ip_cache_file="/tmp/ospath_usb_device_ip"
+	local cached_ip=""
+	local candidate_ip=""
+	local ip_last=""
+
+	usb_ip_responds_to_ping() {
+		ping -q -c 1 -t 1 -W 200 "$1" >/dev/null 2>&1
+	}
+
+	usb_ip_has_ssh() {
+		nc -z -n -G 1 "$1" 22 >/dev/null 2>&1
+	}
+
+	if [ -f "$usb_ip_cache_file" ]; then
+		read -r cached_ip < "$usb_ip_cache_file"
+		if [[ "$cached_ip" =~ ^192\.168\.1\.(19[0-9])$ ]] && usb_ip_responds_to_ping "$cached_ip" && usb_ip_has_ssh "$cached_ip"; then
+			echo "$cached_ip"
+			return 0
+		fi
+	fi
+
+	for ip_last in 190 191 192 193 194 195 196 197 198 199; do
+		candidate_ip="192.168.1.$ip_last"
+		if usb_ip_responds_to_ping "$candidate_ip" && usb_ip_has_ssh "$candidate_ip"; then
+			printf '%s\n' "$candidate_ip" > "$usb_ip_cache_file"
+			echo "$candidate_ip"
+			return 0
+		fi
+	done
+
+	return 1
+}
+
 # -----------------------------
 # device mapping
 # -----------------------------
@@ -169,17 +203,10 @@ if [ "$1" = "ssh" ]; then
 		fi
 
 	elif [ "$2" = "usb" ]; then
-		device_ip=""
-		for ip_last in 190 191 192 193 194 195 196 197 198 199; do
-			candidate_ip="192.168.1.$ip_last"
-			if nc -z -w 1 "$candidate_ip" 22 >/dev/null 2>&1; then
-				device_ip="$candidate_ip"
-				break
-			fi
-		done
+		device_ip="$(find_usb_device_ip)"
 
 		if [ -z "$device_ip" ]; then
-			echo "No USB device found in 192.168.1.190-195 (SSH port 22 unreachable)."
+			echo "No USB device found in 192.168.1.190-199 (SSH port 22 unreachable)."
 			exit 1
 		fi
 
@@ -241,17 +268,10 @@ if [ "$1" = "scp" ]; then
 		scp_transfer "$host" "$user" "$3" "$4" "$5" "$6"
 
 	elif [ "$2" = "usb" ]; then
-		device_ip=""
-		for ip_last in 190 191 192 193 194 195; do
-			candidate_ip="192.168.1.$ip_last"
-			if nc -z -w 1 "$candidate_ip" 22 >/dev/null 2>&1; then
-				device_ip="$candidate_ip"
-				break
-			fi
-		done
+		device_ip="$(find_usb_device_ip)"
 
 		if [ -z "$device_ip" ]; then
-			echo "No USB device found in 192.168.1.190-195 (SSH port 22 unreachable)."
+			echo "No USB device found in 192.168.1.190-199 (SSH port 22 unreachable)."
 			exit 1
 		fi
 
