@@ -116,6 +116,13 @@ if /i "!arg2!"=="init2" (
     goto :eof
 )
 
+if /i "!arg2!"=="init3" (
+    call :ndd_prepare_start
+    call :ndd_push_camera_scripts
+    call :ndd_init3
+    goto :eof
+)
+
 if /i "!arg2!"=="start" (
     if /i "!arg3!"=="capture" (
         call :ndd_open_preview !arg4!
@@ -342,6 +349,31 @@ adb shell setprop vendor.debug.flicker_mgr.log.level 2
 adb shell setprop vendor.debug.flicker_algo.log.level 2
 adb shell setprop vendor.debug.aaa.pvlog.enable 1
 adb shell setprop vendor.debug.camera.dbginfo 1
+adb shell setprop camcalcamcal.log 1
+adb shell setprop camcaldrv.log 1
+adb shell setprop debug.cam.drawid 1
+adb shell setprop vendor.debug.camera.SttBufQ.enable 500
+adb shell setprop vendor.debug.camera.AAO.dump 1
+adb shell pkill cameraserver
+adb shell pkill camerahalserver
+goto :eof
+
+:ndd_init3
+adb root
+@REM adb remount
+adb shell setenforce 0
+adb shell setprop vendor.persist.hal3a.log_level 6
+adb shell setprop vendor.debug.awb_log.enable 1
+adb shell setprop debug.awb_log.enable 1
+adb shell setprop vendor.debug.awb_mgr.log.level 4
+adb shell setprop vendor.debug.awb_mgr.enable 1
+adb shell setprop vendor.debug.awb.enable 1
+adb shell setprop vendor.debug.isp_mgr_awb.enable 1
+adb shell setprop vendor.debug.mapping_mgr.enable 2
+adb shell setprop vendor.debug.aisa.disable 0
+adb shell setprop debug.aaa_log.enable 1
+adb shell setprop debug.aaa_hal.enable 1
+adb shell setprop debug.aaa.pvlog.enable 1
 adb shell setprop camcalcamcal.log 1
 adb shell setprop camcaldrv.log 1
 adb shell setprop debug.cam.drawid 1
