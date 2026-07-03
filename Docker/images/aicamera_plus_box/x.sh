@@ -403,7 +403,38 @@ fi
 
 # cp
 if [ "$1" = "cp" ]; then
-    if [ -z "$2" ] || [ -z "$3" ]; then
+    if [ -z "$2" ]; then
+        echo "Usage: $0 cp <target> <file/dir>"
+        exit 1
+    fi
+
+    if [ "$2" = "m" ]; then
+        mark_file="$HOME/tmp/cp_m"
+
+        if [ -n "$3" ]; then
+            mkdir -p "$HOME/tmp" || exit 1
+            printf '%s\n' "$3" > "$mark_file"
+            echo "mark copy source: $3"
+        else
+            if [ ! -f "$mark_file" ]; then
+                echo "No marked file path: $mark_file"
+                exit 1
+            fi
+
+            marked_path=$(cat "$mark_file")
+            if [ -z "$marked_path" ]; then
+                echo "Marked file path is empty: $mark_file"
+                exit 1
+            fi
+
+            fname=$(basename "$marked_path")
+            echo "cp -rf \"$marked_path\" \"$PWD/$fname\""
+            cp -rf "$marked_path" "$PWD/$fname"
+        fi
+        exit $?
+    fi
+
+    if [ -z "$3" ]; then
         echo "Usage: $0 cp <target> <file/dir>"
         exit 1
     fi
@@ -1233,4 +1264,3 @@ if [ "$1" == "update" ] ; then
 	echo "codex cli : curl -fsSL https://chatgpt.com/codex/install.sh | sh"
 	curl -fsSL https://chatgpt.com/codex/install.sh | sh
 fi
-
