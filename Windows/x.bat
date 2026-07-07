@@ -91,8 +91,10 @@ if /i "!arg2!"=="dr" (
     )
 
     if /i "!arg3!"=="play" (
+        setlocal DisableDelayedExpansion
         echo adb shell "gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false"
         adb shell "gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false"
+        endlocal
         goto :eof
     )
 
