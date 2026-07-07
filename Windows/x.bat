@@ -84,6 +84,38 @@ if /i "!arg2!"=="db" (
     goto :eof
 )
 
+if /i "!arg2!"=="dr" (
+    if /i "!arg3!"=="init" (
+        call :iq_dumpraw_run "01_init_ISP7_IoTYocto.bat"
+        goto :eof
+    )
+
+    if /i "!arg3!"=="runcam" (
+        setlocal DisableDelayedExpansion
+        echo adb shell "bash -lc 'declare -a video=($(v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d \"\n\")); gst-launch-1.0 v4l2src device=${video[0]} ! video/x-raw,width=1920,height=1080,format=YUY2 ! waylandsink 2>&1 1>/dev/null &'"
+        adb shell "bash -lc 'declare -a video=($(v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d \"\n\")); gst-launch-1.0 v4l2src device=${video[0]} ! video/x-raw,width=1920,height=1080,format=YUY2 ! waylandsink 2>&1 1>/dev/null &'"
+        endlocal
+        goto :eof
+    )
+
+    if /i "!arg3!"=="ob" (
+        call :iq_dumpraw_run "03_Dump_raw_ob_ISP7_IoTYocto.bat"
+        goto :eof
+    )
+
+    if /i "!arg3!"=="iso" (
+        call :iq_dumpraw_run "03_Dump_raw_miniso_ISP7_IoTYocto.bat"
+        goto :eof
+    )
+
+    if /i "!arg3!"=="gain" (
+        call :iq_dumpraw_run "03_Dump_raw_minsatgain_ISP7_IoTYocto.bat"
+        goto :eof
+    )
+
+    goto :iq_dumpraw_usage
+)
+
 goto :iq_usage
 
 REM =====================================================
@@ -278,6 +310,18 @@ echo [STM] Loading latest backup...
 echo   FROM: "%live_backup%"
 echo   TO  : "%live_current%"
 copy /y "%live_backup%" "%live_current%"
+goto :eof
+
+:iq_dumpraw_run
+set "iq_dumpraw_script=%~1"
+if not exist "!dir_cct_dumpraw!\!iq_dumpraw_script!" (
+    echo [ERROR] Dump raw script not found: "!dir_cct_dumpraw!\!iq_dumpraw_script!"
+    goto :eof
+)
+echo cd /d "!dir_cct_dumpraw!"
+cd /d "!dir_cct_dumpraw!"
+echo call "!iq_dumpraw_script!"
+call "!iq_dumpraw_script!"
 goto :eof
 
 REM =====================================================
@@ -490,10 +534,24 @@ goto :eof
 echo.
 echo IQ Usage:
 echo   x iq init
-echo   x iq dump
 echo   x iq rui
 echo   x iq ftp
 echo   x iq db
+echo   x iq dr init
+echo   x iq dr runcam
+echo   x iq dr ob
+echo   x iq dr iso
+echo   x iq dr gain
+goto :eof
+
+:iq_dumpraw_usage
+echo.
+echo IQ Dump Raw Usage:
+echo   x iq dr init
+echo   x iq dr runcam
+echo   x iq dr ob
+echo   x iq dr iso
+echo   x iq dr gain
 goto :eof
 
 :ndd_usage
