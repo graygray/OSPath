@@ -90,11 +90,9 @@ if /i "!arg2!"=="dr" (
         goto :eof
     )
 
-    if /i "!arg3!"=="runcam" (
-        setlocal DisableDelayedExpansion
-        echo adb shell "bash -lc 'declare -a video=($(v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d \"\n\")); gst-launch-1.0 v4l2src device=${video[0]} ! video/x-raw,width=1920,height=1080,format=YUY2 ! waylandsink 2>&1 1>/dev/null &'"
-        adb shell "bash -lc 'declare -a video=($(v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d \"\n\")); gst-launch-1.0 v4l2src device=${video[0]} ! video/x-raw,width=1920,height=1080,format=YUY2 ! waylandsink 2>&1 1>/dev/null &'"
-        endlocal
+    if /i "!arg3!"=="play" (
+        echo adb shell "gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false"
+        adb shell "gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false"
         goto :eof
     )
 
@@ -538,7 +536,7 @@ echo   x iq rui
 echo   x iq ftp
 echo   x iq db
 echo   x iq dr init
-echo   x iq dr runcam
+echo   x iq dr play
 echo   x iq dr ob
 echo   x iq dr iso
 echo   x iq dr gain
@@ -548,7 +546,7 @@ goto :eof
 echo.
 echo IQ Dump Raw Usage:
 echo   x iq dr init
-echo   x iq dr runcam
+echo   x iq dr play
 echo   x iq dr ob
 echo   x iq dr iso
 echo   x iq dr gain
