@@ -139,9 +139,8 @@ if /i "!arg2!"=="start" (
 
 if /i "!arg2!"=="stop" (
     adb shell "bash -lc 'sh /data/vendor/camera_close.sh'"
-    adb shell sync
     echo.
-    echo [NDD] Wait a moment to guarantee all image data and tuning logs are saved.
+    echo [NDD] Wait 3~5 min to guarantee all image data and tuning logs are saved.
     goto :eof
 )
 
