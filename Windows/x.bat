@@ -92,9 +92,15 @@ if /i "!arg2!"=="dr" (
 
     if /i "!arg3!"=="play" (
         setlocal DisableDelayedExpansion
-        echo adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
-        adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
+        echo adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
+        adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
         endlocal
+        goto :eof
+    )
+
+    if /i "!arg3!"=="stop" (
+        echo adb shell "pkill gst-launch-1.0"
+        adb shell "pkill gst-launch-1.0"
         goto :eof
     )
 
@@ -539,6 +545,7 @@ echo   x iq ftp
 echo   x iq db
 echo   x iq dr init
 echo   x iq dr play
+echo   x iq dr stop
 echo   x iq dr ob
 echo   x iq dr iso
 echo   x iq dr gain
@@ -549,6 +556,7 @@ echo.
 echo IQ Dump Raw Usage:
 echo   x iq dr init
 echo   x iq dr play
+echo   x iq dr stop
 echo   x iq dr ob
 echo   x iq dr iso
 echo   x iq dr gain
