@@ -87,8 +87,8 @@ if /i "!arg2!"=="db" (
 if /i "!arg2!"=="cam" (
     if /i "!arg3!"=="play" if /i "!arg4!"=="dp" (
         setlocal DisableDelayedExpansion
-        echo adb shell "bash -lc 'setsid /home/root/OSPath/AICamera/x.sh gst cis dp >/tmp/iq_cam_play_dp.log 2>&1 < /dev/null &'"
-        adb shell "bash -lc 'setsid /home/root/OSPath/AICamera/x.sh gst cis dp >/tmp/iq_cam_play_dp.log 2>&1 < /dev/null &'"
+        echo adb shell "/home/root/OSPath/AICamera/x.sh gst cis dp"
+        adb shell "/home/root/OSPath/AICamera/x.sh gst cis dp"
         endlocal
         goto :eof
     )
