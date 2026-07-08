@@ -87,8 +87,8 @@ if /i "!arg2!"=="db" (
 if /i "!arg2!"=="cam" (
     if /i "!arg3!"=="play" if /i "!arg4!"=="dp" (
         setlocal DisableDelayedExpansion
-        echo adb shell "/home/root/OSPath/AICamera/x.sh gst cis dp"
-        adb shell "/home/root/OSPath/AICamera/x.sh gst cis dp"
+        echo adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
+        adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
         endlocal
         goto :eof
     )
