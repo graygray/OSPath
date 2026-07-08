@@ -84,18 +84,16 @@ if /i "!arg2!"=="db" (
     goto :eof
 )
 
-if /i "!arg2!"=="dr" (
-    if /i "!arg3!"=="init" (
-        call :iq_dumpraw_run "01_init_ISP7_IoTYocto.bat"
-        goto :eof
-    )
-
+if /i "!arg2!"=="cam" (
     if /i "!arg3!"=="play" (
         setlocal DisableDelayedExpansion
-        REM keep old display pipeline
-        REM adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
-        echo adb shell "gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=""cid,video_gop_size=30"" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
-        adb shell "gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=""cid,video_gop_size=30"" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+        if /i "!arg4!"=="dp" (
+            echo adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
+            adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
+        ) else (
+            echo adb shell "gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=""cid,video_gop_size=30"" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+            adb shell "gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=""cid,video_gop_size=30"" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+        )
         endlocal
         goto :eof
     )
@@ -103,6 +101,15 @@ if /i "!arg2!"=="dr" (
     if /i "!arg3!"=="stop" (
         echo adb shell "pkill gst-launch-1.0"
         adb shell "pkill gst-launch-1.0"
+        goto :eof
+    )
+
+    goto :iq_cam_usage
+)
+
+if /i "!arg2!"=="dr" (
+    if /i "!arg3!"=="init" (
+        call :iq_dumpraw_run "01_init_ISP7_IoTYocto.bat"
         goto :eof
     )
 
@@ -545,20 +552,27 @@ echo   x iq init
 echo   x iq rui
 echo   x iq ftp
 echo   x iq db
+echo   x iq cam play
+echo   x iq cam play dp
+echo   x iq cam stop
 echo   x iq dr init
-echo   x iq dr play
-echo   x iq dr stop
 echo   x iq dr ob
 echo   x iq dr iso
 echo   x iq dr gain
+goto :eof
+
+:iq_cam_usage
+echo.
+echo IQ Camera Usage:
+echo   x iq cam play
+echo   x iq cam play dp
+echo   x iq cam stop
 goto :eof
 
 :iq_dumpraw_usage
 echo.
 echo IQ Dump Raw Usage:
 echo   x iq dr init
-echo   x iq dr play
-echo   x iq dr stop
 echo   x iq dr ob
 echo   x iq dr iso
 echo   x iq dr gain
