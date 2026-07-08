@@ -95,8 +95,8 @@ if /i "!arg2!"=="cam" (
 
     if /i "!arg3!"=="play" (
         setlocal DisableDelayedExpansion
-        echo adb shell "bash -lc 'nohup gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=\"cid,video_gop_size=30\" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream >/tmp/iq_cam_play.log 2>&1 &'"
-        adb shell "bash -lc 'nohup gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=\"cid,video_gop_size=30\" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream >/tmp/iq_cam_play.log 2>&1 &'"
+        echo adb shell "bash -lc 'exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=\"cid,video_gop_size=30\" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream'"
+        adb shell "bash -lc 'exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=\"cid,video_gop_size=30\" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream'"
         endlocal
         goto :eof
     )
