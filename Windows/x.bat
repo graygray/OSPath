@@ -85,15 +85,18 @@ if /i "!arg2!"=="db" (
 )
 
 if /i "!arg2!"=="cam" (
+    if /i "!arg3!"=="play" if /i "!arg4!"=="dp" (
+        setlocal DisableDelayedExpansion
+        echo adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; nohup gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false >/tmp/iq_cam_play_dp.log 2>&1 &'"
+        adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; nohup gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false >/tmp/iq_cam_play_dp.log 2>&1 &'"
+        endlocal
+        goto :eof
+    )
+
     if /i "!arg3!"=="play" (
         setlocal DisableDelayedExpansion
-        if /i "!arg4!"=="dp" (
-            echo adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; nohup gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false >/tmp/iq_cam_play_dp.log 2>&1 &'"
-            adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; nohup gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false >/tmp/iq_cam_play_dp.log 2>&1 &'"
-        ) else (
-            echo adb shell "bash -lc 'nohup gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=\"cid,video_gop_size=30\" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream >/tmp/iq_cam_play.log 2>&1 &'"
-            adb shell "bash -lc 'nohup gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=\"cid,video_gop_size=30\" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream >/tmp/iq_cam_play.log 2>&1 &'"
-        )
+        echo adb shell "bash -lc 'nohup gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=\"cid,video_gop_size=30\" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream >/tmp/iq_cam_play.log 2>&1 &'"
+        adb shell "bash -lc 'nohup gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=\"cid,video_gop_size=30\" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream >/tmp/iq_cam_play.log 2>&1 &'"
         endlocal
         goto :eof
     )
