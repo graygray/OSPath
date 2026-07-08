@@ -92,8 +92,10 @@ if /i "!arg2!"=="dr" (
 
     if /i "!arg3!"=="play" (
         setlocal DisableDelayedExpansion
-        echo adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
-        adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
+        REM keep old display pipeline
+        REM adb shell "bash -lc 'if [ -z \"$XDG_RUNTIME_DIR\" ] || [ -z \"$WAYLAND_DISPLAY\" ] || [ ! -S \"$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY\" ]; then for socket_path in /run/user/$(id -u)/wayland-0 /run/user/$(id -u)/wayland-1 /run/wayland-0 /run/wayland-1; do if [ -S \"$socket_path\" ]; then export XDG_RUNTIME_DIR=$(dirname \"$socket_path\"); export WAYLAND_DISPLAY=$(basename \"$socket_path\"); break; fi; done; fi; exec gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false'"
+        echo adb shell "gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=""cid,video_gop_size=30"" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+        adb shell "gst-launch-1.0 v4l2src device=/dev/csi_cam_preview ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls=""cid,video_gop_size=30"" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
         endlocal
         goto :eof
     )
