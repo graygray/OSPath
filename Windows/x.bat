@@ -221,7 +221,7 @@ REM =====================================================
 :cmd_stm
 call :init_timestamp
 
-set "live_current=C:\Users\gray.lin\STM32CubeIDE\workspace_2.0.0\.metadata\.plugins\com.st.stm32cube.ide.mcu.livewatch\saved_expr.dat"
+set "live_current=C:\Users\gray.lin\STM32CubeIDE\workspace_2.2.0\.metadata\.plugins\com.st.stm32cube.ide.mcu.livewatch\saved_expr.dat"
 set "live_dir=D:\prj\STM\liveview"
 set "TAG=!arg4!"
 
