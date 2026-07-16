@@ -744,23 +744,29 @@ if [ "$1" = "chmod" ] ; then
 	if [ -n "$2" ] ; then
 		if [ "$2" = "all" ] ; then
 			if [ "$3" = "4" ] ; then
+				echo "sudo chmod -R 444 ."
 				sudo chmod -R 444 .
 			elif [ "$3" = "6" ] ; then
+				echo "sudo chmod -R 666 ."
 				sudo chmod -R 666 .
 			else
+				echo "sudo chmod -R 777 ."
 				sudo chmod -R 777 .
 			fi
 		elif [ "$2" = "dir" ] ; then
 			echo "change only dir..."
 			echo "find $3 -type d -exec sudo chmod 777 {} \;"
-			find $3 -type d -exec sudo chmod 777 {} \;
+			find "$3" -type d -exec sudo chmod 777 {} \;
 		else
 			if [ "$3" = "4" ] ; then
-				sudo chmod -R 444 $2
+				echo "sudo chmod -R 444 $2"
+				sudo chmod -R 444 "$2"
 			elif [ "$3" = "6" ] ; then
-				sudo chmod -R 666 $2
+				echo "sudo chmod -R 666 $2"
+				sudo chmod -R 666 "$2"
 			else
-				sudo chmod -R 777 $2
+				echo "sudo chmod -R 777 $2"
+				sudo chmod -R 777 "$2"
 			fi
 		fi
 	fi
