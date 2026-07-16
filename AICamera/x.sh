@@ -381,6 +381,10 @@ if [ "$1" = "aic" ]; then
 	elif [ "$2" = "install" ]; then
 		if [ "$3" = "codex" ]; then
 			curl -fsSL https://chatgpt.com/codex/install.sh | sh
+			export PATH="$HOME/.local/bin:$PATH"
+			hash -r
+			which codex
+			codex --version
 		fi
 
 	elif [ "$2" = "ck" ]; then
