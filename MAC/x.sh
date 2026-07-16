@@ -1391,3 +1391,23 @@ mac_cleansys() {
 if [ "$1" = "cleansys" ]; then
     mac_cleansys "${2:-check}" "${3:-}"
 fi
+
+# git
+if [ "$1" = "git" ]; then
+    if [ "$2" = "l" ]; then
+        echo "git log --oneline"
+        git log --oneline
+    elif [ "$2" = "c" ]; then
+        echo "git commit -a -m \"$3\""
+        git commit -a -m "$3"
+    elif [ "$2" = "p" ]; then
+        echo "git format-patch \"$3\"..\"$4\""
+        git format-patch "$3".."$4"
+    elif [ "$2" = "sf" ]; then
+        echo "git stash push -- \"$3\""
+        git stash push -- "$3"
+    else
+        echo "git status"
+        git status
+    fi
+fi
