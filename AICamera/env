@@ -71,6 +71,7 @@ clone_ospath() {
 
 	cd ~/OSPath || return 1
 	find . -name "*.sh" -exec chmod +x {} \;
+	cd ~ || return 1
 }
 
 alias gx='clone_ospath https://github.com/graygray/OSPath.git replace'
