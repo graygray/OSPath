@@ -378,6 +378,11 @@ if [ "$1" = "aic" ]; then
 			sync
 		fi
 
+	elif [ "$2" = "install" ]; then
+		if [ "$3" = "codex" ]; then
+			curl -fsSL https://chatgpt.com/codex/install.sh | sh
+		fi
+
 	elif [ "$2" = "ck" ]; then
 		if [ "$3" = "dp" ]; then
 			echo "display port..."
