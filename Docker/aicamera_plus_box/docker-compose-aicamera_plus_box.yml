@@ -15,6 +15,7 @@ services:
       - TZ=Asia/Taipei
     volumes:
       - /mnt/disk3/yocto_build/docker:/home/gray.lin/build
+      - /mnt/disk3/build_cache/ai_camera_build:/home/gray.lin/build_cache
       - /FTP/Public/Jenkins:/ftp
       
   visionhub:
