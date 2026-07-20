@@ -34,6 +34,19 @@ set "dir_cct=D:\project\MediaToolKit_IoTYocto_240522"
 set "dir_cct_dumpraw=!dir_cct!\svn\install\DataSet\CamCaliTool\SensorCalibrationDumpRaw"
 set "dir_cct_db=!dir_cct!\svn\install\DataSet\SQLiteModule"
 set "dir_dev_db=/mnt/reserved/10.1.13.207/IQ_DB/"
+set "dir_packedword2raw=D:\project\Packedword2Raw_IoT_v250307"
+
+if /i "!arg2!"=="2raw" (
+    if not exist "!dir_packedword2raw!\BatchRun.py" (
+        echo [ERROR] BatchRun.py not found: "!dir_packedword2raw!\BatchRun.py"
+        goto :eof
+    )
+    echo cd /d "!dir_packedword2raw!"
+    cd /d "!dir_packedword2raw!"
+    echo python BatchRun.py
+    python BatchRun.py
+    goto :eof
+)
 
 if /i "!arg2!"=="init" (
     echo cd /d "!dir_cct!"
@@ -551,6 +564,7 @@ goto :eof
 :iq_usage
 echo.
 echo IQ Usage:
+echo   x iq 2raw
 echo   x iq init
 echo   x iq rui
 echo   x iq ftp
