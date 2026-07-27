@@ -60,10 +60,13 @@ if /i "!arg2!"=="2raw" (
         echo [ERROR] BatchRun.py not found: "!dir_packedword2raw!\BatchRun.py"
         goto :eof
     )
-    echo cd /d "!dir_packedword2raw!"
-    cd /d "!dir_packedword2raw!"
-    echo python BatchRun.py
-    python BatchRun.py
+    if not exist "!dir_packedword2raw!\images\" (
+        echo [ERROR] Images dir not found: "!dir_packedword2raw!\images"
+        goto :eof
+    )
+    for /d %%D in ("!dir_packedword2raw!\images\*") do (
+        call :iq_2raw_run "%%~fD"
+    )
     goto :eof
 )
 
@@ -143,6 +146,11 @@ if /i "!arg2!"=="cam" (
 )
 
 if /i "!arg2!"=="dr" (
+    if /i "!arg3!"=="mv" (
+        call :iq_dumpraw_move
+        goto :eof
+    )
+
     if /i "!arg3!"=="init" (
         call :iq_dumpraw_run "01_init_ISP7_IoTYocto.bat"
         goto :eof
@@ -374,6 +382,62 @@ echo call "!iq_dumpraw_script!"
 call "!iq_dumpraw_script!"
 goto :eof
 
+:iq_dumpraw_move
+if not exist "!dir_cct_dumpraw!\" (
+    echo [ERROR] Dump raw dir not found: "!dir_cct_dumpraw!"
+    goto :eof
+)
+if not exist "!dir_packedword2raw!\images\" (
+    echo mkdir "!dir_packedword2raw!\images"
+    mkdir "!dir_packedword2raw!\images"
+    if errorlevel 1 (
+        echo [ERROR] Failed to create images dir: "!dir_packedword2raw!\images"
+        goto :eof
+    )
+)
+for /d %%D in ("!dir_cct_dumpraw!\cct_*") do (
+    call :iq_dumpraw_move_folder "%%~fD"
+)
+goto :eof
+
+:iq_dumpraw_move_folder
+set "iq_move_source=%~1"
+set "iq_move_target=!dir_packedword2raw!\images\%~nx1"
+if exist "!iq_move_target!\" (
+    echo [SKIP] Already exists: "!iq_move_target!"
+    goto :eof
+)
+echo [MOVE] "!iq_move_source!" to "!iq_move_target!"
+move "!iq_move_source!" "!iq_move_target!"
+if errorlevel 1 (
+    echo [ERROR] Failed to move: "!iq_move_source!"
+)
+goto :eof
+
+:iq_2raw_run
+set "iq_2raw_folder=%~1"
+set "iq_2raw_flag=!iq_2raw_folder!\packedword2raw.done"
+if exist "!iq_2raw_flag!" (
+    echo [SKIP] Already processed: "!iq_2raw_folder!"
+    goto :eof
+)
+echo [2RAW] Processing: "!iq_2raw_folder!"
+pushd "!iq_2raw_folder!"
+if errorlevel 1 (
+    echo [ERROR] Cannot enter folder: "!iq_2raw_folder!"
+    goto :eof
+)
+python "!dir_packedword2raw!\BatchRun.py"
+set "iq_2raw_result=!errorlevel!"
+if "!iq_2raw_result!"=="0" (
+    > "packedword2raw.done" echo Completed by x iq 2raw on %date% %time%
+    echo [DONE] "!iq_2raw_folder!"
+) else (
+    echo [ERROR] BatchRun.py failed with exit code !iq_2raw_result!: "!iq_2raw_folder!"
+)
+popd
+goto :eof
+
 REM =====================================================
 REM ================== NDD Helpers ======================
 REM =====================================================
@@ -594,6 +658,7 @@ echo   x iq db
 echo   x iq cam play
 echo   x iq cam play dp
 echo   x iq cam stop
+echo   x iq dr mv
 echo   x iq dr init
 echo   x iq dr ob
 echo   x iq dr iso
@@ -619,6 +684,7 @@ goto :eof
 :iq_dumpraw_usage
 echo.
 echo IQ Dump Raw Usage:
+echo   x iq dr mv
 echo   x iq dr init
 echo   x iq dr ob
 echo   x iq dr iso
