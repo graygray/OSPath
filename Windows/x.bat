@@ -415,27 +415,43 @@ if errorlevel 1 (
 goto :eof
 
 :iq_2raw_run
+setlocal
 set "iq_2raw_folder=%~1"
 set "iq_2raw_flag=!iq_2raw_folder!\packedword2raw.done"
 if exist "!iq_2raw_flag!" (
     echo [SKIP] Already processed: "!iq_2raw_folder!"
+    endlocal
     goto :eof
 )
 echo [2RAW] Processing: "!iq_2raw_folder!"
-pushd "!iq_2raw_folder!"
+set "iq_2raw_work=%TEMP%\x_iq_2raw_!RANDOM!_!RANDOM!"
+mkdir "!iq_2raw_work!"
 if errorlevel 1 (
-    echo [ERROR] Cannot enter folder: "!iq_2raw_folder!"
+    echo [ERROR] Cannot create temporary folder: "!iq_2raw_work!"
+    endlocal
     goto :eof
 )
+mklink /J "!iq_2raw_work!\images" "!iq_2raw_folder!" >nul
+if errorlevel 1 (
+    echo [ERROR] Cannot link temporary images folder to: "!iq_2raw_folder!"
+    rmdir "!iq_2raw_work!" 2>nul
+    endlocal
+    goto :eof
+)
+pushd "!iq_2raw_work!"
+set "PATH=!dir_packedword2raw!;!PATH!"
 python "!dir_packedword2raw!\BatchRun.py"
 set "iq_2raw_result=!errorlevel!"
+popd
+rmdir "!iq_2raw_work!\images"
+rmdir "!iq_2raw_work!"
 if "!iq_2raw_result!"=="0" (
-    > "packedword2raw.done" echo Completed by x iq 2raw on %date% %time%
+    > "!iq_2raw_flag!" echo Completed by x iq 2raw on %date% %time%
     echo [DONE] "!iq_2raw_folder!"
 ) else (
     echo [ERROR] BatchRun.py failed with exit code !iq_2raw_result!: "!iq_2raw_folder!"
 )
-popd
+endlocal
 goto :eof
 
 REM =====================================================
