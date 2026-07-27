@@ -36,6 +36,25 @@ set "dir_cct_db=!dir_cct!\svn\install\DataSet\SQLiteModule"
 set "dir_dev_db=/mnt/reserved/10.1.13.207/IQ_DB/"
 set "dir_packedword2raw=D:\project\Packedword2Raw_IoT_v250307"
 
+if /i "!arg2!"=="cd" (
+    if /i "!arg3!"=="db" (
+        explorer "!dir_cct_db!"
+        goto :eof
+    )
+
+    if /i "!arg3!"=="dr" (
+        explorer "!dir_cct_dumpraw!"
+        goto :eof
+    )
+
+    if /i "!arg3!"=="2raw" (
+        explorer "!dir_packedword2raw!"
+        goto :eof
+    )
+
+    goto :iq_cd_usage
+)
+
 if /i "!arg2!"=="2raw" (
     if not exist "!dir_packedword2raw!\BatchRun.py" (
         echo [ERROR] BatchRun.py not found: "!dir_packedword2raw!\BatchRun.py"
@@ -565,6 +584,9 @@ goto :eof
 echo.
 echo IQ Usage:
 echo   x iq 2raw
+echo   x iq cd db
+echo   x iq cd dr
+echo   x iq cd 2raw
 echo   x iq init
 echo   x iq rui
 echo   x iq ftp
@@ -576,6 +598,14 @@ echo   x iq dr init
 echo   x iq dr ob
 echo   x iq dr iso
 echo   x iq dr gain
+goto :eof
+
+:iq_cd_usage
+echo.
+echo IQ Explorer Usage:
+echo   x iq cd db
+echo   x iq cd dr
+echo   x iq cd 2raw
 goto :eof
 
 :iq_cam_usage
