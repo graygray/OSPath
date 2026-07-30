@@ -838,7 +838,7 @@ if [ "$1" = "aic" ]; then
 			if [ "$4" = "tee" ]; then
 				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! tee name=t t. ! videoconvert ! video/x-raw,format=YUY2,width=1280,height=720 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false t. ! queue ! v4l2h264enc extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
 			elif [ "$4" = "dp" ]; then
-				if [ "$4" = "1080" ]; then
+				if [ "$5" = "1080" ]; then
 					cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! videoconvert ! video/x-raw,width=1920,height=1080 ! fpsdisplaysink video-sink=waylandsink sync=false"
 				else
 					cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false"
