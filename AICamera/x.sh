@@ -327,14 +327,6 @@ if [ "$1" = "ps" ]; then
 	fi
 fi
 
-if [ "$1" = "gst" ]; then
-	echo "gst pipeline..."
-	if [ "$2" = "1" ]; then
-		cmd=""
-	fi
-	$cmd 
-fi
-
 if [ "$1" = "ot" ]; then
 	i2cbus=7
 	if [ "$2" = "ck" ]; then
@@ -854,6 +846,8 @@ if [ "$1" = "aic" ]; then
 				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=1920,height=1080,format=NV12 ! waylandsink"
 			elif [ "$4" = "hd" ]; then
 				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+			elif [ "$4" = "1080" ]; then
+				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=1920,height=1080 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
 			else
 				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=2592,height=1944 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
 			fi
