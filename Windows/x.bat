@@ -337,7 +337,8 @@ if "!TAG!"=="" (
     echo [ERROR] Missing TAG
     goto :eof
 )
-set "live_backup=%live_dir%\saved_expr_!TAG!_%TS%.dat"
+@REM set "live_backup=%live_dir%\saved_expr_!TAG!_%TS%.dat"
+set "live_backup=%live_dir%\saved_expr_!TAG!.dat"
 echo [STM] Saving backup...
 echo   FROM: "%live_current%"
 echo   TO  : "%live_backup%"
