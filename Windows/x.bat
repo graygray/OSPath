@@ -354,7 +354,7 @@ if "!TAG!"=="" (
     goto :eof
 )
 for /f "delims=" %%f in ('
-    dir /b /o:-d "%live_dir%\saved_expr_!TAG!_*.dat" 2^>nul
+    dir /b /o:-d "%live_dir%\saved_expr_!TAG!.dat" 2^>nul
 ') do (
     set "LATEST=%%f"
     goto :stm_found
