@@ -593,16 +593,16 @@ if [ "$1" = "user" ] ; then
 			# make a yocto build dir & user link
 			buildfolder="/mnt/disk3/yocto_build"
 			mkdir -p $buildfolder/$3
-			sudo cp -f $buildfolder/misc/step* $buildfolder/$3
-			sudo chown $3:$mainGroup $buildfolder/$3
-			sudo chown $3:$mainGroup $buildfolder/$3/step*
-			cd /home/$3
-			if [ -e yocto_build ] || [ -L yocto_build ] ; then
-				echo "yocto_build link exists, skip"
-			else
-				sudo ln -s $buildfolder/$3 yocto_build
-				sudo chown $3:$mainGroup yocto_build
-			fi
+				sudo cp -f $buildfolder/misc/step* $buildfolder/$3
+				sudo chown $3:$mainGroup $buildfolder/$3
+				sudo chown $3:$mainGroup $buildfolder/$3/step*
+				homefolder="/home/$3"
+				if [ -e "$homefolder/yocto_build" ] || [ -L "$homefolder/yocto_build" ] ; then
+					echo "yocto_build link exists, skip"
+				else
+					sudo ln -s "$buildfolder/$3" "$homefolder/yocto_build"
+					sudo chown -h "$3:$mainGroup" "$homefolder/yocto_build"
+				fi
 		else
 			echo "param 3 needed"
 		fi
