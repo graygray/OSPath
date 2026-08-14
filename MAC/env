@@ -15,6 +15,9 @@ alias erc='nano ~/.zshrc'
 # dir
 alias dh='cd ~'                 # dir home
 alias d--='cd $OLDPWD'          # dir previous dir
+alias d-2='cd ../..'            # dir up two levels
+alias d-3='cd ../../..'
+alias d-4='cd ../../../..'
 
 # update
 alias ue='source ~/.zshrc'      # update env
