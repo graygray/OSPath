@@ -14,6 +14,10 @@ done
 
 currentDateTime=`date "+%m%d%H%M"`
 
+# STM32CubeIDE LiveWatch expressions
+live_current="/Users/test/STM32CubeIDE/workspace_2.2.0/.metadata/.plugins/com.st.stm32cube.ide.mcu.livewatch/saved_expr.dat"
+live_dir="/Users/test/Work/Prj_stm/Test_H503RB/docs/ide_liveview"
+
 # dell server
 dell_host_bonjour="TM205462.local"
 ip_dellServer="10.1.13.207"
@@ -44,6 +48,81 @@ fi
 # -----------------------------
 # helper
 # -----------------------------
+stm_live_list() {
+	local tag="$1"
+	local pattern="saved_expr_*.dat"
+
+	if [ -n "$tag" ]; then
+		pattern="saved_expr_${tag}*.dat"
+	fi
+
+	echo "==============================="
+	echo "STM LiveWatch Backups"
+	echo "Dir: $live_dir"
+	echo "==============================="
+
+	if [ ! -d "$live_dir" ]; then
+		echo "[ERROR] Backup directory not found: $live_dir"
+		return 1
+	fi
+
+	if ! ls -1t "$live_dir"/$pattern >/dev/null 2>&1; then
+		echo "No backups found${tag:+ for TAG=$tag}."
+		return 1
+	fi
+
+	ls -1t "$live_dir"/$pattern 2>/dev/null | sed 's#.*/##'
+}
+
+stm_live_save() {
+	local tag="$1"
+	local live_backup=""
+
+	if [ -z "$tag" ]; then
+		echo "[ERROR] Missing TAG"
+		echo "Usage: $0 stm live save <TAG>"
+		return 1
+	fi
+
+	live_backup="$live_dir/saved_expr_${tag}.dat"
+	echo "[STM] Saving backup..."
+	echo "  FROM: $live_current"
+	echo "  TO  : $live_backup"
+
+	if [ ! -f "$live_current" ]; then
+		echo "[ERROR] LiveWatch file not found!"
+		return 1
+	fi
+
+	mkdir -p "$live_dir" || return 1
+	cp -f "$live_current" "$live_backup"
+}
+
+stm_live_load() {
+	local tag="$1"
+	local live_backup=""
+
+	if [ -z "$tag" ]; then
+		echo "[ERROR] Missing TAG"
+		echo "Usage: $0 stm live load <TAG>"
+		return 1
+	fi
+
+	# Accept the standard saved_expr_<TAG>.dat name and timestamped variants.
+	live_backup=$(ls -1t "$live_dir"/saved_expr_"$tag"*.dat 2>/dev/null | head -n 1)
+
+	if [ -z "$live_backup" ]; then
+		echo "[ERROR] No backup found for TAG=$tag"
+		return 1
+	fi
+
+	echo "[STM] Loading backup..."
+	echo "  FROM: $live_backup"
+	echo "  TO  : $live_current"
+	mkdir -p "$(dirname "$live_current")" || return 1
+	cp -f "$live_backup" "$live_current"
+}
+
 ssh_connect() {
 	local host="$1"
 	local user="$2"
@@ -174,6 +253,23 @@ get_device_password() {
 		*)      echo "" ;;
 	esac
 }
+
+# STM32CubeIDE LiveWatch backups
+# Usage: ./x.sh stm live list [TAG]
+#        ./x.sh stm live save <TAG>
+#        ./x.sh stm live load <TAG>
+if [ "$1" = "stm" ] && [ "$2" = "live" ]; then
+	case "$3" in
+		list) stm_live_list "$4" ;;
+		save) stm_live_save "$4" ;;
+		load) stm_live_load "$4" ;;
+		*)
+			echo "Usage: $0 stm live {list [TAG]|save <TAG>|load <TAG>}"
+			exit 1
+			;;
+	esac
+	exit $?
+fi
 
 # ssh
 if [ "$1" = "ssh" ]; then
