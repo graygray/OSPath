@@ -311,6 +311,37 @@ if [ "$1" = "cp" ]; then
 	if [ "$2" = "h" ]; then
 		path="$HOME"
 		cp -rf $3 $path 
+	elif [ "$2" = "m" ]; then
+		mark_file="$HOME/tmp/cp_m"
+
+		if [ -n "$3" ]; then
+			if ! marked_path=$(realpath "$3" 2>/dev/null); then
+				marked_path=$(readlink -f "$3" 2>/dev/null)
+			fi
+			if [ -z "$marked_path" ]; then
+				echo "Invalid file path: $3"
+				exit 1
+			fi
+			mkdir -p "$HOME/tmp" || exit 1
+			printf '%s\n' "$marked_path" > "$mark_file"
+			echo "mark copy source: $marked_path"
+		else
+			if [ ! -f "$mark_file" ]; then
+				echo "No marked file path: $mark_file"
+				exit 1
+			fi
+
+			marked_path=$(cat "$mark_file")
+			if [ -z "$marked_path" ]; then
+				echo "Marked file path is empty: $mark_file"
+				exit 1
+			fi
+
+			fname=$(basename "$marked_path")
+			echo "cp -rf \"$marked_path\" \"$PWD/$fname\""
+			cp -rf "$marked_path" "$PWD/$fname"
+		fi
+		exit $?
 	elif [ "$2" = "ftp" ]; then
 		path="/mnt/reserved/10.1.13.207"
 		mkdir -p "$path" || exit 1
