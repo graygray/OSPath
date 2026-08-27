@@ -126,16 +126,11 @@ stm_live_load() {
 ssh_connect() {
 	local host="$1"
 	local user="$2"
-	local reset_known_host="$3"
-	local password="$4"
-	local ssh_opts=()
+	local password="$3"
+	local ssh_opts=(-o StrictHostKeyChecking=accept-new)
 
-	if [ "$reset_known_host" = "r" ]; then
-		echo "ssh-keygen -R $host"
-		ssh-keygen -R "$host"
-		# Re-accept the host key automatically right after removing the old entry.
-		ssh_opts+=(-o StrictHostKeyChecking=accept-new)
-	fi
+	echo "ssh-keygen -R $host"
+	ssh-keygen -R "$host"
 
 	if [ -n "$password" ]; then
 		echo "sshpass -p '$password' ssh ${ssh_opts[*]} ${user}@${host}"
@@ -152,15 +147,11 @@ scp_transfer() {
 	local direction="$3"      # up / down
 	local src="$4"
 	local dst="$5"
-	local reset_known_host="$6"
-	local password="$7"
-	local scp_opts=(-O)
+	local password="$6"
+	local scp_opts=(-O -o StrictHostKeyChecking=accept-new)
 
-	if [ "$reset_known_host" = "r" ]; then
-		echo "ssh-keygen -R $host"
-		ssh-keygen -R "$host"
-		scp_opts+=(-o StrictHostKeyChecking=accept-new)
-	fi
+	echo "ssh-keygen -R $host"
+	ssh-keygen -R "$host"
 
 	if [ "$direction" = "up" ]; then
 		if [[ "$dst" == */ ]]; then
@@ -321,29 +312,29 @@ if [ "$1" = "ssh" ]; then
 			exit 1
 		fi
 
-		ssh_connect "$device_ip" "root" "$3"
+		ssh_connect "$device_ip" "root"
 
 	else
 		if host=$(get_device_host "$2" 2>/dev/null); then
 			user=$(get_device_user "$2")
 			password=$(get_device_password "$2")
-			ssh_connect "$host" "$user" "$3" "$password"
+			ssh_connect "$host" "$user" "$password"
 		elif [ -n "$2" ]; then
 			# fallback: direct host/ip
-			ssh_connect "$2" "root" "$3"
+			ssh_connect "$2" "root"
 		else
 			echo "Usage:"
 			echo "  $0 ssh dell [user]"
 			echo "  $0 ssh rev <port>"
-			echo "  $0 ssh aic [r]"
-			echo "  $0 ssh vh [r]"
-			echo "  $0 ssh aib [r]"
-			echo "  $0 ssh amr [r]"
-			echo "  $0 ssh t1 [r]"
-			echo "  $0 ssh t2 [r]"
-			echo "  $0 ssh pi [r]"
-			echo "  $0 ssh usb [r]"
-			echo "  $0 ssh <ip-or-host> [r]"
+			echo "  $0 ssh aic"
+			echo "  $0 ssh vh"
+			echo "  $0 ssh aib"
+			echo "  $0 ssh amr"
+			echo "  $0 ssh t1"
+			echo "  $0 ssh t2"
+			echo "  $0 ssh pi"
+			echo "  $0 ssh usb"
+			echo "  $0 ssh <ip-or-host>"
 			exit 1
 		fi
 	fi
@@ -359,25 +350,23 @@ if [ "$1" = "scp" ]; then
 		# examples:
 		#   ./x.sh scp aic up   local.txt /tmp/local.txt
 		#   ./x.sh scp aic down /tmp/remote.txt .
-		#   ./x.sh scp aic up   build/app /home/root/app r
 		#   ./x.sh scp vh  down /etc/hostname .
 		#
 		# arg map:
 		#   $3 = up/down
 		#   $4 = src
 		#   $5 = dst
-		#   $6 = optional r
 
 		if [ -z "$3" ] || [ -z "$4" ] || [ -z "$5" ]; then
 			echo "Usage:"
-			echo "  $0 scp <device> up   <local_src>  <remote_dst> [r]"
-			echo "  $0 scp <device> down <remote_src> <local_dst>  [r]"
+			echo "  $0 scp <device> up   <local_src>  <remote_dst>"
+			echo "  $0 scp <device> down <remote_src> <local_dst>"
 			echo
 			echo "Devices: aic vh aib amr t1 t2 pi"
 			exit 1
 		fi
 
-		scp_transfer "$host" "$user" "$3" "$4" "$5" "$6"
+		scp_transfer "$host" "$user" "$3" "$4" "$5"
 
 	elif [ "$2" = "usb" ]; then
 		device_ip="$(find_usb_device_ip)"
@@ -389,25 +378,25 @@ if [ "$1" = "scp" ]; then
 
 		if [ -z "$3" ] || [ -z "$4" ] || [ -z "$5" ]; then
 			echo "Usage:"
-			echo "  $0 scp usb up   <local_src>  <remote_dst> [r]"
-			echo "  $0 scp usb down <remote_src> <local_dst>  [r]"
+			echo "  $0 scp usb up   <local_src>  <remote_dst>"
+			echo "  $0 scp usb down <remote_src> <local_dst>"
 			exit 1
 		fi
 
-		scp_transfer "$device_ip" "root" "$3" "$4" "$5" "$6"
+		scp_transfer "$device_ip" "root" "$3" "$4" "$5"
 
 	else
 		# fallback: direct host/ip
 		#   ./x.sh scp 192.168.3.100 up   a.txt /tmp/a.txt
 		#   ./x.sh scp myhost.local down /tmp/a.txt .
 		if [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] && [ -n "$5" ]; then
-			scp_transfer "$2" "root" "$3" "$4" "$5" "$6"
+			scp_transfer "$2" "root" "$3" "$4" "$5"
 		else
 			echo "Usage:"
-			echo "  $0 scp <device> up   <local_src>  <remote_dst> [r]"
-			echo "  $0 scp <device> down <remote_src> <local_dst>  [r]"
-			echo "  $0 scp <ip-or-host> up   <local_src>  <remote_dst> [r]"
-			echo "  $0 scp <ip-or-host> down <remote_src> <local_dst>  [r]"
+			echo "  $0 scp <device> up   <local_src>  <remote_dst>"
+			echo "  $0 scp <device> down <remote_src> <local_dst>"
+			echo "  $0 scp <ip-or-host> up   <local_src>  <remote_dst>"
+			echo "  $0 scp <ip-or-host> down <remote_src> <local_dst>"
 			exit 1
 		fi
 	fi
