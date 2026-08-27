@@ -298,6 +298,21 @@ if [ "$1" = "ssh" ]; then
 			# ssh "$dell_user@$dell_primary"
 		fi
 
+	elif [ "$2" = "rev" ]; then
+		# Usage: ./x.sh ssh rev <port>
+		if [ -z "$3" ]; then
+			echo "Usage: $0 ssh rev <port>"
+			exit 1
+		fi
+
+		rev_host="bi.ethwu.com"
+		rev_port="$3"
+		rev_known_host="[${rev_host}]:${rev_port}"
+		echo "ssh-keygen -R $rev_known_host"
+		ssh-keygen -R "$rev_known_host"
+		echo "ssh root@${rev_host} -p ${rev_port}"
+		ssh "root@${rev_host}" -p "$rev_port"
+
 	elif [ "$2" = "usb" ]; then
 		device_ip="$(find_usb_device_ip)"
 
@@ -319,6 +334,7 @@ if [ "$1" = "ssh" ]; then
 		else
 			echo "Usage:"
 			echo "  $0 ssh dell [user]"
+			echo "  $0 ssh rev <port>"
 			echo "  $0 ssh aic [r]"
 			echo "  $0 ssh vh [r]"
 			echo "  $0 ssh aib [r]"
