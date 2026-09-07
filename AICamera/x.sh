@@ -1617,9 +1617,6 @@ if [ "$1" = "aic" ]; then
 	
 	elif [ "$2" = "mc" ]; then
 		if [ "$3" = "r" ]; then
-			echo "ros2 launch motor_control_g4dual motor_control.launch.py"
-			ros2 launch motor_control_g4dual motor_control.launch.py
-		elif [ "$3" = "rcan" ]; then
 			can_interface="${4:-can0}"
 			motor_control_share="$(ros2 pkg prefix --share motor_control_g4dual)"
 			motor_control_params="$motor_control_share/config/motor_control.yaml"
@@ -1700,8 +1697,7 @@ if [ "$1" = "aic" ]; then
 			ip -details -statistics link show "$can_interface"
 		else
 			echo "Motor-control commands:"
-			echo "  $0 aic mc r                         Launch in safe dry-run mode"
-			echo "  $0 aic mc rcan [interface]          Run with SocketCAN enabled"
+			echo "  $0 aic mc r [interface]             Run with SocketCAN enabled"
 			echo "  $0 aic mc i                         Reinstall the motor-control IPK"
 			echo "  $0 aic mc en                        Enable motors"
 			echo "  $0 aic mc stop                      Stop motors"
