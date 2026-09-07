@@ -1614,6 +1614,16 @@ if [ "$1" = "aic" ]; then
 			ros2 topic echo /fleet_receive
 
 		fi
+	
+	elif [ "$2" = "mc" ]; then
+		if [ "$3" = "r" ]; then
+			ros2 launch motor_control_g4dual motor_control.launch.py
+		elif [ "$3" = "i" ]; then
+			ipk_file="motor-control-g4dual_0.1.0-r0_armv8a.ipk"
+			echo "opkg install $ipk_file --force-reinstall"
+			opkg install $ipk_file --force-reinstall
+		fi
+
 	fi
 
 fi
