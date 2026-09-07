@@ -1617,11 +1617,103 @@ if [ "$1" = "aic" ]; then
 	
 	elif [ "$2" = "mc" ]; then
 		if [ "$3" = "r" ]; then
+			echo "ros2 launch motor_control_g4dual motor_control.launch.py"
 			ros2 launch motor_control_g4dual motor_control.launch.py
+		elif [ "$3" = "rcan" ]; then
+			can_interface="${4:-can0}"
+			motor_control_share="$(ros2 pkg prefix --share motor_control_g4dual)"
+			motor_control_params="$motor_control_share/config/motor_control.yaml"
+			echo "Running motor control with SocketCAN enabled on $can_interface"
+			ros2 run motor_control_g4dual motor_control_node --ros-args \
+				--params-file "$motor_control_params" \
+				-p enable_can:=true \
+				-p can_interface:="$can_interface"
 		elif [ "$3" = "i" ]; then
 			ipk_file="motor-control-g4dual_0.1.0-r0_armv8a.ipk"
 			echo "opkg install $ipk_file --force-reinstall"
 			opkg install $ipk_file --force-reinstall
+		elif [ "$3" = "en" ]; then
+			echo "ros2 service call /enable_motors std_srvs/srv/Trigger '{}'"
+			ros2 service call /enable_motors std_srvs/srv/Trigger "{}"
+		elif [ "$3" = "stop" ]; then
+			echo "ros2 service call /stop_motors std_srvs/srv/Trigger '{}'"
+			ros2 service call /stop_motors std_srvs/srv/Trigger "{}"
+		elif [ "$3" = "estop" ]; then
+			if [[ "$4" = "on" || "$4" = "1" || "$4" = "true" ]]; then
+				estop_value="true"
+			elif [[ "$4" = "off" || "$4" = "0" || "$4" = "false" ]]; then
+				estop_value="false"
+			else
+				echo "Usage: $0 aic mc estop {on|off}"
+				exit 1
+			fi
+			echo "ros2 service call /emergency_stop std_srvs/srv/SetBool '{data: $estop_value}'"
+			ros2 service call /emergency_stop std_srvs/srv/SetBool "{data: $estop_value}"
+		elif [ "$3" = "reset" ]; then
+			echo "ros2 service call /reset_faults std_srvs/srv/Trigger '{}'"
+			ros2 service call /reset_faults std_srvs/srv/Trigger "{}"
+		elif [ "$3" = "cmd" ]; then
+			linear_velocity="${4:-0.0}"
+			angular_velocity="${5:-0.0}"
+			command_rate="${6:-10}"
+			echo "Publishing cmd_vel at $command_rate Hz; press Ctrl-C to stop"
+			echo "linear.x=$linear_velocity m/s angular.z=$angular_velocity rad/s"
+			ros2 topic pub -r "$command_rate" /cmd_vel geometry_msgs/msg/Twist \
+				"{linear: {x: $linear_velocity}, angular: {z: $angular_velocity}}"
+		elif [ "$3" = "zero" ]; then
+			echo "ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0}, angular: {z: 0.0}}'"
+			ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
+				"{linear: {x: 0.0}, angular: {z: 0.0}}"
+		elif [ "$3" = "e" ]; then
+			case "$4" in
+				rpm) topic_name="/motor_rpm_command" ;;
+				speed) topic_name="/wheel_speed_feedback" ;;
+				encoder|enc) topic_name="/encoder_delta_feedback" ;;
+				fault) topic_name="/motor_fault" ;;
+				odom) topic_name="/odom" ;;
+				diag|diagnostics) topic_name="/diagnostics" ;;
+				joint|joints) topic_name="/joint_states" ;;
+				/*) topic_name="$4" ;;
+				*)
+					echo "Usage: $0 aic mc e {rpm|speed|encoder|fault|odom|diag|joint|/topic}"
+					exit 1
+					;;
+			esac
+			echo "ros2 topic echo $topic_name"
+			ros2 topic echo "$topic_name"
+		elif [ "$3" = "info" ]; then
+			echo "ros2 node info /motor_control"
+			ros2 node info /motor_control
+		elif [ "$3" = "param" ]; then
+			echo "ros2 param dump /motor_control"
+			ros2 param dump /motor_control
+		elif [ "$3" = "list" ]; then
+			echo "==== Nodes ===="
+			ros2 node list
+			echo "==== Topics ===="
+			ros2 topic list
+			echo "==== Services ===="
+			ros2 service list
+		elif [ "$3" = "can" ]; then
+			can_interface="${4:-can0}"
+			echo "ip -details -statistics link show $can_interface"
+			ip -details -statistics link show "$can_interface"
+		else
+			echo "Motor-control commands:"
+			echo "  $0 aic mc r                         Launch in safe dry-run mode"
+			echo "  $0 aic mc rcan [interface]          Run with SocketCAN enabled"
+			echo "  $0 aic mc i                         Reinstall the motor-control IPK"
+			echo "  $0 aic mc en                        Enable motors"
+			echo "  $0 aic mc stop                      Stop motors"
+			echo "  $0 aic mc estop {on|off}            Set or release emergency stop"
+			echo "  $0 aic mc reset                     Reset latched motor faults"
+			echo "  $0 aic mc cmd <linear> <angular> [rate_hz]"
+			echo "  $0 aic mc zero                      Publish one zero-velocity command"
+			echo "  $0 aic mc e {rpm|speed|encoder|fault|odom|diag|joint|/topic}"
+			echo "  $0 aic mc info                      Show motor node interfaces"
+			echo "  $0 aic mc param                     Dump motor node parameters"
+			echo "  $0 aic mc list                      List ROS nodes, topics, and services"
+			echo "  $0 aic mc can [interface]           Show SocketCAN status/statistics"
 		fi
 
 	fi
