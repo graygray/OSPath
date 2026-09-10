@@ -122,14 +122,50 @@ rsync -avz -e ssh "$rsync_src_path" "$remote_user@$remote_host:$remote_dir/"
 }
 
 run_device_ftp_command() {
-	local action="$1"
-	local arg1="$2"
-	local arg2="$3"
-	local arg3="$4"
+	local action arg1 arg2 arg3 option project_override=""
+	local -a ftp_args=()
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+			-p=*|--project=*)
+				project_override="${1#*=}"
+				;;
+			-p|--project)
+				option="$1"
+				shift
+				if [ "$#" -eq 0 ]; then
+					echo "Missing project name for $option" >&2
+					return 1
+				fi
+				project_override="$1"
+				;;
+			*)
+				ftp_args+=("$1")
+				shift
+				continue
+				;;
+		esac
+		if [[ ! "$project_override" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*$ ]]; then
+			echo "Invalid project name: $project_override (use letters, digits, _ or -)" >&2
+			return 1
+		fi
+		shift
+	done
+	action="${ftp_args[0]}"
+	arg1="${ftp_args[1]}"
+	arg2="${ftp_args[2]}"
+	arg3="${ftp_args[3]}"
+	case "$action" in
+		""|all|sync|up) ;;
+		*)
+			echo "Unknown FTP action: $action" >&2
+			echo "Usage: $0 aic ftp [-p=<project>] [all|sync {up|down} [all]|up <file-or-dir>|up mac <file-or-dir> [remote_dir]]" >&2
+			return 1
+			;;
+	esac
 	local ftp_user="gray.lin"
 	local ftp_pass="Zx03310331"
 	local ftp_host="10.1.13.207"
-	local dir_prj="$project_string"
+	local dir_prj="${project_override:-$project_string}"
 	local dir_ssh_remote
 	local dir_ftp_remote
 	local dir_local="/mnt/reserved"
@@ -423,6 +459,9 @@ if [ "$1" = "aic" ]; then
 			ls /sys/class/drm/
 			echo "cat /sys/class/drm/card0-DP-1/status"
 			cat /sys/class/drm/card0-DP-1/status
+
+		elif [ "$3" = "sound" ]; then
+			speaker-test -D default -c 2 -t sine -f 1000 -l 1
 
 		elif [ "$3" = "bl" ]; then
 			echo "fw_printenv | grep boot_conf"
@@ -1102,7 +1141,7 @@ if [ "$1" = "aic" ]; then
 		fi
 
 	elif [ "$2" = "ftp" ]; then
-		run_device_ftp_command "$3" "$4" "$5" "$6" || exit 1
+		run_device_ftp_command "${@:3}" || exit 1
 
 	elif [ "$2" = "uota" ]; then
 		echo "=== OTA from USB ==="
@@ -1894,7 +1933,7 @@ fi
 # ftp
 if [ "$1" = "ftp" ]; then
 	if ( is_aicamera || is_visionhub ) && [[ "$2" == "sync" || "$2" == "up" || "$2" == "all" ]]; then
-		run_device_ftp_command "$2" "$3" "$4" "$5" || exit 1
+		run_device_ftp_command "${@:2}" || exit 1
 	elif [ "$2" = "restart" ]; then
 		service vsftpd restart
 		sleep 1
