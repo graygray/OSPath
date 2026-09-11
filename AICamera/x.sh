@@ -1662,7 +1662,7 @@ if [ "$1" = "aic" ]; then
 			motor_control_share="$(ros2 pkg prefix --share motor_control_g4dual)"
 			motor_control_params="$motor_control_share/config/motor_control.yaml"
 			echo "Running motor control with SocketCAN enabled on $can_interface"
-			ros2 run motor_control_g4dual motor_control_node --ros-args \
+			ros2 run motor_control_g4dual motor_control_node --ros-args --log \
 				--params-file "$motor_control_params" \
 				-p enable_can:=true \
 				-p can_interface:="$can_interface"

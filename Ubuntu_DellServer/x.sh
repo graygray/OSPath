@@ -138,24 +138,24 @@ if [ "$1" = "bb" ] ; then
 fi
 
 if [ "$1" = "lora" ] ; then
+	ipk_file="lora-rylr993_0.0.1-r0_armv8a.ipk"
 	if [ "$2" = "b" ]; then
 		echo "bitbake lora-rylr993"
 		bitbake lora-rylr993
 	elif [ "$2" = "ftp" ]; then
 		echo "copy lora ipk to ftp... "
-		file2copy="lora-rylr993_0.0.1-r0_armv8a.ipk"
-		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$file2copy" "$FTP_DIR/gray/amr/"
+		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$ipk_file" "$FTP_DIR/gray/amr/"
 	fi
 fi
 
 if [ "$1" = "mc" ] ; then
+	ipk_file="motor-control-g4dual_0.1.0-r0_armv8a.ipk"
 	if [ "$2" = "b" ]; then
 		echo "bitbake motor-control-g4dual"
 		bitbake motor-control-g4dual
 	elif [ "$2" = "ftp" ]; then
 		echo "copy mc ipk to ftp... "
-		file2copy="motor-control-g4dual_0.1.0-r0_armv8a.ipk"
-		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$file2copy" "$FTP_DIR/gray/amr/"
+		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$ipk_file" "$FTP_DIR/gray/amr/"
 	fi
 fi
 
