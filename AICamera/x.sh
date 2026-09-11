@@ -1659,10 +1659,17 @@ if [ "$1" = "aic" ]; then
 	elif [ "$2" = "mc" ]; then
 		if [ "$3" = "r" ]; then
 			can_interface="${4:-can0}"
-			motor_control_share="$(ros2 pkg prefix --share motor_control_g4dual)"
+			if ! motor_control_share="$(ros2 pkg prefix --share motor_control_g4dual)"; then
+				echo "Cannot locate motor_control_g4dual; check the installation and ROS environment" >&2
+				exit 1
+			fi
 			motor_control_params="$motor_control_share/config/motor_control.yaml"
-			echo "Running motor control with SocketCAN enabled on $can_interface"
-			ros2 run motor_control_g4dual motor_control_node --ros-args --log \
+			if [ ! -r "$motor_control_params" ]; then
+				echo "Cannot read motor-control parameters: $motor_control_params" >&2
+				exit 1
+			fi
+			echo "Running motor control with SocketCAN enabled on $can_interface (logging enabled)"
+			ros2 run motor_control_g4dual motor_control_node --log --ros-args \
 				--params-file "$motor_control_params" \
 				-p enable_can:=true \
 				-p can_interface:="$can_interface"
