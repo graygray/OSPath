@@ -150,8 +150,8 @@ fi
 
 if [ "$1" = "mc" ] ; then
 	if [ "$2" = "b" ]; then
-		echo "bitbake motor_control_g4dual"
-		bitbake motor_control_g4dual
+		echo "bitbake motor-control-g4dual"
+		bitbake motor-control-g4dual
 	elif [ "$2" = "ftp" ]; then
 		echo "copy mc ipk to ftp... "
 		file2copy="motor-control-g4dual_0.1.0-r0_armv8a.ipk"
