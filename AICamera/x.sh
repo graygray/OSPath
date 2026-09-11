@@ -32,7 +32,9 @@ project_string_file="$primax_dir/misc/project_string"
 if [ -f "$project_string_file" ]; then
 	project_string=$(tr -d '\r\n' < "$project_string_file")
 fi
-if [ -z "$project_string" ]; then
+if [ "$hostname_prefix" = "ATOM" ]; then
+	project_string="amr"
+elif [ -z "$project_string" ]; then
 	if [[ "$hostname_prefix" == "visionhub" || "$product" == "vision_hub_plus" ]]; then
 		project_string="visionhub"
 	else
