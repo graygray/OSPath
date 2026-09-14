@@ -682,8 +682,8 @@ if [ "$1" = "aic" ]; then
 				echo "App Tag:" && cat "$primax_dir/misc/application_tag" && echo
 			fi
 			if [ "$project_string" = "amr" ]; then
-				echo "FW process... ps aux | grep -E --color=auto \"fw|gst|lora|motor\""
-				ps aux | grep -E --color=auto "fw|gst|lora|motor"
+				echo "FW process... ps aux | grep -E --color=auto \"gst|lora|motor\""
+				ps aux | grep -E --color=auto "gst|lora|motor"
 			else
 				echo "FW process... ps aux | grep -E --color=auto \"vision_box|mediamtx|fw|gst\""
 				ps aux | grep -E --color=auto "vision_box|mediamtx|fw|gst|wpa_s|hostapd"
