@@ -154,7 +154,7 @@ if [ "$1" = "mc" ] ; then
 		echo "bitbake motor-control-g4dual"
 		bitbake motor-control-g4dual
 	elif [ "$2" = "ftp" ]; then
-		echo "copy mc ipk to ftp... "
+		echo "copy mc ipk ($ipk_file) to ftp... "
 		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$ipk_file" "$FTP_DIR/gray/amr/"
 	fi
 fi
@@ -240,9 +240,11 @@ if [ "$1" = "aic" ] ; then
 		fi
 		mkdir -p "$target_dir"
 
-		cp -f "$dir_work/temp/log.do_compile" "$dir_ftp/"
-		cp -f "$dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam" "$target_dir/"
-		cp -f "$dir_work/primax-1.0/src/Test_C_yocto/fw_daemon" "$target_dir/"
+		if [ "$project_string" != "amr" ] ; then
+			cp -f "$dir_work/temp/log.do_compile" "$dir_ftp/"
+			cp -f "$dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam" "$target_dir/"
+			cp -f "$dir_work/primax-1.0/src/Test_C_yocto/fw_daemon" "$target_dir/"
+		fi
 
 		if [ "$3" = "k" ] ; then
 			echo "copy kernel update files..."

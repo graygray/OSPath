@@ -1672,7 +1672,8 @@ if [ "$1" = "aic" ]; then
 			ros2 run motor_control_g4dual motor_control_node --log --ros-args \
 				--params-file "$motor_control_params" \
 				-p enable_can:=true \
-				-p can_interface:="$can_interface"
+				-p can_interface:="$can_interface \
+				rpm_resolution:=1"
 		elif [ "$3" = "i" ]; then
 			ipk_file="motor-control-g4dual_0.1.0-r0_armv8a.ipk"
 			echo "opkg install $ipk_file --force-reinstall"
