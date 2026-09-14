@@ -1678,7 +1678,7 @@ if [ "$1" = "aic" ]; then
 				--params-file "$motor_control_params" \
 				-p enable_can:=true \
 				-p can_interface:="$can_interface" \
-				-p rpm_resolution:=1
+				-p rpm_resolution:=1.0
 		elif [ "$3" = "i" ]; then
 			ipk_file="motor-control-g4dual_0.1.0-r0_armv8a.ipk"
 			echo "opkg install $ipk_file --force-reinstall"
