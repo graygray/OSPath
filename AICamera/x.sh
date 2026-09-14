@@ -1684,11 +1684,11 @@ if [ "$1" = "aic" ]; then
 			echo "opkg install $ipk_file --force-reinstall"
 			opkg install $ipk_file --force-reinstall
 		elif [ "$3" = "en" ]; then
-			echo "ros2 service call /enable_motors std_srvs/srv/Trigger '{}'"
-			ros2 service call /enable_motors std_srvs/srv/Trigger "{}"
+			echo "ros2 topic pub --once /enable_motors std_msgs/msg/Empty '{}'"
+			ros2 topic pub --once /enable_motors std_msgs/msg/Empty "{}"
 		elif [ "$3" = "stop" ]; then
-			echo "ros2 service call /stop_motors std_srvs/srv/Trigger '{}'"
-			ros2 service call /stop_motors std_srvs/srv/Trigger "{}"
+			echo "ros2 topic pub --once /stop_motors std_msgs/msg/Empty '{}'"
+			ros2 topic pub --once /stop_motors std_msgs/msg/Empty "{}"
 		elif [ "$3" = "estop" ]; then
 			if [[ "$4" = "on" || "$4" = "1" || "$4" = "true" ]]; then
 				estop_value="true"
@@ -1698,11 +1698,11 @@ if [ "$1" = "aic" ]; then
 				echo "Usage: $0 aic mc estop {on|off}"
 				exit 1
 			fi
-			echo "ros2 service call /emergency_stop std_srvs/srv/SetBool '{data: $estop_value}'"
-			ros2 service call /emergency_stop std_srvs/srv/SetBool "{data: $estop_value}"
+			echo "ros2 topic pub --once /emergency_stop std_msgs/msg/Bool '{data: $estop_value}'"
+			ros2 topic pub --once /emergency_stop std_msgs/msg/Bool "{data: $estop_value}"
 		elif [ "$3" = "reset" ]; then
-			echo "ros2 service call /reset_faults std_srvs/srv/Trigger '{}'"
-			ros2 service call /reset_faults std_srvs/srv/Trigger "{}"
+			echo "ros2 topic pub --once /reset_faults std_msgs/msg/Empty '{}'"
+			ros2 topic pub --once /reset_faults std_msgs/msg/Empty "{}"
 		elif [ "$3" = "cmd" ]; then
 			linear_velocity="${4:-0.0}"
 			angular_velocity="${5:-0.0}"
@@ -1751,6 +1751,7 @@ if [ "$1" = "aic" ]; then
 			ip -details -statistics link show "$can_interface"
 		else
 			echo "Motor-control commands:"
+			echo "  Control events publish once; check results with: $0 aic mc e diag"
 			echo "  $0 aic mc r [interface]             Run with SocketCAN enabled"
 			echo "  $0 aic mc i                         Reinstall the motor-control IPK"
 			echo "  $0 aic mc en                        Enable motors"
