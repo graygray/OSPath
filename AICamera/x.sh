@@ -1711,6 +1711,36 @@ if [ "$1" = "aic" ]; then
 			echo "linear.x=$linear_velocity m/s angular.z=$angular_velocity rad/s"
 			ros2 topic pub -r "$command_rate" /cmd_vel geometry_msgs/msg/Twist \
 				"{linear: {x: $linear_velocity}, angular: {z: $angular_velocity}}"
+		elif [ "$3" = "tp" ]; then
+			if [ "$#" -ne 4 ]; then
+				echo "Usage: $0 aic mc tp {straight|rotate|cancel|status|help}" >&2
+				exit 1
+			fi
+			case "$4" in
+				straight|rotate|cancel)
+					echo "Requesting motor test pattern: $4; check acceptance with: $0 aic mc tp status"
+					ros2 topic pub --once --qos-reliability reliable --qos-durability volatile \
+						/motion_test/command std_msgs/msg/String "{data: $4}" || exit $?
+					;;
+				status)
+					ros2 topic echo /motion_test/status std_msgs/msg/String \
+						--qos-reliability reliable --qos-durability transient_local || exit $?
+					;;
+				help|-h|--help)
+					echo "Usage: $0 aic mc tp {straight|rotate|cancel|status|help}"
+					echo "  straight  Forward/backward using configured distance and repetitions"
+					echo "  rotate    Left/right rotation using configured angle and repetitions"
+					echo "  cancel    Cancel the test and stop motors; re-enable before further motion"
+					echo "  status    Watch the latest test state and CSV path (Ctrl-C to exit)"
+					echo "  Tests require enabled motors and standstill; start commands do not enable motors."
+					echo "  Normal cmd_vel takes over a test; completion leaves motors enabled."
+					;;
+				*)
+					echo "Unknown test-pattern command: $4" >&2
+					echo "Usage: $0 aic mc tp {straight|rotate|cancel|status|help}" >&2
+					exit 1
+					;;
+			esac
 		elif [ "$3" = "zero" ]; then
 			echo "ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0}, angular: {z: 0.0}}'"
 			ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
@@ -1760,6 +1790,9 @@ if [ "$1" = "aic" ]; then
 			echo "  $0 aic mc reset                     Reset latched motor faults"
 			echo "  $0 aic mc cmd <linear> <angular> [rate_hz]"
 			echo "  $0 aic mc zero                      Publish one zero-velocity command"
+			echo "  $0 aic mc tp {straight|rotate|cancel} Run or cancel a test pattern"
+			echo "  $0 aic mc tp status                 Watch test status and CSV path"
+			echo "  $0 aic mc tp help                   Show test-pattern usage"
 			echo "  $0 aic mc e {rpm|speed|encoder|fault|odom|diag|joint|/topic}"
 			echo "  $0 aic mc info                      Show motor node interfaces"
 			echo "  $0 aic mc param                     Dump motor node parameters"
