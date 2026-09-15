@@ -1749,22 +1749,38 @@ if [ "$1" = "aic" ]; then
 			ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
 				"{linear: {x: 0.0}, angular: {z: 0.0}}"
 		elif [ "$3" = "e" ]; then
+			topic_type=""
 			case "$4" in
-				rpm) topic_name="/motor_rpm_command" ;;
-				speed) topic_name="/wheel_speed_feedback" ;;
-				encoder|enc) topic_name="/encoder_delta_feedback" ;;
-				fault) topic_name="/motor_fault" ;;
-				odom) topic_name="/odom" ;;
-				diag|diagnostics) topic_name="/diagnostics" ;;
-				joint|joints) topic_name="/joint_states" ;;
+				rpm) topic_name="/motor_rpm_command"; topic_type="std_msgs/msg/Float64MultiArray" ;;
+				speed) topic_name="/wheel_speed_feedback"; topic_type="std_msgs/msg/Float64MultiArray" ;;
+				encoder|enc) topic_name="/encoder_delta_feedback"; topic_type="std_msgs/msg/Int32MultiArray" ;;
+				fault) topic_name="/motor_fault"; topic_type="std_msgs/msg/UInt32MultiArray" ;;
+				odom) topic_name="/odom"; topic_type="nav_msgs/msg/Odometry" ;;
+				diag|diagnostics) topic_name="/diagnostics"; topic_type="diagnostic_msgs/msg/DiagnosticArray" ;;
+				joint|joints) topic_name="/joint_states"; topic_type="sensor_msgs/msg/JointState" ;;
 				/*) topic_name="$4" ;;
 				*)
 					echo "Usage: $0 aic mc e {rpm|speed|encoder|fault|odom|diag|joint|/topic}"
 					exit 1
 					;;
 			esac
-			echo "ros2 topic echo $topic_name"
-			ros2 topic echo "$topic_name"
+			echo "Watching $topic_name: latest message only (Ctrl-C to exit)"
+			# Keep one subscription; redraw only after a complete YAML message.
+			PYTHONUNBUFFERED=1 ros2 topic echo "$topic_name" ${topic_type:+"$topic_type"} | python3 -u -c '
+import sys
+
+message = []
+try:
+    for line in sys.stdin:
+        if line.strip() == "---":
+            sys.stdout.write("\033[H\033[2J" + sys.argv[1] + " (Ctrl-C to exit)\n" + "".join(message))
+            sys.stdout.flush()
+            message.clear()
+        else:
+            message.append(line)
+except KeyboardInterrupt:
+    pass
+' "$topic_name"
 		elif [ "$3" = "info" ]; then
 			echo "ros2 node info /motor_control"
 			ros2 node info /motor_control
