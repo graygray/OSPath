@@ -487,6 +487,51 @@ if [ "$1" = "cp" ]; then
     fi
 fi
 
+# mv
+if [ "$1" = "mv" ]; then
+    if [ -z "$2" ]; then
+        echo "Usage: $0 mv <target> <file/dir>"
+        exit 1
+    fi
+
+    if [ "$2" = "m" ]; then
+        mark_file="$HOME/tmp/mv_m"
+
+        if [ -n "$3" ]; then
+            if ! marked_path=$(realpath "$3" 2>/dev/null); then
+                marked_path=$(readlink -f "$3" 2>/dev/null)
+            fi
+            if [ -z "$marked_path" ]; then
+                echo "Invalid file path: $3"
+                exit 1
+            fi
+
+            mkdir -p "$HOME/tmp" || exit 1
+            printf '%s\n' "$marked_path" > "$mark_file"
+            echo "mark move source: $marked_path"
+        else
+            if [ ! -f "$mark_file" ]; then
+                echo "No marked file path: $mark_file"
+                exit 1
+            fi
+
+            marked_path=$(cat "$mark_file")
+            if [ -z "$marked_path" ]; then
+                echo "Marked file path is empty: $mark_file"
+                exit 1
+            fi
+
+            fname=$(basename "$marked_path")
+            echo "mv \"$marked_path\" \"$PWD/$fname\""
+            mv "$marked_path" "$PWD/$fname"
+        fi
+        exit $?
+    fi
+
+    echo "Unknown target: $2"
+    exit 1
+fi
+
 # ps
 if [ "$1" = "ps" ]; then
 	if [ "$2" != "" ]; then
