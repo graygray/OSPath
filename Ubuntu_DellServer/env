@@ -285,6 +285,15 @@ gflash() {
     return $rc
 }
 
+gflash_evk() {
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml up -d || return $?
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml exec genio-flash \
+        bash -lc 'genio-flash --unload-dtbo display-dsi.dtbo --load-dtbo display-dpoc.dtbo'
+    local rc=$?
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml down
+    return $rc
+}
+
 alias ep='[ -f ~/tmp/p1 ] && export p1=$(cat ~/tmp/p1); [ -f ~/tmp/p2 ] && export p2=$(cat ~/tmp/p2)'
 alias sp1='mkdir -p ~/tmp && echo `pwd` > ~/tmp/p1 && ep'
 alias sp2='mkdir -p ~/tmp && echo `pwd` > ~/tmp/p2 && ep'
