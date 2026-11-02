@@ -254,13 +254,15 @@ ytb_build_clean_primax() {
 }
 
 alias ytb='ytb_build'
-alias ytb2='ytb_build_clean_primax'
-alias ytb3='ytb2 && ytp'
-alias ytb4='ytb && ytp'
-alias ytb5='ytb && ytpf'
+alias ytbc='ytb_build_clean_primax'
 alias ytp='dpr && ./pack_image.bash'
 alias ytpf='dpr && PACK_FULL_ARCHIVE=1 ./pack_image.bash'
-alias ytb_docker='ytb_build && ytp'
+alias ytbp='ytb && ytp'
+alias ytbp2='ytbc && ytp'
+alias ytbp3='ytb && ytpf'
+alias ytbp4='ytbc && ytpf'
+alias ytb_docker='ytbp'
+alias ytb_docker2='ytbp4'
 
 gflash_up() {
     IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml up -d &&

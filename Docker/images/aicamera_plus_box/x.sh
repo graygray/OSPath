@@ -36,10 +36,12 @@ echo "PROJ_ROOT:"$PROJ_ROOT
 echo "BUILD_DIR:"$BUILD_DIR
 echo "project_string:"$project_string
 
-if [ -f ~/tmp/p1 ]; then
+p1=$([ -f "$HOME/tmp/p1" ] && cat "$HOME/tmp/p1")
+p2=$([ -f "$HOME/tmp/p2" ] && cat "$HOME/tmp/p2")
+if [ -n "$p1" ]; then
 	echo "p1:$p1"
 fi
-if [ -f ~/tmp/p2 ]; then
+if [ -n "$p2" ]; then
 	echo "p2:$p2"
 fi
 
@@ -136,13 +138,24 @@ if [ "$1" = "bb" ] ; then
 fi
 
 if [ "$1" = "lora" ] ; then
+	ipk_file="lora-rylr993_0.0.1-r0_armv8a.ipk"
 	if [ "$2" = "b" ]; then
 		echo "bitbake lora-rylr993"
 		bitbake lora-rylr993
 	elif [ "$2" = "ftp" ]; then
 		echo "copy lora ipk to ftp... "
-		file2copy="lora-rylr993_0.0.1-r0_armv8a.ipk"
-		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$file2copy" "$FTP_DIR/gray/aicamera/"
+		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$ipk_file" "$FTP_DIR/gray/amr/"
+	fi
+fi
+
+if [ "$1" = "mc" ] ; then
+	ipk_file="motor-control-g4dual_0.1.0-r0_armv8a.ipk"
+	if [ "$2" = "b" ]; then
+		echo "bitbake motor-control-g4dual"
+		bitbake motor-control-g4dual
+	elif [ "$2" = "ftp" ]; then
+		echo "copy mc ipk ($ipk_file) to ftp... "
+		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$ipk_file" "$FTP_DIR/gray/amr/"
 	fi
 fi
 
@@ -227,9 +240,11 @@ if [ "$1" = "aic" ] ; then
 		fi
 		mkdir -p "$target_dir"
 
-		cp -f "$dir_work/temp/log.do_compile" "$dir_ftp/"
-		cp -f "$dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam" "$target_dir/"
-		cp -f "$dir_work/primax-1.0/src/Test_C_yocto/fw_daemon" "$target_dir/"
+		if [ "$project_string" != "amr" ] ; then
+			cp -f "$dir_work/temp/log.do_compile" "$dir_ftp/"
+			cp -f "$dir_work/primax-1.0/src/vision_box_DualCam/vision_box_DualCam" "$target_dir/"
+			cp -f "$dir_work/primax-1.0/src/Test_C_yocto/fw_daemon" "$target_dir/"
+		fi
 
 		if [ "$3" = "k" ] ; then
 			echo "copy kernel update files..."
@@ -472,6 +487,51 @@ if [ "$1" = "cp" ]; then
     fi
 fi
 
+# mv
+if [ "$1" = "mv" ]; then
+    if [ -z "$2" ]; then
+        echo "Usage: $0 mv <target> <file/dir>"
+        exit 1
+    fi
+
+    if [ "$2" = "m" ]; then
+        mark_file="$HOME/tmp/mv_m"
+
+        if [ -n "$3" ]; then
+            if ! marked_path=$(realpath "$3" 2>/dev/null); then
+                marked_path=$(readlink -f "$3" 2>/dev/null)
+            fi
+            if [ -z "$marked_path" ]; then
+                echo "Invalid file path: $3"
+                exit 1
+            fi
+
+            mkdir -p "$HOME/tmp" || exit 1
+            printf '%s\n' "$marked_path" > "$mark_file"
+            echo "mark move source: $marked_path"
+        else
+            if [ ! -f "$mark_file" ]; then
+                echo "No marked file path: $mark_file"
+                exit 1
+            fi
+
+            marked_path=$(cat "$mark_file")
+            if [ -z "$marked_path" ]; then
+                echo "Marked file path is empty: $mark_file"
+                exit 1
+            fi
+
+            fname=$(basename "$marked_path")
+            echo "mv \"$marked_path\" \"$PWD/$fname\""
+            mv "$marked_path" "$PWD/$fname"
+        fi
+        exit $?
+    fi
+
+    echo "Unknown target: $2"
+    exit 1
+fi
+
 # ps
 if [ "$1" = "ps" ]; then
 	if [ "$2" != "" ]; then
@@ -591,16 +651,16 @@ if [ "$1" = "user" ] ; then
 			# make a yocto build dir & user link
 			buildfolder="/mnt/disk3/yocto_build"
 			mkdir -p $buildfolder/$3
-			sudo cp -f $buildfolder/misc/step* $buildfolder/$3
-			sudo chown $3:$mainGroup $buildfolder/$3
-			sudo chown $3:$mainGroup $buildfolder/$3/step*
-			cd /home/$3
-			if [ -e yocto_build ] || [ -L yocto_build ] ; then
-				echo "yocto_build link exists, skip"
-			else
-				sudo ln -s $buildfolder/$3 yocto_build
-				sudo chown $3:$mainGroup yocto_build
-			fi
+				sudo cp -f $buildfolder/misc/step* $buildfolder/$3
+				sudo chown $3:$mainGroup $buildfolder/$3
+				sudo chown $3:$mainGroup $buildfolder/$3/step*
+				homefolder="/home/$3"
+				if [ -e "$homefolder/yocto_build" ] || [ -L "$homefolder/yocto_build" ] ; then
+					echo "yocto_build link exists, skip"
+				else
+					sudo ln -s "$buildfolder/$3" "$homefolder/yocto_build"
+					sudo chown -h "$3:$mainGroup" "$homefolder/yocto_build"
+				fi
 		else
 			echo "param 3 needed"
 		fi
@@ -1211,6 +1271,9 @@ if [ "$1" == "git" ] ; then
 	elif [ "$2" = "p" ] ; then
 		echo "git format-patch \"$3\"..\"$4\""
 		git format-patch "$3".."$4"
+	elif [ "$2" = "sf" ] ; then
+		echo "git stash push -- \"$3\""
+		git stash push -- "$3"
 	else
 		echo "git status"
 		git status
@@ -1272,8 +1335,8 @@ if [ "$1" == "c" ] ; then
 	clear
 fi
 
-if [ "$1" == "update" ] ; then
-	echo "update common tools ..."
-	echo "codex cli : curl -fsSL https://chatgpt.com/codex/install.sh | sh"
-	curl -fsSL https://chatgpt.com/codex/install.sh | sh
+if [ "${1:-}" = "codex" ]; then
+    echo "update codex..."
+    echo "codex cli : curl -fsSL https://chatgpt.com/codex/install.sh | sh"
+    curl -fsSL https://chatgpt.com/codex/install.sh | sh
 fi

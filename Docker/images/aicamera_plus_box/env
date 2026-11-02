@@ -1,7 +1,7 @@
 InHost="Ubuntu_DellServer"
 PATH=~/OSPath/$InHost:$PATH
-PATH=~/bin:$PATH
 PATH=~:$PATH
+PATH=~/script:$PATH
 
 FTP_DIR="/FTP/Public"
 
@@ -254,12 +254,15 @@ ytb_build_clean_primax() {
 }
 
 alias ytb='ytb_build'
-alias ytb2='ytb_build_clean_primax'
-alias ytb3='ytb2 && ytp'
-alias ytb4='ytb && ytp'
+alias ytbc='ytb_build_clean_primax'
 alias ytp='dpr && ./pack_image.bash'
 alias ytpf='dpr && PACK_FULL_ARCHIVE=1 ./pack_image.bash'
-alias ytb_docker='ytb_build && ytp'
+alias ytbp='ytb && ytp'
+alias ytbp2='ytbc && ytp'
+alias ytbp3='ytb && ytpf'
+alias ytbp4='ytbc && ytpf'
+alias ytb_docker='ytbp'
+alias ytb_docker2='ytbp4'
 
 gflash_up() {
     IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml up -d &&
@@ -279,7 +282,16 @@ gflash_down() {
 gflash() {
     IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml up -d || return $?
     IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml exec genio-flash \
-        bash -lc 'genio-flash -i rity-demo-image --unload-dtbo display-dsi.dtbo --load-dtbo display-dpoc.dtbo'
+        bash -lc 'genio-flash --unload-dtbo display-dsi.dtbo --load-dtbo display-dp.dtbo'
+    local rc=$?
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml down
+    return $rc
+}
+
+gflash_evk() {
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml up -d || return $?
+    IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml exec genio-flash \
+        bash -lc 'genio-flash --unload-dtbo display-dsi.dtbo --load-dtbo display-dpoc.dtbo'
     local rc=$?
     IMAGE_DIR="$PWD" docker compose -f ~/OSPath/Docker/images/genio-flash-docker/docker-compose.yml down
     return $rc
