@@ -503,8 +503,16 @@ if [ "$1" = "aic" ]; then
 			cat /sys/class/drm/card0-DP-1/status
 
 		elif [ "$3" = "sound" ]; then
-			runuser -u weston -- env XDG_RUNTIME_DIR=/run/user/1000 speaker-test -D pipewire -c 2 -t sine -f 1000 -l 1
-			# speaker-test -D default -c 2 -t sine -f 1000 -l 1
+			# runuser -u weston -- env XDG_RUNTIME_DIR=/run/user/1000 speaker-test -D pipewire -c 2 -t sine -f 1000 -l 1
+
+			sudo -u weston env \
+			XDG_RUNTIME_DIR=/run/user/1000 \
+			PULSE_SERVER=unix:/run/user/1000/pulse/native \
+			gst-launch-1.0 -v \
+			audiotestsrc wave=sine freq=1000 volume=0.2 num-buffers=240 \
+			! audioconvert \
+			! audioresample \
+			! pulsesink
 
 		elif [ "$3" = "bl" ]; then
 			echo "fw_printenv | grep boot_conf"
