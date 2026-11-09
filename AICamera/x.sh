@@ -1945,6 +1945,8 @@ if [ "$1" = "sys" ]; then
 		for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq; do echo "$f: $(cat $f)"; done
 		echo "==== Memory info ( free -mh )===="
 		free -mh
+		echo "==== Partition info ( lsblk -p -o NAME,SIZE,TYPE,FSTYPE,PARTLABEL,MOUNTPOINTS )===="
+		lsblk -p -o NAME,SIZE,TYPE,FSTYPE,PARTLABEL,MOUNTPOINTS
 		echo "==== Disk info ( df -h --total ) ===="
 		df -h --total
 		echo "==== ps -eLo pid,tid,psr,pcpu,comm --sort=-pcpu | head -30 ===="
