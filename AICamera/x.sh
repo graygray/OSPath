@@ -518,6 +518,16 @@ if [ "$1" = "aic" ]; then
 			echo "fw_printenv list_dtbo boot_conf"
 			fw_printenv list_dtbo boot_conf
 
+		elif [ "$3" = "usb" ]; then
+			echo "lsusb"
+			lsusb
+			echo "lsusb -t"
+			lsusb -t
+			echo "readlink -f /sys/bus/usb/devices/usb*"
+			for bus in /sys/bus/usb/devices/usb*; do
+    			readlink -f "$bus"
+			done
+
 		elif [ "$3" = "1715" ]; then
 			echo "RT1715..."
 			if [ "$4" = "int" ]; then
