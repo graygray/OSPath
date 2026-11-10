@@ -514,9 +514,9 @@ if [ "$1" = "aic" ]; then
 			! audioresample \
 			! pulsesink
 
-		elif [ "$3" = "bl" ]; then
-			echo "fw_printenv | grep boot_conf"
-			fw_printenv | grep boot_conf
+		elif [ "$3" = "uboot" ]; then
+			echo "fw_printenv list_dtbo boot_conf"
+			fw_printenv list_dtbo boot_conf
 
 		elif [ "$3" = "1715" ]; then
 			echo "RT1715..."
