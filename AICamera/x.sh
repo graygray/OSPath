@@ -519,11 +519,11 @@ if [ "$1" = "aic" ]; then
 			fw_printenv list_dtbo boot_conf
 
 		elif [ "$3" = "usb" ]; then
-			echo "lsusb"
+			echo ">> lsusb"
 			lsusb
-			echo "lsusb -t"
+			echo ">> lsusb -t"
 			lsusb -t
-			echo "readlink -f /sys/bus/usb/devices/usb*"
+			echo ">> readlink -f /sys/bus/usb/devices/usb*"
 			for bus in /sys/bus/usb/devices/usb*; do
     			readlink -f "$bus"
 			done
