@@ -167,8 +167,10 @@ if [ "$1" = "aic" ] ; then
 
 	if [ "$2" = "dk" ] ; then
 		prjString="aicamera_plus_box"
-		prjService="build_aicamera"
 		prjDockderDir="$dockderDir/$prjString"
+
+		# prjService="build_aicamera"
+		prjService="build_g720"
 		echo "========== docker cmd =========="
 
 		if [ "$3" = "up" ] ; then
