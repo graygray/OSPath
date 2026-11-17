@@ -1103,6 +1103,39 @@ if [ "$1" = "ping" ] ; then
 	fi
 fi
 
+# Format one macOS disk partition (diskutil mounts the new volume automatically).
+if [ "$1" = "df" ]; then
+	fs_type="$2"
+	partition="$3"
+
+	if [ "$#" -ne 3 ] || [[ ! "$partition" =~ ^/dev/disk[0-9]+s[0-9]+$ ]]; then
+		echo "Usage: $0 df <fat32|vfat|exfat> <partition>" >&2
+		echo "  partition: required, e.g. /dev/disk4s1 (check with: diskutil list)" >&2
+		echo "Example: $0 df fat32 /dev/disk4s1" >&2
+		echo "Available disks and partitions:"
+		diskutil list
+		exit 1
+	fi
+
+	case "$fs_type" in
+		fat32|vfat) disk_format="FAT32" ;;
+		exfat)      disk_format="ExFAT" ;;
+		*)
+			echo "Usage: $0 df <fat32|vfat|exfat> <partition>" >&2
+			echo "ext4 is not supported by macOS diskutil." >&2
+			exit 1
+			;;
+	esac
+
+	if ! diskutil info "$partition" >/dev/null; then
+		echo "Partition not found: $partition" >&2
+		exit 1
+	fi
+
+	echo "Formatting $partition as $disk_format (USBDISK)..."
+	diskutil eraseVolume "$disk_format" USBDISK "$partition" || exit 1
+fi
+
 # edit x
 if [ "$1" = "ex" ] ; then
 	echo "edit x...."

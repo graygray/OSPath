@@ -2567,9 +2567,17 @@ fi
 # format and mount disk
 if [ "$1" == "df" ] ; then
 	fs_type="$2"
-	mount_point="${3:-/mnt/sda1}"
-	mount_name="$(basename "${mount_point%/}")"
-	device="/dev/$mount_name"
+	device="$3"
+
+	if [ "$#" -lt 3 ] || [ "$#" -gt 4 ] || [[ "$device" != /dev/* ]] || [ "$(lsblk -dn -o TYPE "$device" 2>/dev/null)" != "part" ] ||
+	   { [ "$fs_type" != "ext4" ] && [ "$fs_type" != "fat32" ] && [ "$fs_type" != "vfat" ]; }; then
+		echo "Usage: $0 df <ext4|fat32|vfat> <partition> [mount_point]" >&2
+		echo "  partition: required, e.g. /dev/sda1" >&2
+		echo "  mount_point: optional, defaults to /mnt/<partition name>" >&2
+		echo "Example: $0 df ext4 /dev/sda1 /mnt/sda1" >&2
+		exit 1
+	fi
+	mount_point="${4:-/mnt/$(basename "$device")}"
 
 	echo "what to do..."
 	echo "device: $device"
@@ -2578,33 +2586,30 @@ if [ "$1" == "df" ] ; then
 
 	if [ "$fs_type" == "ext4" ] ; then
 		echo "umount $mount_point"
-		umount "$mount_point"
+		if mountpoint -q "$mount_point"; then umount "$mount_point" || exit 1; fi
 		echo "mkfs.ext4 -F -L USBDISK $device"
-		mkfs.ext4 -F -L USBDISK "$device"
+		mkfs.ext4 -F -L USBDISK "$device" || exit 1
 		echo "mkdir -p $mount_point"
 		mkdir -p "$mount_point"
 		echo "mount -o noatime $device $mount_point"
-		mount -o noatime "$device" "$mount_point"
+		mount -o noatime "$device" "$mount_point" || exit 1
 		echo "lsblk -f"
 		lsblk -f
 		echo "df -h $mount_point"
 		df -h "$mount_point"
 	elif [ "$fs_type" == "fat32" ] || [ "$fs_type" == "vfat" ] ; then
 		echo "umount $mount_point"
-		umount "$mount_point"
+		if mountpoint -q "$mount_point"; then umount "$mount_point" || exit 1; fi
 		echo "mkfs.vfat -F 32 -n USBDISK $device"
-		mkfs.vfat -F 32 -n USBDISK "$device"
+		mkfs.vfat -F 32 -n USBDISK "$device" || exit 1
 		echo "mkdir -p $mount_point"
 		mkdir -p "$mount_point"
 		echo "mount $device $mount_point"
-		mount "$device" "$mount_point"
+		mount "$device" "$mount_point" || exit 1
 		echo "lsblk -f"
 		lsblk -f
 		echo "df -h $mount_point"
 		df -h "$mount_point"
-	else
-		echo "Usage: $0 df <ext4|fat32|vfat> [mount_point]"
-		exit 1
 	fi
 fi
 
