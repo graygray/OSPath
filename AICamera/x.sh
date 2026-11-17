@@ -68,6 +68,57 @@ is_visionhub() {
   fi
 }
 
+check_usb_bus() {
+	local device port busnum devnum vendor product_id manufacturer product_name speed
+	local found=0
+
+	if [ ! -d /sys/bus/usb/devices ]; then
+		echo "USB device information is unavailable: /sys/bus/usb/devices not found." >&2
+		return 1
+	fi
+
+	echo "========== USB devices and negotiated link speeds =========="
+	printf '%-12s %-5s %-5s %-10s %-14s %s\n' "PORT" "BUS" "DEV" "VID:PID" "SPEED (Mb/s)" "DEVICE"
+	for device in /sys/bus/usb/devices/*; do
+		# Device entries have idVendor; skip USB interface entries (e.g. 1-1:1.0).
+		[ -r "$device/idVendor" ] || continue
+		found=1
+		port=${device##*/}
+		busnum=$(cat "$device/busnum" 2>/dev/null)
+		devnum=$(cat "$device/devnum" 2>/dev/null)
+		vendor=$(cat "$device/idVendor" 2>/dev/null)
+		product_id=$(cat "$device/idProduct" 2>/dev/null)
+		manufacturer=$(cat "$device/manufacturer" 2>/dev/null)
+		product_name=$(cat "$device/product" 2>/dev/null)
+		speed=$(cat "$device/speed" 2>/dev/null)
+		[ -n "$product_name" ] || product_name="Unknown device"
+		case "$port" in
+			usb*) product_name="$product_name [root hub]" ;;
+		esac
+		printf '%-12s %-5s %-5s %-10s %-14s %s\n' \
+			"$port" "${busnum:--}" "${devnum:--}" "$vendor:${product_id:----}" \
+			"${speed:-unknown}" "${manufacturer:+$manufacturer }$product_name"
+	done
+	[ "$found" -eq 1 ] || echo "No USB devices found."
+	echo "Speeds are negotiated link rates, not measured transfer throughput."
+	echo "Common rates (Mb/s): 1.5 = low, 12 = full, 480 = high, 5000/10000/20000 = SuperSpeed variants."
+
+	if command -v lsusb >/dev/null 2>&1; then
+		echo "========== lsusb =========="
+		lsusb
+		echo "========== USB topology (lsusb -t) =========="
+		lsusb -t || echo "USB topology unavailable (lsusb -t is not supported or failed)." >&2
+	else
+		echo "lsusb is not installed; device names and speeds above come from sysfs."
+	fi
+
+	echo "========== USB host controller paths =========="
+	for device in /sys/bus/usb/devices/usb*; do
+		[ -d "$device" ] || continue
+		readlink -f "$device"
+	done
+}
+
 setup_wayland_env() {
 	local runtime_dir_candidate
 	local wayland_candidate
@@ -519,14 +570,7 @@ if [ "$1" = "aic" ]; then
 			fw_printenv list_dtbo boot_conf
 
 		elif [ "$3" = "usb" ]; then
-			echo ">> lsusb"
-			lsusb
-			echo ">> lsusb -t"
-			lsusb -t
-			echo ">> readlink -f /sys/bus/usb/devices/usb*"
-			for bus in /sys/bus/usb/devices/usb*; do
-    			readlink -f "$bus"
-			done
+			check_usb_bus
 
 		elif [ "$3" = "1715" ]; then
 			echo "RT1715..."
