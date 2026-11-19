@@ -68,6 +68,68 @@ is_visionhub() {
   fi
 }
 
+wait_for_runtime_process() {
+	local state="$1" expected_status=0 deadline=$((SECONDS + 5)) status
+	shift
+	[ "$state" = "stop" ] && expected_status=1
+
+	while :; do
+		status=0
+		pgrep "$@" >/dev/null || status=$?
+		[ "$status" -eq "$expected_status" ] && return 0
+		[ "$status" -gt 1 ] && return 1
+		if [ "$SECONDS" -ge "$deadline" ]; then
+			echo "Timed out waiting for ${@: -1} to $state." >&2
+			return 1
+		fi
+		sleep 0.1
+	done
+}
+
+restart_firmware() (
+	local mode="$1"
+	flock -x 9 || exit 1
+
+	if pgrep -x fw_watchdog.sh >/dev/null; then
+		# Start a fresh watchdog so it cannot act on a check made before the restart.
+		trap '
+			if pgrep -x fw_watchdog.sh >/dev/null; then
+				:
+			elif [ "$?" -eq 1 ]; then
+				fw_watchdog.sh 9>&- &
+				wait_for_runtime_process start -x fw_watchdog.sh || exit 1
+			fi
+		' EXIT
+		trap 'exit 129' HUP
+		trap 'exit 130' INT
+		trap 'exit 143' TERM
+		pkill -x fw_watchdog.sh
+	elif [ "$?" -ne 1 ]; then
+		exit 1
+	fi
+	wait_for_runtime_process stop -x fw_watchdog.sh || exit 1
+
+	pkill -x fw_daemon
+	if [ "$mode" = "all" ]; then
+		pkill vision_box
+		pkill -x mediamtx
+		wait_for_runtime_process stop vision_box || exit 1
+		wait_for_runtime_process stop -x mediamtx || exit 1
+	fi
+	wait_for_runtime_process stop -x fw_daemon || exit 1
+
+	if [ "$mode" = "all" ]; then
+		vision_box_DualCam 9>&- &
+	fi
+	fw_daemon 9>&- &
+	if [ "$mode" = "all" ]; then
+		mediamtx /etc/mediamtx/mediamtx.yml 9>&- &
+		wait_for_runtime_process start vision_box || exit 1
+		wait_for_runtime_process start -x mediamtx || exit 1
+	fi
+	wait_for_runtime_process start -x fw_daemon
+) 9>/run/ospath-firmware-restart.lock
+
 check_usb_bus() {
 	local device port busnum devnum vendor product_id manufacturer product_name speed
 	local found=0
@@ -828,7 +890,10 @@ if [ "$1" = "aic" ]; then
 
 	elif [ "$2" = "rs" ]; then
 		echo "restart $3..."
-		pkill fw_watchdog.sh
+		case "$3" in
+			fw2|all) ;;
+			*) pkill fw_watchdog.sh ;;
+		esac
 		
 		if [ "$3" = "mtx" ]; then
 			pkill mediamtx
@@ -846,10 +911,8 @@ if [ "$1" = "aic" ]; then
 			sleep 1
 			vision_box_DualCam &
 
-		elif [ "$3" = "fw2" ]; then
-			pkill fw_daemon
-			sleep 1
-			fw_daemon &
+		elif [ "$3" = "fw2" ] || [ "$3" = "all" ]; then
+			restart_firmware "$3" || exit 1
 
 		elif [ "$3" = "fww" ]; then
 			echo "restart fw_watchdog.sh..."
@@ -881,16 +944,6 @@ if [ "$1" = "aic" ]; then
 		elif [ "$3" = "weston" ]; then
 			echo " Restart weston"
 			systemctl restart weston
-
-		elif [ "$3" = "all" ]; then
-			pkill vision_box
-			pkill fw_daemon
-			pkill mediamtx
-
-			sleep 3
-			vision_box_DualCam &
-			fw_daemon &
-			mediamtx /etc/mediamtx/mediamtx.yml&
 		fi
 
 	elif [ "$2" = "gst" ]; then
