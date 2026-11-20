@@ -65,14 +65,42 @@ log_separator() {
 	fi
 }
 
+format_cmd() {
+	local arg separator=""
+	for arg in "$@"; do
+		printf '%s' "$separator"
+		if [[ "$arg" =~ ^[[:alnum:]_./:=,+@%-]+$ ]]; then
+			printf '%s' "$arg"
+		else
+			arg=${arg//\\/\\\\}
+			arg=${arg//\"/\\\"}
+			arg=${arg//\$/\\\$}
+			arg=${arg//\`/\\\`}
+			printf '"%s"' "$arg"
+		fi
+		separator=" "
+	done
+}
+
 run_cmd() {
 	if [ "${1-}" = "--pipe" ]; then
 		shift
-		log_step "$@" >&2
+		local -a producer=()
+		while [[ $# -gt 0 && "$1" != "--" ]]; do
+			producer+=("$1")
+			shift
+		done
+		if [[ -z "${producer[0]+x}" || $# -lt 2 ]]; then
+			printf 'Usage: run_cmd --pipe command [args] -- command [args]\n' >&2
+			return 2
+		fi
+		shift
+		log_step "$(format_cmd "${producer[@]}") | $(format_cmd "$@")" >&2
+		"${producer[@]}" | "$@"
 	else
 		log_step "$@"
+		"$@"
 	fi
-	"$@"
 }
 
 is_aicamera() {
@@ -561,7 +589,7 @@ fi
 
 if [ "$1" = "ps" ]; then
 	if [ "$2" != "" ]; then
-		run_cmd --pipe ps aux | grep $2
+		run_cmd --pipe ps aux -- grep $2
 	fi
 fi
 
@@ -650,9 +678,9 @@ if [ "$1" = "aic" ]; then
 				echo "interrupt..."
 				cat /proc/interrupts | grep -iE 'rt171|tcp|tcpc|gpio|55'
 			elif [ "$4" = "k" ]; then
-				run_cmd --pipe dmesg -w | grep -iE 'rt1715|rt1711|tcpm|type.?c|usb|xhci|dp|altmode'
+				run_cmd --pipe dmesg -w -- grep -iE 'rt1715|rt1711|tcpm|type.?c|usb|xhci|dp|altmode'
 			elif [ "$4" = "udev" ]; then
-				run_cmd --pipe udevadm monitor --kernel --udev | grep -iE 'typec|usb|drm|display|connector'
+				run_cmd --pipe udevadm monitor --kernel --udev -- grep -iE 'typec|usb|drm|display|connector'
 			elif [ "$4" = "gpio" ]; then
 				run_cmd gpiomon --chip gpiochip0 --num-events=0 55
 			elif [ "$4" = "cc" ]; then
@@ -709,7 +737,7 @@ if [ "$1" = "aic" ]; then
 			ip addr show eth0
 			log_separator "networkctl status eth0"
 			networkctl status eth0
-			run_cmd --pipe fw_printenv | grep --color=auto eth
+			run_cmd --pipe fw_printenv -- grep --color=auto eth
 			log_separator "ethtool eth0"
 			ethtool eth0	
 
@@ -746,12 +774,12 @@ if [ "$1" = "aic" ]; then
 			run_cmd arv-tool-0.8 control DeviceUserID Width Height ExposureAuto ExposureTime GainAuto Gain TriggerMode TriggerSource TriggerActivation TriggerDelay LineDebouncerTime LineSelector=Line1 LineInverter LineSource StrobeEnable StrobeLineDuration StrobeLineDelay StrobeLinePreDelay
 
 		elif [ "$3" = "lora" ]; then
-			run_cmd --pipe opkg list-installed | grep --color=auto lora
+			run_cmd --pipe opkg list-installed -- grep --color=auto lora
 
 			log_step "find /usr -name '*lora_rylr993*' 2>/dev/null"
 			find /usr -name '*lora_rylr993*' 2>/dev/null
 
-			run_cmd --pipe ros2 pkg list | grep --color=auto lora_rylr993
+			run_cmd --pipe ros2 pkg list -- grep --color=auto lora_rylr993
 
 			run_cmd ros2 pkg executables lora_rylr993
 
@@ -827,9 +855,9 @@ if [ "$1" = "aic" ]; then
 				echo "App Tag:" && cat "$primax_dir/misc/application_tag" && echo
 			fi
 			if [ "$project_string" = "amr" ]; then
-				run_cmd --pipe ps aux | grep -E --color=auto "gst|lora|motor"
+				run_cmd --pipe ps aux -- grep -E --color=auto "gst|lora|motor"
 			else
-				run_cmd --pipe ps aux | grep -E --color=auto "vision_box|mediamtx|fw|gst|wpa_s|hostapd"
+				run_cmd --pipe ps aux -- grep -E --color=auto "vision_box|mediamtx|fw|gst|wpa_s|hostapd"
 			fi
 		fi
 	
@@ -1993,7 +2021,7 @@ if [ "$1" = "sys" ]; then
 		lsblk -p -o NAME,SIZE,TYPE,FSTYPE,PARTLABEL,MOUNTPOINTS
 		log_separator "Disk info ( df -h --total )"
 		df -h --total
-		run_cmd --pipe ps -eLo pid,tid,psr,pcpu,comm --sort=-pcpu | head -30
+		run_cmd --pipe ps -eLo pid,tid,psr,pcpu,comm --sort=-pcpu -- head -30
 	elif [ "$2" = "users" ]; then
 		# awk -F: '{ print $1}' /etc/passwd
 		log_separator "online User"
@@ -2511,13 +2539,13 @@ if [ "$1" == "size" ] ; then
     
     # === List directory size (one level) ===
     if [ "$3" == "d" ]; then
-        run_cmd --pipe sudo du -h --max-depth=1 "$2" | sort -h
+        run_cmd --pipe sudo du -h --max-depth=1 "$2" -- sort -h
         exit 0
     fi
     
     # === Max depth mode (m) ===
     if [ "$3" == "m" ] && [ -n "$4" ] && [[ "$4" =~ ^[0-9]+$ ]]; then
-        run_cmd --pipe sudo du -h --max-depth="$4" "$2" | sort -h
+        run_cmd --pipe sudo du -h --max-depth="$4" "$2" -- sort -h
         exit 0
     fi
     
