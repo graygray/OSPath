@@ -1,3 +1,5 @@
+source "$(dirname -- "${BASH_SOURCE[0]}")/../lib/share.sh" || exit 1
+
 xDir=~/"OSPath/Ubuntu"
 FTP_DIR="${FTP_DIR:-/FTP/Public}"
 
@@ -6,10 +8,7 @@ dockderDir=~/"OSPath/Docker"
 
 # redmine
 redDir="$dockderDir/redmine"
-redDir_Home="/var/lib/docker/volumes/redmine_vHome/_data"
 redDir_Files="/var/lib/docker/volumes/redmine_vFiles/_data"
-redDir_Config="/var/lib/docker/volumes/redmine_vConfig/_data"
-redDir_Mysql="/var/lib/docker/volumes/redmine_vMysql/_data"
 redDir_Postgres="/var/lib/docker/volumes/redmine_vPostgres/_data"
 
 # gitlab
@@ -102,8 +101,7 @@ if [ "$1" = "bb" ] ; then
 	elif [ "$2" = "l" ] ; then
 		echo "layer..."
 		if [  "$3" = "sl" ] ; then
-			echo "bitbake-layers show-layers"
-			bitbake-layers show-layers
+			run_cmd bitbake-layers show-layers
 
 		elif [  "$3" = "sr" ] ; then
 			echo "show-recipe..."
@@ -114,25 +112,21 @@ if [ "$1" = "bb" ] ; then
 			fi
 
 		elif [  "$3" = "cl" ] ; then
-			echo "bitbake-layers create-layer $4"
-			bitbake-layers create-layer $4
+			run_cmd bitbake-layers create-layer $4
 
 		elif [  "$3" = "cr" ] ; then
-			echo "bitbake-layers create-recipe $4"
-			bitbake-layers create-recipe $4
+			run_cmd bitbake-layers create-recipe $4
 		fi
 
 	elif [ "$2" = "kill" ] ; then
 		echo "kill bitbake & bitbake server"
-		echo "ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep"
+		log_step "ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep"
 		ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep
-		echo "pkill -9 -f bitbake"
-		pkill -9 -f bitbake
-		echo "pkill -9 -f bitbake-server"
-		pkill -9 -f bitbake-server
+		run_cmd pkill -9 -f bitbake
+		run_cmd pkill -9 -f bitbake-server
 		rm -f "$BUILD_DIR/bitbake-cookerdaemon.*"
 		rm -f "$BUILD_DIR/bitbake.sock"
-		echo "ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep"
+		log_step "ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep"
 		ps -ef | grep -E 'bitbake|bitbake-server|oe-init' | grep -v grep
 	fi
 fi
@@ -140,8 +134,7 @@ fi
 if [ "$1" = "lora" ] ; then
 	ipk_file="lora-rylr993_0.0.1-r0_armv8a.ipk"
 	if [ "$2" = "b" ]; then
-		echo "bitbake lora-rylr993"
-		bitbake lora-rylr993
+		run_cmd bitbake lora-rylr993
 	elif [ "$2" = "ftp" ]; then
 		echo "copy lora ipk to ftp... "
 		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$ipk_file" "$FTP_DIR/gray/amr/"
@@ -151,8 +144,7 @@ fi
 if [ "$1" = "mc" ] ; then
 	ipk_file="motor-control-g4dual_0.1.0-r0_armv8a.ipk"
 	if [ "$2" = "b" ]; then
-		echo "bitbake motor-control-g4dual"
-		bitbake motor-control-g4dual
+		run_cmd bitbake motor-control-g4dual
 	elif [ "$2" = "ftp" ]; then
 		echo "copy mc ipk ($ipk_file) to ftp... "
 		cp -rf "$PROJ_ROOT/build/tmp/deploy/ipk/armv8a/$ipk_file" "$FTP_DIR/gray/amr/"
@@ -162,8 +154,8 @@ fi
 # AI Camera
 if [ "$1" = "aic" ] ; then
 
-	echo "========== MACHINE:$MACHINE =========="
-	echo "========== PROJ_ROOT:$PROJ_ROOT =========="
+	log_separator "MACHINE:$MACHINE"
+	log_separator "PROJ_ROOT:$PROJ_ROOT"
 
 	if [ "$2" = "dk" ] ; then
 		prjString="aicamera_plus_box"
@@ -171,30 +163,28 @@ if [ "$1" = "aic" ] ; then
 
 		# prjService="build_aicamera"
 		prjService="build_g720"
-		echo "========== docker cmd =========="
+		log_separator "docker cmd"
 
 		if [ "$3" = "up" ] ; then
-			echo "docker-compose -f "$prjDockderDir/docker-compose-$prjString.yml" up -d"
-			docker-compose -f "$prjDockderDir/docker-compose-$prjString.yml" up -d
+			run_cmd docker-compose -f "$prjDockderDir/docker-compose-$prjString.yml" up -d
 		elif [ "$3" = "down" ] ; then
-			echo "docker-compose -f "$prjDockderDir/docker-compose-$prjString.yml" down"
-			docker-compose -f "$prjDockderDir/docker-compose-$prjString.yml" down
+			run_cmd docker-compose -f "$prjDockderDir/docker-compose-$prjString.yml" down
 		elif [ "$3" = "bash" ] ; then
-			echo "========== docker exec -it -u root $prjService /bin/bash =========="
+			log_separator "docker exec -it -u root $prjService /bin/bash"
 			docker exec -it $prjService /bin/bash
 		elif [ "$3" = "log" ] ; then
-			echo "========== docker logs -tf jenkins =========="
+			log_separator "docker logs -tf jenkins"
 			docker logs -tf $prjService
 		fi
 
 	elif [ "$2" = "ust" ] ; then
-		echo "========== update Test_C_yocto src =========="
+		log_separator "update Test_C_yocto src"
 		cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/src/Test_C_yocto
 		# git reset --hard HEAD
 		git pull
 
 	elif [ "$2" = "usv" ] ; then
-		echo "========== update vision_box_DualCam src =========="
+		log_separator "update vision_box_DualCam src"
 		cd $PROJ_ROOT/src/meta-primax/recipes-primax/primax/files/primax-1.0/src/vision_box_DualCam
 		# git reset --hard HEAD
 		git pull
@@ -220,7 +210,7 @@ if [ "$1" = "aic" ] ; then
 		echo "Updated version: $prefix.$new_patch"
 
 	elif [ "$2" = "ftp" ] ; then
-		echo "========== update files to FTP =========="
+		log_separator "update files to FTP"
 		dir_ftp="$FTP_DIR/gray"
 
 		targetPlatform="armv8a-poky-linux"
@@ -260,7 +250,7 @@ if [ "$1" = "aic" ] ; then
 		fi
 
 	elif [ "$2" = "cpipk" ] ; then
-		echo "========== copy *.ipk files to FTP =========="
+		log_separator "copy *.ipk files to FTP"
 		dir_ftp="$FTP_DIR/gray"
 		dir_work="$PROJ_ROOT/build/tmp/deploy/ipk/armv8a"
 
@@ -288,18 +278,17 @@ if [ "$1" = "yt" ] ; then
 	
 	if [  "$2" = "b" ] ; then
 		echo "build whole image..."
-		echo "DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image"
+		log_step "DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image"
 		DISTRO=rity-demo MACHINE=genio-700-evk bitbake rity-demo-image
 
 	elif [  "$2" = "bk" ] ; then
 		echo "build kernel..."
-		echo "MACHINE=genio-700-evk bitbake linux-mtk"
+		log_step "MACHINE=genio-700-evk bitbake linux-mtk"
 		MACHINE=genio-700-evk bitbake linux-mtk
 
 	elif [  "$2" = "kconf" ] ; then
 		echo "kernel config..."
-		echo "bitbake virtual/kernel -c menuconfig"
-		bitbake virtual/kernel -c menuconfig
+		run_cmd bitbake virtual/kernel -c menuconfig
 
 	elif [ "$2" = "f" ] ; then
 
@@ -309,34 +298,32 @@ if [ "$1" = "yt" ] ; then
 		dtbos_dp="--load-dtbo display-dp.dtbo"		
 
 		if [ "$3" = "cam" ] ; then
-			echo "===== genio-flash $dtbos_cam $dtbos_codec ====="
+			log_separator "genio-flash $dtbos_cam $dtbos_codec"
 			genio-flash $dtbos_cam $dtbos_codec
 		elif [ "$3" = "dp" ] ; then
-			echo "===== genio-flash $dtbos_dp ====="
+			log_separator "genio-flash $dtbos_dp"
 			genio-flash $dtbos_dp
 		elif [ "$3" = "k" ] ; then
 			if [ "$4" = "dp" ] ; then
-				echo "genio-flash --load-dtbo display-dp.dtbo kernel mmc0boot1..."
-				genio-flash --load-dtbo display-dp.dtbo kernel mmc0boot1
+				run_cmd genio-flash --load-dtbo display-dp.dtbo kernel mmc0boot1
 			else 
-				echo "genio-flash kernel..."
-				genio-flash kernel
+				run_cmd genio-flash kernel
 			fi
 		elif [ "$3" = "all" ] ; then
-			echo "===== genio-flash $dtbos_ai $dtbos_codec $dtbos_cam $dtbos_dp ====="
+			log_separator "genio-flash $dtbos_ai $dtbos_codec $dtbos_cam $dtbos_dp"
 			genio-flash $dtbos_ai $dtbos_codec $dtbos_cam $dtbos_dp
 		else
-			echo "===== genio-flash ====="
+			log_separator "genio-flash"
 			genio-flash
 			#aiot-flash
 		fi
 
 	elif [ "$2" = "dtb2dts" ] ; then
-		echo "========== dtc -I dtb -O dts -o $3.dts $3.dtb =========="
+		log_separator "dtc -I dtb -O dts -o $3.dts $3.dtb"
 		dtc -I dtb -O dts -o $3.dts $3.dtb
 
 	elif [ "$2" = "dts2dtb" ] ; then
-		echo "========== dtc -I dts -O dtb -o $3.dtb $3.dts =========="
+		log_separator "dtc -I dts -O dtb -o $3.dtb $3.dts"
 		dtc -I dts -O dtb -o $3.dtb $3.dts
 
 	else
@@ -380,37 +367,37 @@ fi
 # system related 
 if [ "$1" = "sys" ] ; then
 	if [ "$2" = "service" ] ; then
-		echo "========== Service info =========="
+		log_separator "Service info"
 		service --status-all
 		#ls /etc/init.d
 	elif [ "$2" = "info" ] ; then
-		echo "========== System info =========="
-		echo "==== Ubuntu version ( cat /etc/os-release )===="
+		log_separator "System info"
+		log_separator "Ubuntu version ( cat /etc/os-release )"
 		cat /etc/os-release
-		echo "==== Kernel version ( uname -a )===="
+		log_separator "Kernel version ( uname -a )"
 		uname -a
-		echo "==== CPU info ( lscpu )===="
+		log_separator "CPU info ( lscpu )"
 		lscpu
-		echo "==== Memory info ( free -mh )===="
+		log_separator "Memory info ( free -mh )"
 		free -mh
-		echo "==== Disk info ( df -h --total ) ===="
+		log_separator "Disk info ( df -h --total )"
 		# df -h --total
 		df -h --total | grep sd
 	elif [ "$2" = "users" ] ; then
 		# awk -F: '{ print $1}' /etc/passwd
-		echo "========== online User =========="
+		log_separator "online User"
 		w
 
 		# list normal users
-		echo "========== User range =========="
+		log_separator "User range"
 		grep -E '^UID_MIN|^UID_MAX' /etc/login.defs
-		echo "========== User info =========="
+		log_separator "User info"
 		getent passwd {1000..60000}
 
 	elif [ "$2" = "user" ] ; then
 		id -nG $3
 	elif [ "$2" = "net" ] ; then
-		echo "========== nmap -A 192.168.100.* =========="
+		log_separator "nmap -A 192.168.100.*"
 		nmap -A 192.168.100.*
 	else
 		echo "param 3 not match"
@@ -452,8 +439,7 @@ if [ "$1" = "cp" ]; then
             fi
 
             fname=$(basename "$marked_path")
-            echo "cp -rf \"$marked_path\" \"$PWD/$fname\""
-            cp -rf "$marked_path" "$PWD/$fname"
+            run_cmd cp -rf "$marked_path" "$PWD/$fname"
         fi
         exit $?
     fi
@@ -481,11 +467,9 @@ if [ "$1" = "cp" ]; then
 
     if [ "$use_basename" -eq 1 ]; then
         fname=$(basename "$3")
-        echo "cp -rf \"$3\" \"$path/$fname\""
-        cp -rf "$3" "$path/$fname"
+        run_cmd cp -rf "$3" "$path/$fname"
     else
-        echo "cp -rf \"$3\" \"$path/$3\""
-        cp -rf "$3" "$path/$3"
+        run_cmd cp -rf "$3" "$path/$3"
     fi
 fi
 
@@ -524,8 +508,7 @@ if [ "$1" = "mv" ]; then
             fi
 
             fname=$(basename "$marked_path")
-            echo "mv \"$marked_path\" \"$PWD/$fname\""
-            mv "$marked_path" "$PWD/$fname"
+            run_cmd mv "$marked_path" "$PWD/$fname"
         fi
         exit $?
     fi
@@ -537,8 +520,7 @@ fi
 # ps
 if [ "$1" = "ps" ]; then
 	if [ "$2" != "" ]; then
-		echo "ps aux | grep $2"
-		ps aux | grep $2
+		run_cmd --pipe ps aux -- grep $2
 	fi
 fi
 
@@ -611,8 +593,7 @@ if [ "$1" = "ftp" ] ; then
 	elif [ "$2" = "d+g" ] ; then
 		# add group access for some dir
 		echo "ex : sudo setfacl -Rdm g:SAC_EE:rwx DirName/"
-		echo "sudo setfacl -Rdm g:$4:rwx $3"
-		sudo setfacl -Rdm g:$4:rwx $3
+		run_cmd sudo setfacl -Rdm g:$4:rwx $3
 	elif [ "$2" = "config" ] ; then
 		nano /etc/vsftpd.conf
 	else
@@ -734,66 +715,53 @@ if [ "$1" = "zip" ] ; then
 
     # === bz2 ===
     if [ "$type" = "bz2" ]; then
-        echo ">>>> bz2 $2 to $out.tar.bz2"
-        echo "tar -jcvf $out.tar.bz2 \"$2\""
-        tar -jcvf "$out.tar.bz2" "$2"
+        log_step "bz2 $2 to $out.tar.bz2"
+        run_cmd tar -jcvf "$out.tar.bz2" "$2"
 
     # === zip ===
     elif [ "$type" = "zip" ]; then
-        echo ">>>> zip $2 to $out.zip"
-        echo "zip -r $out.zip \"$2\""
-        zip -r "$out.zip" "$2"
+        log_step "zip $2 to $out.zip"
+        run_cmd zip -r "$out.zip" "$2"
 
     # === default: gzip ===
     else
-        echo ">>>> gzip $2 to $out.tar.gz"
-        echo "tar -zcvf $out.tar.gz \"$2\""
-        tar -zcvf "$out.tar.gz" "$2"
+        log_step "gzip $2 to $out.tar.gz"
+        run_cmd tar -zcvf "$out.tar.gz" "$2"
     fi
 fi
 if [ "$1" = "unzip" ] ; then
-	echo ">>>> unzip file: $2"
+	log_step "unzip file: $2"
 
 	if [[ "$2" == *.tar.gz || "$2" == *.tgz ]]; then
-		echo "tar -zxvf \"$2\""
-		tar -zxvf "$2"
+		run_cmd tar -zxvf "$2"
 	elif [[ "$2" == *.tar.bz2 || "$2" == *.tbz || "$2" == *.tbz2 ]]; then
-		echo "tar -jxvf \"$2\""
-		tar -jxvf "$2"
+		run_cmd tar -jxvf "$2"
 	elif [[ "$2" == *.7z ]]; then
 		if command -v 7z >/dev/null 2>&1; then
-			echo "7z x \"$2\""
-			7z x "$2"
+			run_cmd 7z x "$2"
 		elif command -v 7zr >/dev/null 2>&1; then
-			echo "7zr x \"$2\""
-			7zr x "$2"
+			run_cmd 7zr x "$2"
 		elif command -v 7za >/dev/null 2>&1; then
-			echo "7za x \"$2\""
-			7za x "$2"
+			run_cmd 7za x "$2"
 		else
 			echo "No 7z extractor found. Install p7zip (7z/7zr/7za)."
 			exit 1
 		fi
 	elif [[ "$2" == *.rar ]]; then
 		if command -v unrar >/dev/null 2>&1; then
-			echo "unrar x \"$2\""
-			unrar x "$2"
+			run_cmd unrar x "$2"
 		elif command -v 7z >/dev/null 2>&1; then
-			echo "7z x \"$2\""
-			7z x "$2"
+			run_cmd 7z x "$2"
 		elif command -v 7zr >/dev/null 2>&1; then
-			echo "7zr x \"$2\""
-			7zr x "$2"
+			run_cmd 7zr x "$2"
 		elif command -v 7za >/dev/null 2>&1; then
-			echo "7za x \"$2\""
-			7za x "$2"
+			run_cmd 7za x "$2"
 		else
 			echo "No RAR extractor found. Install unrar or p7zip (7z/7zr/7za)."
 			exit 1
 		fi
 	elif [[ "$2" == *.zip ]]; then
-		echo "unzip \"$2\""
-		unzip "$2"
+		run_cmd unzip "$2"
 	else
 		echo "Unsupported file format: $2"
 	fi
@@ -804,29 +772,22 @@ if [ "$1" = "chmod" ] ; then
 	if [ -n "$2" ] ; then
 		if [ "$2" = "all" ] ; then
 			if [ "$3" = "4" ] ; then
-				echo "sudo chmod -R 444 ."
-				sudo chmod -R 444 .
+				run_cmd sudo chmod -R 444 .
 			elif [ "$3" = "6" ] ; then
-				echo "sudo chmod -R 666 ."
-				sudo chmod -R 666 .
+				run_cmd sudo chmod -R 666 .
 			else
-				echo "sudo chmod -R 777 ."
-				sudo chmod -R 777 .
+				run_cmd sudo chmod -R 777 .
 			fi
 		elif [ "$2" = "dir" ] ; then
 			echo "change only dir..."
-			echo "find $3 -type d -exec sudo chmod 777 {} \;"
-			find "$3" -type d -exec sudo chmod 777 {} \;
+			run_cmd find "$3" -type d -exec sudo chmod 777 {} \;
 		else
 			if [ "$3" = "4" ] ; then
-				echo "sudo chmod -R 444 $2"
-				sudo chmod -R 444 "$2"
+				run_cmd sudo chmod -R 444 "$2"
 			elif [ "$3" = "6" ] ; then
-				echo "sudo chmod -R 666 $2"
-				sudo chmod -R 666 "$2"
+				run_cmd sudo chmod -R 666 "$2"
 			else
-				echo "sudo chmod -R 777 $2"
-				sudo chmod -R 777 "$2"
+				run_cmd sudo chmod -R 777 "$2"
 			fi
 		fi
 	fi
@@ -842,8 +803,7 @@ if [ "$1" = "ssh" ] ; then
 		if [ "$3" = "r" ] ; then
 			ssh -Y root@$wheeltec_ip
 		else
-			echo "ssh -Y wheeltec@$wheeltec_ip"
-			ssh -Y wheeltec@$wheeltec_ip
+			run_cmd ssh -Y wheeltec@$wheeltec_ip
 		fi
 		
 	else
@@ -867,17 +827,17 @@ if [ "$1" = "dk" ] ; then
 		elif [ "$3" = "stop" ] ; then
 			docker-compose -f "$redDir/docker-compose-red.yml" stop
 		elif [ "$3" = "bash" ] ; then
-			echo "========== docker exec -it redmine /bin/bash =========="
+			log_separator "docker exec -it redmine /bin/bash"
 			docker exec -ti redmine /bin/bash
 		elif [ "$3" = "chmod" ] ; then
 			sudo chmod 777 $redDir_Files/
 			sudo chmod 777 $redDir_Postgres/
 		elif [ "$3" = "psql" ] ; then
 			# postgres bash
-			echo "========== docker exec -it postgres /bin/bash =========="
+			log_separator "docker exec -it postgres /bin/bash"
 			docker exec -ti postgres /bin/bash
 		elif [ "$3" = "log" ] ; then
-			echo "========== docker logs -tf redmine =========="
+			log_separator "docker logs -tf redmine"
 			docker logs -tf redmine
 		elif [ "$3" = "backup" ] ; then
 			docker exec -it postgres pg_dump -U redmine -d redmine -Fc -f /var/lib/postgresql/data/redmine.sqlc
@@ -896,10 +856,10 @@ if [ "$1" = "dk" ] ; then
 		elif [ "$3" = "down" ] ; then
 			docker-compose -f "$jksDir/docker-compose-jenkins.yml" down
 		elif [ "$3" = "bash" ] ; then
-			echo "========== docker exec -it -u root jenkins /bin/bash =========="
+			log_separator "docker exec -it -u root jenkins /bin/bash"
 			docker exec -it -u root jenkins /bin/bash
 		elif [ "$3" = "log" ] ; then
-			echo "========== docker logs -tf jenkins =========="
+			log_separator "docker logs -tf jenkins"
 			docker logs -tf jenkins
 		else
 			echo "jksDir:$jksDir"
@@ -950,53 +910,53 @@ if [ "$1" = "dk" ] ; then
 				cp $gitDir_ConfigR/gitlab.yml $gitDir/config
 			elif [ "$4" = "update" ] ; then
 				cp -rf $gitDir/config/gitlab.rb $gitDir_Config
-				echo "========== docker exec -it gitlab gitlab-ctl reconfigure =========="
+				log_separator "docker exec -it gitlab gitlab-ctl reconfigure"
 				docker exec -it gitlab gitlab-ctl reconfigure
-				echo "========== docker exec -it gitlab gitlab-ctl restart =========="
+				log_separator "docker exec -it gitlab gitlab-ctl restart"
 				docker exec -it gitlab gitlab-ctl restart
 			else
 				echo ">> param 4 not match"
 			fi
 		elif [ "$3" = "check" ] ; then
-			echo "========== docker exec -it gitlab gitlab-rake gitlab:check SANITIZE=true =========="
+			log_separator "docker exec -it gitlab gitlab-rake gitlab:check SANITIZE=true"
 			docker exec -ti gitlab gitlab-rake gitlab:check SANITIZE=true
 		elif [ "$3" = "info" ] ; then
-			echo "========== docker exec -ti gitlab gitlab-rake gitlab:env:info =========="
+			log_separator "docker exec -ti gitlab gitlab-rake gitlab:env:info"
 			docker exec -ti gitlab gitlab-rake gitlab:env:info
 		elif [ "$3" = "bash" ] ; then
-			echo "========== docker exec -it gitlab /bin/bash =========="
+			log_separator "docker exec -it gitlab /bin/bash"
 			docker exec -ti gitlab /bin/bash
 		elif [ "$3" = "psql" ] ; then
-			echo "========== docker exec -it gitlab gitlab-psql =========="
+			log_separator "docker exec -it gitlab gitlab-psql"
 			docker exec -ti gitlab gitlab-psql
 		elif [ "$3" = "rail" ] ; then
-			echo "========== docker exec -it gitlab gitlab-rails console =========="
+			log_separator "docker exec -it gitlab gitlab-rails console"
 			docker exec -ti gitlab gitlab-rails console
 		elif [ "$3" = "log" ] ; then
-			echo "========== docker logs -tf gitlab =========="
+			log_separator "docker logs -tf gitlab"
 			docker logs -tf --since 1m gitlab
 		elif [ "$3" = "backup" ] ; then
-			echo "========== docker exec -it gitlab gitlab-rake gitlab:backup:create =========="
+			log_separator "docker exec -it gitlab gitlab-rake gitlab:backup:create"
 				docker exec -ti gitlab gitlab-backup create
 
 				# GitLab 12.1 and earlier
 				# docker exec -ti gitlab gitlab-rake gitlab:backup:create
 		elif [ "$3" = "restore" ] ; then
 			if [ "$4" = "1" ] ; then
-				echo "========== step 1 : stop connectivity services ==========" 
+				log_separator "step 1 : stop connectivity services"
 				# docker exec -it gitlab gitlab-ctl stop unicorn
 				docker exec -it gitlab gitlab-ctl stop puma
 				docker exec -it gitlab gitlab-ctl stop sidekiq
 				docker exec -it gitlab gitlab-ctl status
 			elif [ "$4" = "2" ] ; then
-				echo "========== step 2 : restore from backup tar : $gitBackupFile ==========" 
+				log_separator "step 2 : restore from backup tar : $gitBackupFile"
 				docker exec -it gitlab gitlab-backup restore BACKUP=$gitBackupFile
 
 			elif [ "$4" = "3" ] ; then
-				echo "========== step 3 : re-configure & re-start ==========" 
-				echo "========== docker exec -it gitlab gitlab-ctl reconfigure =========="
+				log_separator "step 3 : re-configure & re-start"
+				log_separator "docker exec -it gitlab gitlab-ctl reconfigure"
 				docker exec -it gitlab gitlab-ctl reconfigure
-				echo "========== docker exec -it gitlab gitlab-ctl restart =========="
+				log_separator "docker exec -it gitlab gitlab-ctl restart"
 				docker exec -it gitlab gitlab-ctl restart
 
 			elif [ "$4" = "4" ] ; then
@@ -1008,7 +968,7 @@ if [ "$1" = "dk" ] ; then
 
 		elif [ "$3" = "sp" ] ; then
 			# show related path
-			echo "========== gitlab paths  ==========" 
+			log_separator "gitlab paths"
 			echo "# docker mapping dir in host" 
 			echo "gitDir_Data:$gitDir_Data"
 			echo "gitDir_Config:$gitDir_Config"
@@ -1040,27 +1000,27 @@ if [ "$1" = "dk" ] ; then
 		# image related
 		if  [ "$3" = "ins" ] ; then
 			#inspect volume
-			echo "========== docker volume inspect 'Volume Name' ========== " 
+			log_separator "docker volume inspect 'Volume Name'"
 			docker volume inspect $4
 		elif  [ "$3" = "rm" ] ; then
-			echo "========== docker image rm $4 ========== " 
+			log_separator "docker image rm $4"
 			docker image rm $4
 		else
 			# list images
-			echo "========== docker image ls ========== " 
+			log_separator "docker image ls"
 			docker image ls
 		fi
 
 	elif [ "$2" = "c" ] ; then
 		# container related
 		if  [ "$3" = "ins" ] ; then
-			echo "========== docker inspect 'container id'========== " 
+			log_separator "docker inspect 'container id'"
 			docker inspect $4
 		elif  [ "$3" = "stop" ] ; then
-			echo "========== docker container stop 'Container ID' ========== " 
+			log_separator "docker container stop 'Container ID'"
 			docker container stop $4
 		elif  [ "$3" = "rm" ] ; then
-			echo "========== docker container rm 'Container ID' ========== " 
+			log_separator "docker container rm 'Container ID'"
 			
 			# remove all stoped container
 			docker rm $(docker ps -a -q) 
@@ -1068,7 +1028,7 @@ if [ "$1" = "dk" ] ; then
 			docker container rm -f $4
 		else
 			# list containers
-			echo "========== docker container ls ========== " 
+			log_separator "docker container ls"
 			#docker container ls
 			docker container ls --format "table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}"
 		fi
@@ -1077,25 +1037,25 @@ if [ "$1" = "dk" ] ; then
 
 		if  [ "$3" = "ins" ] ; then
 			#inspect valume
-			echo "========== docker volume inspect 'Volume Name' ========== " 
+			log_separator "docker volume inspect 'Volume Name'"
 			docker volume inspect $4
 		elif  [ "$3" = "rm" ] ; then
 			# inspect valume
-			echo "========== docker volume rm 'Volume Name' ========== " 
+			log_separator "docker volume rm 'Volume Name'"
 			docker volume rm -f $4
 		else
-			echo "========== docker volume ls ========== " 
+			log_separator "docker volume ls"
 			docker volume ls
 		fi
 
 	elif [ "$2" = "bash" ] ; then
 
 		if [ -n "$3" ] ; then
-			echo "========== docker exec -it $3 bash ========== " 
+			log_separator "docker exec -it $3 bash"
 			docker exec -it $3 bash
 		else
 			echo ">> container ID needed!"
-			echo "========== docker container ls ========== " 
+			log_separator "docker container ls"
 			docker container ls
 		fi
 
@@ -1103,20 +1063,20 @@ if [ "$1" = "dk" ] ; then
 
 		if [ "$3" = "all" ] ; then
 			# remove all stopped containers, all dangling images, all unused volumes, and all unused networks
-			echo "========== docker system prune --volumes ========== " 
+			log_separator "docker system prune --volumes"
 			# docker system prune
 			docker system prune --volumes
 
 		elif  [ "$3" = "i" ] ; then
 			# remove image
 			if [ -n "$4" ] ; then
-				echo "========== docker image rm $4 ========== " 
+				log_separator "docker image rm $4"
 				docker image rm $4
 
 				# >> To remove all images which are not referenced by any existing container
 				# docker image prune -a 
 			else
-				echo "========== docker image ls ========== " 
+				log_separator "docker image ls"
 				docker image ls
 			fi
 		else
@@ -1132,22 +1092,22 @@ fi
 if [ "$1" = "dkc" ] ; then
 	if [ -n "$3" ] ; then
 		if [ "$2" = "up" ] ; then
-			echo "========== docker-compose -f $3 up ========== " 
+			log_separator "docker-compose -f $3 up"
 			# docker-compose -f $3 up -d
 			docker-compose -f $3 up
 		elif [ "$2" = "down" ] ; then
-			echo "========== docker-compose -f $3 up ========== " 
+			log_separator "docker-compose -f $3 up"
 			docker-compose -f $3 down
 		elif [ "$2" = "r" ] ; then
-			echo "========== docker-compose -f $3 up ========== " 
+			log_separator "docker-compose -f $3 up"
 			docker-compose -f $3 down
 			docker-compose -f $3 up -d
 		else
-			echo "========== docker-compose donothing ========== " 
+			log_separator "docker-compose donothing"
 		fi
 	else
 		if [ "$2" = "up" ] ; then
-			echo "========== docker-compose  ========== " 
+			log_separator "docker-compose"
 			docker-compose up -d
 		elif [ "$2" = "down" ] ; then
 			docker-compose down
@@ -1155,20 +1115,20 @@ if [ "$1" = "dkc" ] ; then
 			docker-compose down
 			docker-compose up -d
 		else
-			echo "========== docker-compose donothing ========== " 
+			log_separator "docker-compose donothing"
 		fi
 	fi
 fi
 
 # nfs
 if [ "$1" == "nfs" ] ; then
-	echo "========== NFS "==========
+	log_separator "NFS"
 	if [ "$2" = "e" ] ; then
-		echo "========== edit conf file ========== " 
+		log_separator "edit conf file"
 		sudo nano /etc/exports
 
 	elif [ "$2" = "mkdir" ] ; then
-		echo "========== make nfs dir ========== " 
+		log_separator "make nfs dir"
 		sudo mkdir -p $3
 		sudo chown nobody:nogroup /srv/nfs/data
 		sudo chmod 777 /srv/nfs/data
@@ -1207,14 +1167,12 @@ fi
 
 # find content
 if [ "$1" == "grep" ] ; then
-	echo "grep -r $2 ."
-	grep -r $2 .
+	run_cmd grep -r $2 .
 fi
 
 # find file
 if [ "$1" == "find" ] ; then
-	echo "find . -name $2"
-	find . -name $2
+	run_cmd find . -name $2
 fi
 
 # file / folder size
@@ -1229,33 +1187,28 @@ if [ "$1" == "size" ] ; then
     
     # === List directory size (one level) ===
     if [ "$3" == "d" ]; then
-        echo "sudo du -h --max-depth=1 \"$2\" | sort -h"
-        sudo du -h --max-depth=1 "$2" | sort -h
+        run_cmd --pipe sudo du -h --max-depth=1 "$2" -- sort -h
         exit 0
     fi
     
     # === Max depth mode (m) ===
     if [ "$3" == "m" ] && [ -n "$4" ] && [[ "$4" =~ ^[0-9]+$ ]]; then
-        echo "sudo du -h --max-depth=$4 \"$2\" | sort -h"
-        sudo du -h --max-depth="$4" "$2" | sort -h
+        run_cmd --pipe sudo du -h --max-depth="$4" "$2" -- sort -h
         exit 0
     fi
     
     # === Default: summary only (file or folder size) ===
-    echo "sudo du --no-dereference -sh \"$2\""
-    sudo du --no-dereference -sh "$2"
+    run_cmd sudo du --no-dereference -sh "$2"
 fi
 
 # tree -L3
 if [ "$1" == "tree" ] ; then
-	echo "tree -L 3 $2"
-	tree -L 3 $2
+	run_cmd tree -L 3 $2
 fi
 
 # diff
 if [ "$1" == "diff" ] ; then
-	echo "diff -rq $2 $3"
-	diff -rq $2 $3
+	run_cmd diff -rq $2 $3
 fi
 if [ "$1" == "diffp" ] ; then
 	echo "use p1 & p2 path to diff same file"
@@ -1265,20 +1218,15 @@ fi
 # git
 if [ "$1" == "git" ] ; then
     if [ "$2" == "l" ]; then
-		echo "git log --oneline"
-		git log --oneline
+		run_cmd git log --oneline
 	elif [ "$2" = "c" ] ; then
-		echo "git commit -a -m \"$3\""
-		git commit -a -m "$3"
+		run_cmd git commit -a -m "$3"
 	elif [ "$2" = "p" ] ; then
-		echo "git format-patch \"$3\"..\"$4\""
-		git format-patch "$3".."$4"
+		run_cmd git format-patch "$3".."$4"
 	elif [ "$2" = "sf" ] ; then
-		echo "git stash push -- \"$3\""
-		git stash push -- "$3"
+		run_cmd git stash push -- "$3"
 	else
-		echo "git status"
-		git status
+		run_cmd git status
 	fi
 fi
 
@@ -1333,8 +1281,7 @@ if [ "$1" == "bpb" ] ; then
 fi
 
 if [ "$1" == "c" ] ; then
-	echo "clear ..."
-	clear
+	run_cmd clear
 fi
 
 if [ "${1:-}" = "codex" ]; then

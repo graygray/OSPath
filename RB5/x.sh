@@ -1,3 +1,4 @@
+source "$(dirname -- "${BASH_SOURCE[0]}")/../lib/share.sh" || exit 1
 
 echo "param 0:"$0
 echo "param 1:"$1
@@ -13,9 +14,7 @@ emojiDir="$WorkingDir/LCD"
 emojiDir2="$WorkingDir/LCD_timeless"
 emojiFile="Agree.mp4"
 emojiFile2="Blink.mp4"
-emojiFiles=(Agree Blink Confused Cute Disagree Dizzy Happy_1 Shock SleepLoop Sleep Smile StartSleep Talk Tired WakeUp2 LookAround Random)
 
-rosDir_Home="/opt/ros/galactic"
 testNode="lcd_set_emoji"
 nodeDir="$WorkingDir/$testNode"
 
@@ -96,7 +95,7 @@ if [ "$1" = "l" ] ; then
 		git clone ssh://git@10.1.7.125:10022/Gray.LIn/lidar_ao_oasab0512.git
 
 	elif [ "$2" = "b" ] ; then
-		echo "========== colcon build =========="
+		log_separator "colcon build"
 		cd $nodeDir
 		colcon build
 		# colcon build --packages-select lidar_ao_oasab0512
@@ -112,7 +111,7 @@ if [ "$1" = "l" ] ; then
 	elif [  "$2" = "t" ] ; then
 	
 		testTopic="/scan"
-		echo "echo...  ========== topic:$testTopic =========="
+		log_separator "echo... topic:$testTopic"
 		# ros2 topic echo $testTopic
 		# ros2 topic echo --no-arr $testTopic
 		ros2 topic echo $testTopic | grep -A 3 ranges
@@ -140,7 +139,7 @@ if [ "$1" = "h" ] ; then
 		git clone ssh://git@10.1.7.125:10022/Gray.LIn/ctrl_head.git
 
 	elif [ "$2" = "b" ] ; then
-		echo "========== colcon build =========="
+		log_separator "colcon build"
 		cd $nodeDir
 		colcon build
 	
@@ -158,11 +157,9 @@ if [ "$1" = "h" ] ; then
 		echo "param ctrl_fixed_action..."
 
 		if [ "$3" = "set" ] ; then
-			echo "ros2 param set $testNode ctrl_fixed_action '$4'"
-			ros2 param set $testNode ctrl_fixed_action "$4"
+			run_cmd ros2 param set $testNode ctrl_fixed_action "$4"
 		elif [ "$3" = "get" ] ; then
-			echo "ros2 param get $testNode ctrl_fixed_action"
-			ros2 param get $testNode ctrl_fixed_action
+			run_cmd ros2 param get $testNode ctrl_fixed_action
 		fi
 
 	elif [ "$2" = "p1" ] ; then
@@ -170,22 +167,18 @@ if [ "$1" = "h" ] ; then
 
 		ros2 param set $testNode select_servo_num 1
 		if [ "$3" = "set" ] ; then
-			echo "ros2 param set $testNode set_angle '$4'"
-			ros2 param set $testNode set_angle "$4"
+			run_cmd ros2 param set $testNode set_angle "$4"
 		elif [ "$3" = "get" ] ; then
-			echo "ros2 param get $testNode set_angle"
-			ros2 param get $testNode set_angle
+			run_cmd ros2 param get $testNode set_angle
 		fi
 	elif [ "$2" = "p2" ] ; then
 		echo "param set_angle..."
 
 		ros2 param set $testNode select_servo_num 2
 		if [ "$3" = "set" ] ; then
-			echo "ros2 param set $testNode set_angle '$4'"
-			ros2 param set $testNode set_angle "$4"
+			run_cmd ros2 param set $testNode set_angle "$4"
 		elif [ "$3" = "get" ] ; then
-			echo "ros2 param get $testNode set_angle"
-			ros2 param get $testNode set_angle
+			run_cmd ros2 param get $testNode set_angle
 		fi
 
 	elif [ "$2" = "p3" ] ; then
@@ -193,11 +186,9 @@ if [ "$1" = "h" ] ; then
 
 		ros2 param set $testNode select_servo_num 3
 		if [ "$3" = "set" ] ; then
-			echo "ros2 param set $testNode set_angle '$4'"
-			ros2 param set $testNode set_angle "$4"
+			run_cmd ros2 param set $testNode set_angle "$4"
 		elif [ "$3" = "get" ] ; then
-			echo "ros2 param get $testNode set_angle"
-			ros2 param get $testNode set_angle
+			run_cmd ros2 param get $testNode set_angle
 		fi
 
 	elif [ "$2" = "rt" ] ; then
@@ -264,7 +255,7 @@ if [ "$1" = "emoji" ] ; then
 		git clone ssh://git@10.1.7.125:10022/Gray.LIn/lcd_set_emoji.git
 
 	elif [ "$2" = "b" ] ; then
-		echo "========== colcon build =========="
+		log_separator "colcon build"
 		cd $nodeDir
 		colcon build
 		# colcon build --packages-select lcd_set_emoji
@@ -331,39 +322,36 @@ if [ "$1" = "emoji" ] ; then
 			echo "PID_2kill empty"
 		else
 			sleep 1
-			echo "kill -9 $PID_2kill"
-			kill -9 $PID_2kill
+			run_cmd kill -9 $PID_2kill
 		fi
 	fi
 fi
 
 # ROS
 if [ "$1" = "ros" ] ; then
-	echo "========== ROS =========="
+	log_separator "ROS"
 
 	if [  "$2" = "n" ] ; then
-		echo "========== node =========="
+		log_separator "node"
 		if [  "$3" = "i" ] ; then
 			cd $nodeDir
-			echo "ros2 node info $4"
-			ros2 node info $4
+			run_cmd ros2 node info $4
 		elif [  "$3" = "r" ] ; then
 			echo "ros2 run $testNode "$testNode"_node"
 			source install/setup.sh
 			ros2 run $testNode "$testNode"_node
 		elif [ "$3" = "b" ] ; then
-			echo "========== colcon build =========="
+			log_separator "colcon build"
 			cd $nodeDir
 			colcon build
 		else
-			echo "ros2 node list"
-			ros2 node list
+			run_cmd ros2 node list
 		fi
 	elif [ "$2" = "env" ] ; then
 		source /opt/ros/galactic/setup.bash
 
 	elif [ "$2" = "p" ] ; then
-		echo "========== pkg =========="
+		log_separator "pkg"
 		if [  "$3" = "exe" ] ; then
 			if [ -z "$4" ] ; then
 				ros2 pkg executables
@@ -371,64 +359,50 @@ if [ "$1" = "ros" ] ; then
 				ros2 pkg executables $4
 			fi
 		elif [ "$3" = "prefix" ] ; then
-			echo "ros2 pkg prefix <package-name>"
-			ros2 pkg prefix $4
+			run_cmd ros2 pkg prefix $4
 		elif [ "$3" = "xml" ] ; then
-			echo "ros2 pkg xml <package-name>"
-			ros2 pkg xml $4
+			run_cmd ros2 pkg xml $4
 		elif [ "$3" = "c" ] ; then
-			echo "ros2 pkg create $4"
-			ros2 pkg create $4 --build-type ament_cmake --dependencies rclcpp
+			run_cmd ros2 pkg create $4 --build-type ament_cmake --dependencies rclcpp
 		else 
-			echo "ros2 pkg list"
-			ros2 pkg list
+			run_cmd ros2 pkg list
 		fi
 
 	elif [ "$2" = "tp" ] ; then
 		testTopic="/chatter"
 		# testTopic2="/chatter2"
-		testTopic2="/scan"
 
 		if [  "$3" = "p" ] ; then
-			echo "ros2 topic pub $testTopic ..."
-			ros2 topic pub $testTopic std_msgs/msg/String 'data: "test"'
+			run_cmd ros2 topic pub $testTopic std_msgs/msg/String 'data: "test"'
 		elif [ "$3" = "e" ] ; then
-			echo "ros2 topic echo $4"
-			ros2 topic echo $4
+			run_cmd ros2 topic echo $4
 		elif [ "$3" = "i" ] ; then
-			echo "ros2 topic info $4"
-			ros2 topic info $4
+			run_cmd ros2 topic info $4
 		elif [ "$3" = "hz" ] ; then
-			echo "ros2 topic hz $4"
-			ros2 ros2 topic hz $4
+			run_cmd ros2 ros2 topic hz $4
 		else 
-			echo "ros2 topic list -t"
-			ros2 topic list -t
+			run_cmd ros2 topic list -t
 		fi
 
 	elif [ "$2" = "if" ] ; then
-		echo "========== interface =========="
+		log_separator "interface"
 		if [  "$3" = "p" ] ; then
-			echo "ros2 interface packages"
-			ros2 interface packages
+			run_cmd ros2 interface packages
 		elif [ "$3" = "show" ] ; then
-			echo "ros2 interface show $4"
-			ros2 interface show $4
+			run_cmd ros2 interface show $4
 		else 
-			echo "ros2 interface list"
-			ros2 ros2 interface list
+			run_cmd ros2 ros2 interface list
 		fi
 
 	elif [ "$2" = "s" ] ; then
-		echo "========== service =========="
+		log_separator "service"
 		if [  "$3" = "r" ] ; then
 			echo "run service"
 			ros2 run examples_rclpy_minimal_service service
 		elif [ "$3" = "x" ] ; then
 			echo "xxx..."
 		else 
-			echo "ros2 service list"
-			ros2 service list
+			run_cmd ros2 service list
 		fi
 
 	elif [ "$2" = "param" ] ; then
@@ -440,8 +414,7 @@ if [ "$1" = "ros" ] ; then
 			echo "get..."
 			ros2 param get $4 $5
 		else 
-			echo "ros2 param list"
-			ros2 param list
+			run_cmd ros2 param list
 		fi
 
 	fi
@@ -563,7 +536,6 @@ if [ "$1" = "test" ] ; then
 fi
 
 
-xDir=~/"Gray"
 
 # docker
 dockderDir=~/"Docker"
@@ -573,7 +545,6 @@ redDir="."
 redDir_Home="/srv/redmine/vHome/_data"
 redDir_Files="/var/lib/docker/volumes/redmine_vFiles/_data"
 redDir_Config="/var/lib/docker/volumes/redmine_vConfig/_data"
-redDir_Mysql="/var/lib/docker/volumes/redmine_vMysql/_data"
 redDir_Postgres="/var/lib/docker/volumes/redmine_vPostgres/_data"
 
 # gitlab
@@ -581,15 +552,12 @@ gitDir="$dockderDir/gitlab"
 gitDir_Data="/var/lib/docker/volumes/gitlab_vData/_data"
 gitDir_Config="/var/lib/docker/volumes/gitlab_vConfig/_data"
 gitDir_ConfigR="/var/lib/docker/volumes/gitlab_vConfig_r/_data"
-gitDir_Logs="/var/lib/docker/volumes/gitlab_vLogs/_data"
-gitBackupFile="1643394275_2022_01_28_14.1.6"
 
 # jenkins
 jksDir="$dockderDir/jenkins"
 jksDir_Home="/var/lib/docker/volumes/jenkins_vHome/_data"
 
 # NAS
-nasDir="$dockderDir/nas"
 
 # working directory 
 if [ "$1" = "wd" ] ; then
@@ -662,28 +630,28 @@ fi
 # system related 
 if [ "$1" = "sys" ] ; then
 	if [ "$2" = "service" ] ; then
-		echo "========== Service info =========="
+		log_separator "Service info"
 		service --status-all
 		#ls /etc/init.d
 	elif [ "$2" = "info" ] ; then
-		echo "========== System info =========="
-		echo "==== Ubuntu version ===="
+		log_separator "System info"
+		log_separator "Ubuntu version"
 		cat /etc/os-release
-		echo "==== Kernel version ===="
+		log_separator "Kernel version"
 		uname -a
-		echo "==== CPU info ===="
+		log_separator "CPU info"
 		lscpu
-		echo "==== Memory info ===="
+		log_separator "Memory info"
 		free -mh
-		echo "==== Disk info ===="
+		log_separator "Disk info"
 		df -h --total
 	elif [ "$2" = "users" ] ; then
 		# awk -F: '{ print $1}' /etc/passwd
 
 		# list  normal users
-		echo "========== User range =========="
+		log_separator "User range"
 		grep -E '^UID_MIN|^UID_MAX' /etc/login.defs
-		echo "========== User info =========="
+		log_separator "User info"
 		getent passwd {1000..60000}
 
 	elif [ "$2" = "user" ] ; then
@@ -696,11 +664,11 @@ fi
 
 # tar
 if [ "$1" = "zip" ] ; then
-		echo ">>>> zip src dst"
+		log_step "zip src dst"
 		tar -czvf $3.tar.gz $2
 fi
 if [ "$1" = "unzip" ] ; then
-		echo ">>>> unzip file"
+		log_step "unzip file"
 		tar -xzvf $2
 fi
 
@@ -709,25 +677,19 @@ if [ "$1" = "chmod" ] ; then
 	if [ -n "$2" ] ; then
 		if [ "$2" = "all" ] ; then
 			if [ "$3" = "4" ] ; then
-				echo "sudo chmod -R 444 ."
-				sudo chmod  -R 444 .
+				run_cmd sudo chmod  -R 444 .
 			elif [ "$3" = "6" ] ; then
-				echo "sudo chmod -R 666 ."
-				sudo chmod -R 666 .
+				run_cmd sudo chmod -R 666 .
 			else
-				echo "sudo chmod -R 777 ."
-				sudo chmod -R 777 .
+				run_cmd sudo chmod -R 777 .
 			fi
 		else
 			if [ "$3" = "4" ] ; then
-				echo "sudo chmod -R 444 $2"
-				sudo chmod -R 444 "$2"
+				run_cmd sudo chmod -R 444 "$2"
 			elif [ "$3" = "6" ] ; then
-				echo "sudo chmod -R 666 $2"
-				sudo chmod -R 666 "$2"
+				run_cmd sudo chmod -R 666 "$2"
 			else
-				echo "sudo chmod -R 777 $2"
-				sudo chmod -R 777 "$2"
+				run_cmd sudo chmod -R 777 "$2"
 			fi
 		fi
 	fi

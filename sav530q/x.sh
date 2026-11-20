@@ -1,3 +1,5 @@
+source "$(dirname -- "${BASH_SOURCE[0]}")/../lib/share.sh" || exit 1
+
 xDir=~/"Gray"
 
 # docker
@@ -8,7 +10,6 @@ redDir="$dockderDir/redmine"
 redDir_Home="/var/lib/docker/volumes/redmine_vHome/_data"
 redDir_Files="/var/lib/docker/volumes/redmine_vFiles/_data"
 redDir_Config="/var/lib/docker/volumes/redmine_vConfig/_data"
-redDir_Mysql="/var/lib/docker/volumes/redmine_vMysql/_data"
 redDir_Postgres="/var/lib/docker/volumes/redmine_vPostgres/_data"
 
 # gitlab
@@ -24,7 +25,6 @@ jksDir="$dockderDir/jenkins"
 jksDir_Home="/var/lib/docker/volumes/jenkins_vHome/_data"
 
 # NAS
-nasDir="$dockderDir/nas"
 
 echo xDir		= $xDir
 echo gitDir		= $gitDir
@@ -106,28 +106,28 @@ fi
 # system related 
 if [ "$1" == "sys" ] ; then
 	if [ "$2" == "service" ] ; then
-		echo "========== Service info =========="
+		log_separator "Service info"
 		service --status-all
 		#ls /etc/init.d
 	elif [ "$2" == "info" ] ; then
-		echo "========== System info =========="
-		echo "==== Ubuntu version ===="
+		log_separator "System info"
+		log_separator "Ubuntu version"
 		cat /etc/os-release
-		echo "==== Kernel version ===="
+		log_separator "Kernel version"
 		uname -a
-		echo "==== CPU info ===="
+		log_separator "CPU info"
 		lscpu
-		echo "==== Memory info ===="
+		log_separator "Memory info"
 		free -mh
-		echo "==== Disk info ===="
+		log_separator "Disk info"
 		df -h --total
 	elif [ "$2" == "users" ] ; then
 		# awk -F: '{ print $1}' /etc/passwd
 
 		# list  normal users
-		echo "========== User range =========="
+		log_separator "User range"
 		grep -E '^UID_MIN|^UID_MAX' /etc/login.defs
-		echo "========== User info =========="
+		log_separator "User info"
 		getent passwd {1000..60000}
 
 	elif [ "$2" == "user" ] ; then
@@ -177,8 +177,7 @@ if [ "$1" == "ftp" ] ; then
 	elif [ "$2" == "d+g" ] ; then
 		# add group access for some dir
 		echo "ex : sudo setfacl -Rdm g:SAC_EE:rwx DirName/"
-		echo "sudo setfacl -Rdm g:$4:rwx $3"
-		sudo setfacl -Rdm g:$4:rwx $3
+		run_cmd sudo setfacl -Rdm g:$4:rwx $3
 	elif [ "$2" == "user+" ] ; then
 		if [ -n "$3" ] ; then
 			if [ "$4" == "sidee" ] ; then
@@ -248,11 +247,11 @@ fi
 
 # tar
 if [ "$1" == "zip" ] ; then
-		echo ">>>> zip src dst"
+		log_step "zip src dst"
 		tar -czvf $3.tar.gz $2
 fi
 if [ "$1" == "unzip" ] ; then
-		echo ">>>> unzip file"
+		log_step "unzip file"
 		tar -xzvf $2
 fi
 
@@ -261,25 +260,19 @@ if [ "$1" == "chmod" ] ; then
 	if [ -n "$2" ] ; then
 		if [ "$2" == "all" ] ; then
 			if [ "$3" == "4" ] ; then
-				echo "sudo chmod -R 444 ."
-				sudo chmod  -R 444 .
+				run_cmd sudo chmod  -R 444 .
 			elif [ "$3" == "6" ] ; then
-				echo "sudo chmod -R 666 ."
-				sudo chmod -R 666 .
+				run_cmd sudo chmod -R 666 .
 			else
-				echo "sudo chmod -R 777 ."
-				sudo chmod -R 777 .
+				run_cmd sudo chmod -R 777 .
 			fi
 		else
 			if [ "$3" == "4" ] ; then
-				echo "sudo chmod -R 444 $2"
-				sudo chmod -R 444 "$2"
+				run_cmd sudo chmod -R 444 "$2"
 			elif [ "$3" == "6" ] ; then
-				echo "sudo chmod -R 666 $2"
-				sudo chmod -R 666 "$2"
+				run_cmd sudo chmod -R 666 "$2"
 			else
-				echo "sudo chmod -R 777 $2"
-				sudo chmod -R 777 "$2"
+				run_cmd sudo chmod -R 777 "$2"
 			fi
 		fi
 	fi
@@ -315,17 +308,17 @@ if [ "$1" == "red" ] ; then
 	elif [ "$2" == "stop" ] ; then
 		docker-compose -f "$redDir/docker-compose-red.yml" stop
 	elif [ "$2" == "bash" ] ; then
-		echo "========== docker exec -it redmine /bin/bash =========="
+		log_separator "docker exec -it redmine /bin/bash"
 		docker exec -ti redmine /bin/bash
 	elif [ "$2" == "chmod" ] ; then
 		sudo chmod 777 $redDir_Files/
 		sudo chmod 777 $redDir_Postgres/
 	elif [ "$2" == "psql" ] ; then
 		# postgres bash
-		echo "========== docker exec -it postgres /bin/bash =========="
+		log_separator "docker exec -it postgres /bin/bash"
 		docker exec -ti postgres /bin/bash
 	elif [ "$2" == "log" ] ; then
-		echo "========== docker logs -tf redmine =========="
+		log_separator "docker logs -tf redmine"
 		docker logs -tf redmine
 	elif [ "$2" == "backup" ] ; then
 		docker exec -it postgres pg_dump -U redmine -d redmine -Fc -f /var/lib/postgresql/data/redmine.sqlc
@@ -382,56 +375,56 @@ if [ "$1" == "git" ] ; then
 			cp $gitDir_ConfigR/gitlab.yml $gitDir/config
 		elif [ "$3" == "update" ] ; then
 			cp -rf $gitDir/config/gitlab.rb $gitDir_Config
-			echo "========== docker exec -it gitlab gitlab-ctl reconfigure =========="
+			log_separator "docker exec -it gitlab gitlab-ctl reconfigure"
 			docker exec -it gitlab gitlab-ctl reconfigure
-			echo "========== docker exec -it gitlab gitlab-ctl restart =========="
+			log_separator "docker exec -it gitlab gitlab-ctl restart"
 			docker exec -it gitlab gitlab-ctl restart
 		else
 			echo ">> param 3 not match"
 		fi
 	elif [ "$2" == "check" ] ; then
-		echo "========== docker exec -it gitlab gitlab-rake gitlab:check SANITIZE=true =========="
+		log_separator "docker exec -it gitlab gitlab-rake gitlab:check SANITIZE=true"
 		docker exec -ti gitlab gitlab-rake gitlab:check SANITIZE=true
 	elif [ "$2" == "info" ] ; then
-		echo "========== docker exec -ti gitlab gitlab-rake gitlab:env:info =========="
+		log_separator "docker exec -ti gitlab gitlab-rake gitlab:env:info"
 		docker exec -ti gitlab gitlab-rake gitlab:env:info
 	elif [ "$2" == "bash" ] ; then
-		echo "========== docker exec -it gitlab /bin/bash =========="
+		log_separator "docker exec -it gitlab /bin/bash"
 		docker exec -ti gitlab /bin/bash
 	elif [ "$2" == "psql" ] ; then
-		echo "========== docker exec -it gitlab gitlab-psql =========="
+		log_separator "docker exec -it gitlab gitlab-psql"
 		docker exec -ti gitlab gitlab-psql
 	elif [ "$2" == "rail" ] ; then
-		echo "========== docker exec -it gitlab gitlab-rails console =========="
+		log_separator "docker exec -it gitlab gitlab-rails console"
 		docker exec -ti gitlab gitlab-rails console
 	elif [ "$2" == "log" ] ; then
-		echo "========== docker logs -tf gitlab =========="
+		log_separator "docker logs -tf gitlab"
 		docker logs -tf --since 1m gitlab
 	elif [ "$2" == "backup" ] ; then
-		echo "========== docker exec -it gitlab gitlab-rake gitlab:backup:create =========="
+		log_separator "docker exec -it gitlab gitlab-rake gitlab:backup:create"
 			docker exec -ti gitlab gitlab-backup create
 
 			# GitLab 12.1 and earlier
 			# docker exec -ti gitlab gitlab-rake gitlab:backup:create
 	elif [ "$2" == "restore" ] ; then
 		if [ "$3" == "1" ] ; then
-			echo "========== step 1 : stop connectivity services ==========" 
+			log_separator "step 1 : stop connectivity services"
 			# docker exec -it gitlab gitlab-ctl stop unicorn
 			docker exec -it gitlab gitlab-ctl stop puma
 			docker exec -it gitlab gitlab-ctl stop sidekiq
 			docker exec -it gitlab gitlab-ctl status
 		elif [ "$3" == "2" ] ; then
-			echo "========== step 2 : restore from backup tar : $gitBackupFile ==========" 
+			log_separator "step 2 : restore from backup tar : $gitBackupFile"
 			docker exec -it gitlab gitlab-backup restore BACKUP=$gitBackupFile
 
 			# gitlab-backup restore BACKUP=1643394275_2022_01_28_14.1.6
 			# GitLab 12.1 and earlier
 			# docker exec -it gitlab gitlab-rake gitlab:backup:restore BACKUP=$gitBackupFile
 		elif [ "$3" == "3" ] ; then
-			echo "========== step 3 : re-configure & re-start ==========" 
-			echo "========== docker exec -it gitlab gitlab-ctl reconfigure =========="
+			log_separator "step 3 : re-configure & re-start"
+			log_separator "docker exec -it gitlab gitlab-ctl reconfigure"
 			docker exec -it gitlab gitlab-ctl reconfigure
-			echo "========== docker exec -it gitlab gitlab-ctl restart =========="
+			log_separator "docker exec -it gitlab gitlab-ctl restart"
 			docker exec -it gitlab gitlab-ctl restart
 
 		elif [ "$3" == "4" ] ; then
@@ -443,7 +436,7 @@ if [ "$1" == "git" ] ; then
 
 	elif [ "$2" == "sp" ] ; then
 		# show related path
-		echo "========== gitlab paths  ==========" 
+		log_separator "gitlab paths"
 		echo "# docker mapping dir in host" 
 		echo "gitDir_Data:$gitDir_Data"
 		echo "gitDir_Config:$gitDir_Config"
@@ -482,10 +475,10 @@ if [ "$1" == "jks" ] ; then
 	elif [ "$2" == "down" ] ; then
 		docker-compose -f "$jksDir/docker-compose-jenkins.yml" down
 	elif [ "$2" == "bash" ] ; then
-		echo "========== docker exec -it -u root jenkins /bin/bash =========="
+		log_separator "docker exec -it -u root jenkins /bin/bash"
 		docker exec -it -u root jenkins /bin/bash
 	elif [ "$2" == "log" ] ; then
-		echo "========== docker logs -tf jenkins =========="
+		log_separator "docker logs -tf jenkins"
 		docker logs -tf jenkins
 	else
 		echo "param 2 not match"
@@ -500,27 +493,27 @@ if [ "$1" == "dk" ] ; then
 		# image related
 		if  [ "$3" == "ins" ] ; then
 			#inspect volume
-			echo "========== docker volume inspect 'Volume Name' ========== " 
+			log_separator "docker volume inspect 'Volume Name'"
 			docker volume inspect $4
 		elif  [ "$3" == "rm" ] ; then
-			echo "========== docker image rm $4 ========== " 
+			log_separator "docker image rm $4"
 			docker image rm $4
 		else
 			# list images
-			echo "========== docker image ls ========== " 
+			log_separator "docker image ls"
 			docker image ls
 		fi
 
 	elif [ "$2" == "c" ] ; then
 		# container related
 		if  [ "$3" == "ins" ] ; then
-			echo "========== docker inspect 'container id'========== " 
+			log_separator "docker inspect 'container id'"
 			docker inspect $4
 		elif  [ "$3" == "stop" ] ; then
-			echo "========== docker container stop 'Container ID' ========== " 
+			log_separator "docker container stop 'Container ID'"
 			docker container stop $4
 		elif  [ "$3" == "rm" ] ; then
-			echo "========== docker container rm 'Container ID' ========== " 
+			log_separator "docker container rm 'Container ID'"
 
 			# remove all stoped container
 			docker rm $(docker ps -a -q) 
@@ -528,7 +521,7 @@ if [ "$1" == "dk" ] ; then
 			docker container rm -f $4
 		else
 			# list containers
-			echo "========== docker container ls ========== " 
+			log_separator "docker container ls"
 			docker container ls
 		fi
 		
@@ -536,25 +529,25 @@ if [ "$1" == "dk" ] ; then
 
 		if  [ "$3" == "ins" ] ; then
 			#inspect valume
-			echo "========== docker volume inspect 'Volume Name' ========== " 
+			log_separator "docker volume inspect 'Volume Name'"
 			docker volume inspect $4
 		elif  [ "$3" == "rm" ] ; then
 			# inspect valume
-			echo "========== docker volume rm 'Volume Name' ========== " 
+			log_separator "docker volume rm 'Volume Name'"
 			docker volume rm -f $4
 		else
-			echo "========== docker volume ls ========== " 
+			log_separator "docker volume ls"
 			docker volume ls
 		fi
 
 	elif [ "$2" == "bash" ] ; then
 
 		if [ -n "$3" ] ; then
-			echo "========== docker exec -it $3 bash ========== " 
+			log_separator "docker exec -it $3 bash"
 			docker exec -it $3 bash
 		else
 			echo ">> container ID needed!"
-			echo "========== docker container ls ========== " 
+			log_separator "docker container ls"
 			docker container ls
 		fi
 
@@ -562,20 +555,20 @@ if [ "$1" == "dk" ] ; then
 
 		if [ "$3" == "all" ] ; then
 			# remove all stopped containers, all dangling images, all unused volumes, and all unused networks
-			echo "========== docker system prune --volumes ========== " 
+			log_separator "docker system prune --volumes"
 			# docker system prune
 			docker system prune --volumes
 
 		elif  [ "$3" == "i" ] ; then
 			# remove image
 			if [ -n "$4" ] ; then
-				echo "========== docker image rm $4 ========== " 
+				log_separator "docker image rm $4"
 				docker image rm $4
 
 				# >> To remove all images which are not referenced by any existing container
 				# docker image prune -a 
 			else
-				echo "========== docker image ls ========== " 
+				log_separator "docker image ls"
 				docker image ls
 			fi
 		else
@@ -591,22 +584,22 @@ fi
 if [ "$1" == "dkc" ] ; then
 	if [ -n "$3" ] ; then
 		if [ "$2" == "up" ] ; then
-			echo "========== docker-compose -f $3 up ========== " 
+			log_separator "docker-compose -f $3 up"
 			# docker-compose -f $3 up -d
 			docker-compose -f $3 up
 		elif [ "$2" == "down" ] ; then
-			echo "========== docker-compose -f $3 up ========== " 
+			log_separator "docker-compose -f $3 up"
 			docker-compose -f $3 down
 		elif [ "$2" == "r" ] ; then
-			echo "========== docker-compose -f $3 up ========== " 
+			log_separator "docker-compose -f $3 up"
 			docker-compose -f $3 down
 			docker-compose -f $3 up -d
 		else
-			echo "========== docker-compose donothing ========== " 
+			log_separator "docker-compose donothing"
 		fi
 	else
 		if [ "$2" == "up" ] ; then
-			echo "========== docker-compose  ========== " 
+			log_separator "docker-compose"
 			docker-compose up -d
 		elif [ "$2" == "down" ] ; then
 			docker-compose down
@@ -614,7 +607,7 @@ if [ "$1" == "dkc" ] ; then
 			docker-compose down
 			docker-compose up -d
 		else
-			echo "========== docker-compose donothing ========== " 
+			log_separator "docker-compose donothing"
 		fi
 	fi
 fi
@@ -623,7 +616,7 @@ fi
 if [ "$1" == "chrome" ] ; then
 
 		if [ "$2" == "r" ] ; then
-			echo "========== restart  chrome-remote-desktop ========== " 
+			log_separator "restart  chrome-remote-desktop"
  			sudo systemctl stop chrome-remote-desktop
  			sudo systemctl start chrome-remote-desktop
 		else
@@ -634,9 +627,9 @@ fi
 
 # sigmarstar
 if [ "$1" == "ss" ] ; then
-			echo "========== sigmarstar related ========== " 
+			log_separator "sigmarstar related"
 		if [ "$2" == "rd" ] ; then
-			echo "========== run docker env ========== " 
+			log_separator "run docker env"
 			docker run -v `pwd`/dockerVolume:/tmp:Z --name gray-sav530 -i -t --rm graygray/sav530 bash
 
 		fi

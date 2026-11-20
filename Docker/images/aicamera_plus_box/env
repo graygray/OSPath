@@ -100,7 +100,7 @@ edts() {
 alias ue='source ~/.bashrc'     # update env
 alias ux='x ux'                 # update x.sh
 alias ua='ux && ue'             # update all
-alias uyt='dppmxsys && cd home/root/OSPath/AICamera/ && cp -f ~/OSPath/AICamera/env . && cp -f ~/OSPath/AICamera/x.sh . && dpb && mkdir -p $FTP_DIR/gray/aicamera/OSPath/AICamera && cp -f ~/OSPath/AICamera/* $FTP_DIR/gray/aicamera/OSPath/AICamera'
+alias uyt='dppmxsys && cd home/root/OSPath/AICamera/ && cp -f ~/OSPath/AICamera/env . && cp -f ~/OSPath/AICamera/x.sh . && mkdir -p ../lib && cp -f ~/OSPath/lib/share.sh ../lib/ && dpb && mkdir -p "$FTP_DIR/gray/aicamera/OSPath/lib" && cp -f ~/OSPath/lib/share.sh "$FTP_DIR/gray/aicamera/OSPath/lib/" && mkdir -p "$FTP_DIR/gray/aicamera/OSPath/AICamera" && cp -f ~/OSPath/AICamera/* "$FTP_DIR/gray/aicamera/OSPath/AICamera/"'
 
 # env
 spp() {
