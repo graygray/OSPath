@@ -1219,6 +1219,8 @@ fi
 if [ "$1" == "git" ] ; then
     if [ "$2" == "l" ]; then
 		run_cmd git log --oneline
+	elif [ "$2" = "f" ] ; then
+		run_cmd git show --first-parent --format= --name-only --end-of-options "${3:-HEAD}^{commit}" -- || exit $?
 	elif [ "$2" = "c" ] ; then
 		run_cmd git commit -a -m "$3"
 	elif [ "$2" = "p" ] ; then

@@ -1265,6 +1265,9 @@ if [ "$1" == "git" ] ; then
     if [ "$2" == "l" ]; then
 		echo "git log --oneline"
 		git log --oneline
+	elif [ "$2" = "f" ] ; then
+		echo "git show --first-parent --format= --name-only --end-of-options ${3:-HEAD}^{commit} --"
+		git show --first-parent --format= --name-only --end-of-options "${3:-HEAD}^{commit}" -- || exit $?
 	elif [ "$2" = "c" ] ; then
 		echo "git commit -a -m \"$3\""
 		git commit -a -m "$3"
