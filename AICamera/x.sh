@@ -53,19 +53,64 @@ fi
 # echo "device_uvc:$device_uvc"
 
 is_aicamera() {
-  if [[ "$hostname_prefix" == "aicamera" || "$hostname_prefix" == "aibox" || "$product" == "ai_camera_plus" ]]; then
-	return 0  # true: it is an aicamera
-  else
-	return 1  # false: not an aicamera
-  fi
+	[[ "$hostname_prefix" == "aicamera" || "$hostname_prefix" == "aibox" || "$product" == "ai_camera_plus" ]]
 }
+
 is_visionhub() {
-  if [[ "$hostname_prefix" == "visionhub" || "$product" == "vision_hub_plus" ]]; then
-	return 0  # true: it is an visionhub
-  else
-	return 1  # false: not an visionhub
-  fi
+	[[ "$hostname_prefix" == "visionhub" || "$product" == "vision_hub_plus" ]]
 }
+
+find_cis_camera() {
+	local devices camera
+	devices=$(v4l2-ctl --list-devices) || return
+	camera=$(awk '
+		/^[^[:space:]]/ { camera_group = ($0 ~ /^mtk-v4l2-camera/) }
+		camera_group && $1 ~ /^\/dev\/video[0-9]+$/ { print $1; exit }
+	' <<< "$devices")
+	if [ -z "$camera" ]; then
+		printf '%s\n' 'No MediaTek CSI video device found.' >&2
+		return 1
+	fi
+	printf '%s\n' "$camera"
+}
+
+install_iq_tree() (
+	local source="$1" destination="$2" kind="$3"
+	local parent="${destination%/*}" stage
+
+	mkdir -p -- "$parent" || exit
+	exec 8<"$parent" || exit
+	flock -x 8 || exit
+	stage=$(mktemp -d "$parent/.iq-update.XXXXXX") || exit
+	trap 'if [ ! -e "$stage/previous" ] && [ ! -L "$stage/previous" ]; then rm -rf -- "$stage"; fi' EXIT
+
+	if [ "$kind" = "archive" ]; then
+		unzip -o "$source" -d "$stage" || exit
+	else
+		[ -d "$source" ] || { printf 'Missing IQ DB directory: %s\n' "$source" >&2; exit 1; }
+		mkdir -- "$stage/db_tmp" || exit
+		cp -a -- "$source/." "$stage/db_tmp/" || exit
+	fi
+
+	if [ ! -d "$stage/db_tmp" ] || [ -L "$stage/db_tmp" ] ||
+		[ -z "$(find "$stage/db_tmp" -mindepth 1 -maxdepth 1 -print -quit)" ]; then
+		printf 'Empty or missing IQ DB directory from %s\n' "$source" >&2
+		exit 1
+	fi
+
+	if [ -e "$destination" ] || [ -L "$destination" ]; then
+		mv -T -- "$destination" "$stage/previous" || exit
+	fi
+
+	if ! mv -T -- "$stage/db_tmp" "$destination"; then
+		if [ -e "$stage/previous" ] || [ -L "$stage/previous" ]; then
+			mv -T -- "$stage/previous" "$destination" ||
+				printf 'Previous IQ DB saved at %s\n' "$stage/previous" >&2
+		fi
+		exit 1
+	fi
+	rm -rf -- "$stage"
+)
 
 wait_for_runtime_process() {
 	local state="$1" expected_status=0 deadline=$((SECONDS + 5)) status
@@ -310,12 +355,12 @@ run_device_ftp_command() {
 
 		if [ -f "$dir_local_cache/vision_box_DualCam" ]; then
 			cp -f "$dir_local_cache/vision_box_DualCam" "$dir_exec/" || return 1
-			chmod 755 "$dir_exec/vision_box_DualCam"
+			chmod 755 "$dir_exec/vision_box_DualCam" || return
 		fi
 
 		if [ -f "$dir_local_cache/fw_daemon" ]; then
 			cp -f "$dir_local_cache/fw_daemon" "$dir_exec/" || return 1
-			chmod 755 "$dir_exec/fw_daemon"
+			chmod 755 "$dir_exec/fw_daemon" || return
 		fi
 
 		if [ -f "$dir_local_cache/fw_ota.sh" ]; then
@@ -335,19 +380,19 @@ run_device_ftp_command() {
 					"$ftp_user@$ftp_host:$dir_ssh_remote/"
 				;;
 			down)
-				stop_runtime_processes
 				if [ "$arg2" = "all" ]; then
 					rsync -avz -e ssh \
 						"$ftp_user@$ftp_host:$dir_ssh_remote/" \
-						"$dir_local_cache/"
+						"$dir_local_cache/" || return
 				else
 					rsync -avz -e ssh \
 						--exclude 'IQ_DB/' \
 						--exclude 'hikrobot/' \
 						"$ftp_user@$ftp_host:$dir_ssh_remote/" \
-						"$dir_local_cache/"
+						"$dir_local_cache/" || return
 				fi
 
+				stop_runtime_processes
 				sync_runtime_files || return 1
 				;;
 			*)
@@ -386,7 +431,6 @@ run_device_ftp_command() {
 
 	else
 		echo "use wget..."
-		stop_runtime_processes
 		mkdir -p "$dir_local" || return 1
 		cd "$dir_local" || return 1
 
@@ -397,7 +441,7 @@ run_device_ftp_command() {
 				--no-parent \
 				--user="$ftp_user" \
 				--password="$ftp_pass" \
-				"ftp://$ftp_host/$dir_ftp_remote/"
+				"ftp://$ftp_host/$dir_ftp_remote/" || return
 		else
 			echo "wget --mirror ftp://$ftp_host/$dir_ftp_remote/ (exclude IQ_DB hikrobot)"
 			wget --mirror \
@@ -406,11 +450,12 @@ run_device_ftp_command() {
 				--user="$ftp_user" \
 				--password="$ftp_pass" \
 				--exclude-directories="$dir_ftp_remote/IQ_DB,$dir_ftp_remote/hikrobot" \
-				"ftp://$ftp_host/$dir_ftp_remote/"
+				"ftp://$ftp_host/$dir_ftp_remote/" || return
 		fi
 
 		if is_aicamera || is_visionhub; then
 			echo "Updating firmware files..."
+			stop_runtime_processes
 			sync_runtime_files || return 1
 			echo "Update done"
 		else
@@ -419,11 +464,12 @@ run_device_ftp_command() {
 	fi
 }
 
-if [ "$1" = "fixt" ]; then
+case "$1" in
+fixt)
 	find . -exec touch {} +
-fi
+	;;
 
-if [ "$1" = "ccm" ]; then
+ccm)
 		echo "ccm..."
 		dir_ccm="$primax_dir/10.1.13.207/ccm_db"
 		dir_iq_dev="/usr/share/mtkcam/DataSet/SQLiteModule/db"
@@ -432,10 +478,8 @@ if [ "$1" = "ccm" ]; then
 		fileName2="ISP_mapping.db"
 
 		if [ -z "$2" ]; then
-			echo "filePath_src:$filePath_src should be set correctlly..."
+			printf 'Usage: %s ccm <source-directory>\n' "$0" >&2
 			exit 1
-		else
-			filePath_src="$filePath/$2"
 		fi
 
 		fileReplace1="$dir_ccm/$2/$fileName1"
@@ -450,10 +494,10 @@ if [ "$1" = "ccm" ]; then
 		md5sum $fileTarget1
 		md5sum $fileReplace2
 		md5sum $fileTarget2
-fi
+	;;
 
 # copy to
-if [ "$1" = "cp" ]; then
+cp)
 
 	if [ "$2" = "h" ]; then
 		path="$HOME"
@@ -495,10 +539,10 @@ if [ "$1" = "cp" ]; then
 	fi
 	echo "copy $3 to $path"
 
-fi
+	;;
 
 # move to current directory
-if [ "$1" = "mv" ]; then
+mv)
 
 	if [ "$2" = "m" ]; then
 		mark_file="$HOME/tmp/mv_m"
@@ -534,15 +578,15 @@ if [ "$1" = "mv" ]; then
 
 	echo "Unknown target: $2"
 	exit 1
-fi
+	;;
 
-if [ "$1" = "ps" ]; then
+ps)
 	if [ "$2" != "" ]; then
 		run_cmd --pipe ps aux -- grep $2
 	fi
-fi
+	;;
 
-if [ "$1" = "ot" ]; then
+ot)
 	i2cbus=7
 	if [ "$2" = "ck" ]; then
 		run_cmd i2cdetect -r -y "$i2cbus"
@@ -553,10 +597,10 @@ if [ "$1" = "ot" ]; then
 		echo "read 16*16... i2ctransfer -y $i2cbus w2@0x68 0x4E 0x00 r525"
 		i2ctransfer -y $i2cbus w2@0x68 0x4E 0x00 r525
 	fi
-fi
+	;;
 
 # AICamera 
-if [ "$1" = "aic" ]; then
+aic)
 
 	if [ "$2" = "log" ]; then
 		if [ "$3" = "j" ]; then
@@ -662,16 +706,11 @@ if [ "$1" = "aic" ]; then
 				echo"v4l2-ctl --list-devices"
 				v4l2-ctl --list-devices
 			else
-				log_step "declare -a VIDEO_DEV=(\`v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d \"\n\"\`)"
-				declare -a VIDEO_DEV=(`v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d "\n"`)
-				echo "VIDEO_DEV[0]:${VIDEO_DEV[0]}"
-				run_cmd v4l2-ctl --device=${VIDEO_DEV[0]} --list-formats-ext
-				run_cmd v4l2-ctl --device=${VIDEO_DEV[0]} --list-ctrls
+				camera=$(find_cis_camera) || exit
+				echo "CSI camera: $camera"
+				run_cmd v4l2-ctl --device="$camera" --list-formats-ext
+				run_cmd v4l2-ctl --device="$camera" --list-ctrls
 
-				# echo "udevadm info -a -p $(udevadm info -q path -n ${VIDEO_DEV[0]})"
-				# udevadm info -a -p $(udevadm info -q path -n ${VIDEO_DEV[0]})
-				# udevadm info -a -p $(udevadm info -q path -n ${VIDEO_DEV[1]})
-				# udevadm info -a -p $(udevadm info -q path -n ${VIDEO_DEV[2]})
 			fi
 
 		elif [ "$3" = "net" ]; then
@@ -787,7 +826,7 @@ if [ "$1" = "aic" ]; then
 			chronyc sourcestats -v 2>/dev/null || true
 
 			log_step "chronyc activity"
-			chronyc activity 2>/dev/null || truez
+			chronyc activity 2>/dev/null || true
 
 			log_step "recent logs (chronyd)"
 			journalctl -u chronyd -n 80 --no-pager 2>/dev/null || true
@@ -809,24 +848,6 @@ if [ "$1" = "aic" ]; then
 			fi
 		fi
 	
-	elif [ "$2" = "u" ]; then
-		echo "update..."
-		dir_local_ftp="/mnt/reserved/10.1.13.207"
-		dir_target="/home/root/backend_data"
-		
-		cd $dir_target
-		if [ "$3" = "be" ]; then
-			echo "backend..."
-			cp -f $dir_local_ftp/AD/vision-sensor-backend.tar.gz .
-			rm -r vision-sensor-backend/
-			tar -zxvf vision-sensor-backend.tar.gz
-		elif [ "$3" = "fe" ]; then
-			echo "frontend..."
-			cp -f $dir_local_ftp/AD/vision-sensor-frontend.tar.gz .
-			rm -r vision-sensor-frontend/
-			tar -zxvf vision-sensor-frontend.tar.gz
-		fi
-
 	elif [ "$2" = "c" ]; then
 		echo "clean..."
 		rm "$primax_dir"/*.png 
@@ -895,11 +916,23 @@ if [ "$1" = "aic" ]; then
 
 	elif [ "$2" = "gst" ]; then
 		setup_wayland_env || true
+		cmd=()
 
 		if [ "$3" = "usb" ] || [ "$3" = "uvc" ]; then
 			echo "usb..."
 			if [ "$4" = "tee" ]; then
-				cmd="gst-launch-1.0 -e -v v4l2src device=$device_uvc ! image/jpeg,width=1920,height=1080,framerate=30/1 ! jpegdec ! videoconvert ! tee name=t ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true     t. ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! rtspclientsink location=rtsp://localhost:8554/mystream"
+				cmd=(
+					gst-launch-1.0 -e -v v4l2src "device=$device_uvc"
+					'!' image/jpeg,width=1920,height=1080,framerate=30/1
+					'!' jpegdec
+					'!' videoconvert
+					'!' tee name=t
+					'!' queue
+					'!' fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t.
+					'!' queue
+					'!' v4l2h264enc extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf
+					'!' rtspclientsink location=rtsp://localhost:8554/mystream
+				)
 			elif [ "$4" = "dp" ]; then
 				# ---- default values ----
 				DEVICE="$device_uvc"
@@ -939,129 +972,288 @@ if [ "$1" = "aic" ]; then
 							;;
 					esac
 				done
-				cmd="gst-launch-1.0 -e -v v4l2src device=${DEVICE} ! image/jpeg,width=${WIDTH},height=${HEIGHT},framerate=${FPS} ! jpegdec ! videoconvert ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true"
-				#cmd="gst-launch-1.0 -e -v v4l2src device=$device_uvc ! image/jpeg,width=1920,height=1080,framerate=30/1 ! jpegdec ! videoconvert ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true"
+				cmd=(
+					gst-launch-1.0 -e -v v4l2src "device=${DEVICE}"
+					'!' "image/jpeg,width=${WIDTH},height=${HEIGHT},framerate=${FPS}"
+					'!' jpegdec
+					'!' videoconvert
+					'!' queue
+					'!' fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true
+				)
 			else
-				cmd="gst-launch-1.0 -e -v v4l2src device=$device_uvc ! image/jpeg,width=640,height=480,framerate=30/1 ! jpegdec ! videoconvert ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! rtspclientsink location=rtsp://localhost:8554/mystream"
+				cmd=(
+					gst-launch-1.0 -e -v v4l2src "device=$device_uvc"
+					'!' image/jpeg,width=640,height=480,framerate=30/1
+					'!' jpegdec
+					'!' videoconvert
+					'!' v4l2h264enc extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf
+					'!' rtspclientsink location=rtsp://localhost:8554/mystream
+				)
 			fi
 
-		elif [ "$3" = "gige" ]; then
-			echo "gige..."
-			
+		elif [[ "$3" == "gige" || "$3" == "gige1" || "$3" == "gige2" ]]; then
+			printf '%s...\n' "$3"
+			gst_source=(gst-launch-1.0 aravissrc)
+			case "$3" in
+				gige1) gst_source+=(camera-name=id1) ;;
+				gige2) gst_source+=(camera-name=id2) ;;
+			esac
+
 			if [ "$4" = "tee" ]; then
-				cmd="gst-launch-1.0 aravissrc ! videoconvert ! video/x-raw,format=NV12 ! tee name=t t. ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t. ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
-			elif [ "$4" = "udp" ]; then
-				cmd='gst-launch-1.0 aravissrc do-timestamp=true ! queue ! videoconvert ! videoscale ! videorate ! video/x-raw,format=NV12,width=1280,height=720,framerate=30/1 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=10" capture-io-mode=dmabuf ! h264parse config-interval=-1 ! video/x-h264,stream-format=byte-stream,alignment=au ! mpegtsmux ! udpsink host=127.0.0.1 port=8891 sync=false async=false'
+				cmd=(
+					"${gst_source[@]}"
+					'!' videoconvert
+					'!' video/x-raw,format=NV12
+					'!' tee name=t t.
+					'!' queue
+					'!' fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t.
+					'!' queue
+					'!' v4l2h264enc extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf
+					'!' h264parse config-interval=1
+					'!' rtspclientsink location=rtsp://localhost:8554/mystream
+				)
+			elif [[ "$3" == "gige" && "$4" == "udp" ]]; then
+				cmd=(
+					"${gst_source[@]}" do-timestamp=true
+					'!' queue
+					'!' videoconvert
+					'!' videoscale
+					'!' videorate
+					'!' video/x-raw,format=NV12,width=1280,height=720,framerate=30/1
+					'!' queue
+					'!' v4l2h264enc 'extra-controls="cid,video_gop_size=10"' capture-io-mode=dmabuf
+					'!' h264parse config-interval=-1
+					'!' video/x-h264,stream-format=byte-stream,alignment=au
+					'!' mpegtsmux
+					'!' udpsink host=127.0.0.1 port=8891 sync=false async=false
+				)
 			elif [ "$4" = "dp" ]; then
-				cmd='gst-launch-1.0 aravissrc ! videoconvert ! video/x-raw,format=NV12,width=1536,height=1024 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
+				cmd=(
+					"${gst_source[@]}"
+					'!' videoconvert
+					'!' video/x-raw,format=NV12,width=1536,height=1024
+					'!' queue
+					'!' fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true
+				)
 			elif [ "$4" = "dp2" ]; then
-				cmd='gst-launch-1.0 aravissrc ! videoconvert ! video/x-raw,format=NV12,width=3072,height=2048 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
+				cmd=(
+					"${gst_source[@]}"
+					'!' videoconvert
+					'!' video/x-raw,format=NV12,width=3072,height=2048
+					'!' queue
+					'!' fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true
+				)
 			else
-				cmd="gst-launch-1.0 aravissrc ! videoconvert ! video/x-raw,format=NV12 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+				cmd=(
+					"${gst_source[@]}"
+					'!' videoconvert
+					'!' video/x-raw,format=NV12
+					'!' queue
+					'!' v4l2h264enc extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf
+					'!' h264parse config-interval=1
+					'!' rtspclientsink location=rtsp://localhost:8554/mystream
+				)
 			fi
 		elif [ "$3" = "test" ]; then
 			echo "test pattern..."
 			
 			if [ "$4" = "tee" ]; then
-				cmd='gst-launch-1.0 videotestsrc is-live=true pattern=smpte ! video/x-raw,width=1280,height=720,framerate=30/1 ! videoconvert ! video/x-raw,format=NV12 ! tee name=t t. ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t. ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=10" capture-io-mode=dmabuf ! h264parse config-interval=-1 ! video/x-h264,stream-format=byte-stream,alignment=au ! rtspclientsink location=rtsp://localhost:8554/mystream'
+				cmd=(
+					gst-launch-1.0 videotestsrc is-live=true pattern=smpte
+					'!' video/x-raw,width=1280,height=720,framerate=30/1
+					'!' videoconvert
+					'!' video/x-raw,format=NV12
+					'!' tee name=t t.
+					'!' queue
+					'!' fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t.
+					'!' queue
+					'!' v4l2h264enc 'extra-controls="cid,video_gop_size=10"' capture-io-mode=dmabuf
+					'!' h264parse config-interval=-1
+					'!' video/x-h264,stream-format=byte-stream,alignment=au
+					'!' rtspclientsink location=rtsp://localhost:8554/mystream
+				)
 			elif [ "$4" = "udp" ]; then
-				cmd='gst-launch-1.0 videotestsrc is-live=true pattern=smpte ! video/x-raw,width=1280,height=720,framerate=30/1 ! videoconvert ! video/x-raw,format=NV12 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=10" capture-io-mode=dmabuf ! h264parse config-interval=-1 ! video/x-h264,stream-format=byte-stream,alignment=au ! mpegtsmux ! udpsink host=127.0.0.1 port=8891 sync=false async=false'
+				cmd=(
+					gst-launch-1.0 videotestsrc is-live=true pattern=smpte
+					'!' video/x-raw,width=1280,height=720,framerate=30/1
+					'!' videoconvert
+					'!' video/x-raw,format=NV12
+					'!' queue
+					'!' v4l2h264enc 'extra-controls="cid,video_gop_size=10"' capture-io-mode=dmabuf
+					'!' h264parse config-interval=-1
+					'!' video/x-h264,stream-format=byte-stream,alignment=au
+					'!' mpegtsmux
+					'!' udpsink host=127.0.0.1 port=8891 sync=false async=false
+				)
 			elif [ "$4" = "dp" ]; then
-				cmd='gst-launch-1.0 videotestsrc is-live=true pattern=smpte ! video/x-raw,width=1280,height=720,framerate=30/1 ! videoconvert ! video/x-raw,format=NV12 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
+				cmd=(
+					gst-launch-1.0 videotestsrc is-live=true pattern=smpte
+					'!' video/x-raw,width=1280,height=720,framerate=30/1
+					'!' videoconvert
+					'!' video/x-raw,format=NV12
+					'!' queue
+					'!' fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true
+				)
 			else
-				cmd='gst-launch-1.0 videotestsrc is-live=true pattern=smpte ! video/x-raw,width=1280,height=720,framerate=30/1 ! videoconvert ! video/x-raw,format=NV12 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=10" capture-io-mode=dmabuf ! h264parse config-interval=-1 ! video/x-h264,stream-format=byte-stream,alignment=au ! rtspclientsink location=rtsp://localhost:8554/mystream'
-			fi
-		elif [ "$3" = "gige1" ]; then
-			echo "gige..."
-			
-			if [ "$4" = "tee" ]; then
-				cmd="gst-launch-1.0 aravissrc camera-name=id1 ! videoconvert ! video/x-raw,format=NV12 ! tee name=t t. ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t. ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
-			elif [ "$4" = "dp" ]; then
-				cmd='gst-launch-1.0 aravissrc camera-name=id1 ! videoconvert ! video/x-raw,format=NV12,width=1536,height=1024 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
-			elif [ "$4" = "dp2" ]; then
-				cmd='gst-launch-1.0 aravissrc camera-name=id1 ! videoconvert ! video/x-raw,format=NV12,width=3072,height=2048 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
-			else
-				cmd="gst-launch-1.0 aravissrc camera-name=id1 ! videoconvert ! video/x-raw,format=NV12 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
-			fi
-		elif [ "$3" = "gige2" ]; then
-			echo "gige2..."
-			
-			if [ "$4" = "tee" ]; then
-				cmd="gst-launch-1.0 aravissrc camera-name=id2 ! videoconvert ! video/x-raw,format=NV12 ! tee name=t t. ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true t. ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
-			elif [ "$4" = "dp" ]; then
-				cmd='gst-launch-1.0 aravissrc camera-name=id2 ! videoconvert ! video/x-raw,format=NV12,width=1536,height=1024 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
-			elif [ "$4" = "dp2" ]; then
-				cmd='gst-launch-1.0 aravissrc camera-name=id2 ! videoconvert ! video/x-raw,format=NV12,width=3072,height=2048 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true'
-			else
-				cmd="gst-launch-1.0 aravissrc camera-name=id2 ! videoconvert ! video/x-raw,format=NV12 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+				cmd=(
+					gst-launch-1.0 videotestsrc is-live=true pattern=smpte
+					'!' video/x-raw,width=1280,height=720,framerate=30/1
+					'!' videoconvert
+					'!' video/x-raw,format=NV12
+					'!' queue
+					'!' v4l2h264enc 'extra-controls="cid,video_gop_size=10"' capture-io-mode=dmabuf
+					'!' h264parse config-interval=-1
+					'!' video/x-h264,stream-format=byte-stream,alignment=au
+					'!' rtspclientsink location=rtsp://localhost:8554/mystream
+				)
 			fi
 
 		elif [ "$3" = "png" ]; then
+			camera=$(find_cis_camera) || exit
 			filename="snapshot_${timestamp}.png"
-			cmd="gst-launch-1.0 -e v4l2src device=${VIDEO_DEV[0]} num-buffers=1 ! video/x-raw,width=2048,height=1536 ! pngenc ! filesink location="${filename}""
+			cmd=(
+				gst-launch-1.0 -e v4l2src "device=$camera" num-buffers=1
+				'!' video/x-raw,width=2048,height=1536
+				'!' pngenc
+				'!' filesink "location=${filename}"
+			)
 
 		elif [ "$3" = "jpg" ]; then
+			camera=$(find_cis_camera) || exit
 			filename="snapshot_${timestamp}.jpg"
-			cmd="gst-launch-1.0 -v v4l2src device=${VIDEO_DEV[0]} num-buffers=1 ! queue ! video/x-raw,framrate=30/1,width=2048,height=1536,format=NV12 ! v4l2jpegenc ! queue ! jpegparse ! filesink location="${filename}.jpg""
+			cmd=(
+				gst-launch-1.0 -v v4l2src "device=$camera" num-buffers=1
+				'!' queue
+				'!' video/x-raw,framrate=30/1,width=2048,height=1536,format=NV12
+				'!' v4l2jpegenc
+				'!' queue
+				'!' jpegparse
+				'!' filesink "location=${filename}"
+			)
 
 		elif [ "$3" = "bmp" ]; then
+			camera=$(find_cis_camera) || exit
 			filename="snapshot_${timestamp}.bmp"
-			cmd="gst-launch-1.0 -e v4l2src device=${VIDEO_DEV[0]} num-buffers=1 ! video/x-raw,width=2048,height=1536 ! bmpenc ! filesink location="${filename}.bmp""
+			cmd=(
+				gst-launch-1.0 -e v4l2src "device=$camera" num-buffers=1
+				'!' video/x-raw,width=2048,height=1536
+				'!' bmpenc
+				'!' filesink "location=${filename}"
+			)
 
 		elif [ "$3" = "mtx" ]; then
-			cmd="gst-launch-1.0 rtspsrc location=rtsp://localhost:8554/mystream latency=10 drop-on-latency=true ! rtph264depay ! h264parse ! v4l2h264dec extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! v4l2convert ! video/x-raw,width=1920,height=1080 ! fpsdisplaysink video-sink=waylandsink sync=false"
+			cmd=(
+				gst-launch-1.0 rtspsrc location=rtsp://localhost:8554/mystream latency=10 drop-on-latency=true
+				'!' rtph264depay
+				'!' h264parse
+				'!' v4l2h264dec extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf
+				'!' v4l2convert
+				'!' video/x-raw,width=1920,height=1080
+				'!' fpsdisplaysink video-sink=waylandsink sync=false
+			)
 
 		elif [ "$3" = "cis" ]; then
 			echo "cis..."
-			declare -a VIDEO_DEV=(`v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d "\n"`)
+			camera=$(find_cis_camera) || exit
 
 			if [ "$4" = "tee" ]; then
-				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! tee name=t t. ! videoconvert ! video/x-raw,format=YUY2,width=1280,height=720 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false t. ! queue ! v4l2h264enc extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+				cmd=(
+					gst-launch-1.0 v4l2src "device=$camera"
+					'!' tee name=t t.
+					'!' videoconvert
+					'!' video/x-raw,format=YUY2,width=1280,height=720
+					'!' queue
+					'!' fpsdisplaysink video-sink=waylandsink sync=false t.
+					'!' queue
+					'!' v4l2h264enc extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf
+					'!' h264parse config-interval=1
+					'!' rtspclientsink location=rtsp://localhost:8554/mystream
+				)
 			elif [ "$4" = "dp" ]; then
 				if [ "$5" = "1080" ]; then
-					cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! videoconvert ! video/x-raw,width=1920,height=1080 ! fpsdisplaysink video-sink=waylandsink sync=false"
+					cmd=(
+						gst-launch-1.0 v4l2src "device=$camera"
+						'!' videoconvert
+						'!' video/x-raw,width=1920,height=1080
+						'!' fpsdisplaysink video-sink=waylandsink sync=false
+					)
 				else
-					cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false"
-					# cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! v4l2convert output-io-mode=dmabuf-import ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false"
+					cmd=(
+						gst-launch-1.0 v4l2src "device=$camera"
+						'!' videoconvert
+						'!' video/x-raw,width=1280,height=720
+						'!' fpsdisplaysink video-sink=waylandsink sync=false
+					)
 				fi
 			elif [ "$4" = "iq" ]; then
-       			cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=1280,height=720,format=YUY2 ! waylandsink"
+			cmd=(
+				gst-launch-1.0 v4l2src "device=$camera"
+				'!' video/x-raw,width=1280,height=720,format=YUY2
+				'!' waylandsink
+			)
 			elif [ "$4" = "ndd" ]; then
-				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=1920,height=1080,format=NV12 ! waylandsink"
+				cmd=(
+					gst-launch-1.0 v4l2src "device=$camera"
+					'!' video/x-raw,width=1920,height=1080,format=NV12
+					'!' waylandsink
+				)
 			elif [ "$4" = "hd" ]; then
-				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=1280,height=720 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+				cmd=(
+					gst-launch-1.0 v4l2src "device=$camera"
+					'!' video/x-raw,width=1280,height=720
+					'!' queue
+					'!' v4l2h264enc extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf
+					'!' h264parse config-interval=1
+					'!' rtspclientsink location=rtsp://localhost:8554/mystream
+				)
 			elif [ "$4" = "1080" ]; then
-				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=1920,height=1080 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+				cmd=(
+					gst-launch-1.0 v4l2src "device=$camera"
+					'!' video/x-raw,width=1920,height=1080
+					'!' queue
+					'!' v4l2h264enc extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf
+					'!' h264parse config-interval=1
+					'!' rtspclientsink location=rtsp://localhost:8554/mystream
+				)
 			else
-				cmd="gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! video/x-raw,width=2592,height=1944 ! queue ! v4l2h264enc extra-controls="cid,video_gop_size=30" capture-io-mode=dmabuf ! h264parse config-interval=1 ! rtspclientsink location=rtsp://localhost:8554/mystream"
+				cmd=(
+					gst-launch-1.0 v4l2src "device=$camera"
+					'!' video/x-raw,width=2592,height=1944
+					'!' queue
+					'!' v4l2h264enc extra-controls=cid,video_gop_size=30 capture-io-mode=dmabuf
+					'!' h264parse config-interval=1
+					'!' rtspclientsink location=rtsp://localhost:8554/mystream
+				)
 			fi
 
 		fi
 
-		log_step "$cmd"
-		$cmd
+		if [ -z "${cmd[0]+x}" ]; then
+			printf 'Unknown GStreamer mode: %s\n' "$3" >&2
+			exit 1
+		fi
+		run_cmd "${cmd[@]}"
 	
 	elif [ "$2" = "cam" ]; then
 
-		log_step "declare -a VIDEO_DEV=(`v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d \"\n\"`)"
-		declare -a VIDEO_DEV=(`v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d "\n"`)
+		camera=$(find_cis_camera) || exit
 		if [ "$3" = "reset" ]; then
 			echo "reset ioctls..."
-			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl white_balance_automatic=1
-			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl auto_exposure=0
-			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl saturation=0
-			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl contrast=0
+			run_cmd v4l2-ctl -d "$camera" --set-ctrl white_balance_automatic=1
+			run_cmd v4l2-ctl -d "$camera" --set-ctrl auto_exposure=0
+			run_cmd v4l2-ctl -d "$camera" --set-ctrl saturation=0
+			run_cmd v4l2-ctl -d "$camera" --set-ctrl contrast=0
 		
 		elif [ "$3" = "set" ]; then
 			echo "set ioctls..."
-			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl white_balance_automatic=0
-			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl auto_exposure=1
-			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl saturation=7
-			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl contrast=5
+			run_cmd v4l2-ctl -d "$camera" --set-ctrl white_balance_automatic=0
+			run_cmd v4l2-ctl -d "$camera" --set-ctrl auto_exposure=1
+			run_cmd v4l2-ctl -d "$camera" --set-ctrl saturation=7
+			run_cmd v4l2-ctl -d "$camera" --set-ctrl contrast=5
 		fi
 
 		sleep 0.5
-		run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --list-ctrls
+		run_cmd v4l2-ctl -d "$camera" --list-ctrls
 
 	elif [ "$2" = "iq" ]; then
 		log_separator "IQ DB Operation"
@@ -1070,23 +1262,30 @@ if [ "$1" = "aic" ]; then
 		dir_iq_old="$dir_iq/db_origin"
 		dir_iq_dev="/usr/share/mtkcam/DataSet/SQLiteModule/db"
 
-		copy_db() {
+		copy_db() (
 			local src_dir="$1"
 			local file_path="$2"
 			local file_name="$3"
 			local src_file="$src_dir/$file_path/$file_name"
 			local dst_file="$dir_iq_dev/$file_path/$file_name"
+			local staged_file
 
 			echo "→ Copying: $file_name"
 			echo "   From: $src_file"
 			echo "   To:   $dst_file"
-			mkdir -p "$(dirname "$dst_file")"
-			cp -f "$src_file" "$dst_file" && sync
+			exec 8<"${dir_iq_dev%/*}" || exit
+			flock -x 8 || exit
+			mkdir -p "${dst_file%/*}" || exit
+			staged_file=$(mktemp "${dst_file}.XXXXXX") || exit
+			trap 'rm -f -- "$staged_file"' EXIT
+			cp -p -- "$src_file" "$staged_file" || exit
+			mv -fT -- "$staged_file" "$dst_file" || exit
+			sync || exit
 
 			echo "   MD5 (src): $(md5sum "$src_file" | awk '{print $1}')"
 			echo "   MD5 (dst): $(md5sum "$dst_file" | awk '{print $1}')"
 			echo ""
-		}
+		)
 
 		if [ "$3" = "new" ]; then
 			echo "Update to NEW DB..."
@@ -1095,24 +1294,13 @@ if [ "$1" = "aic" ]; then
 			echo "Restore OLD DB..."
 			src_base="$dir_iq_old"
 		elif [ "$3" = "unzip" ]; then
-			echo "unzip DBs to $dir_iq/db_tmp ..."
-			rm -rf "$dir_iq/db_tmp" "$dir_iq/db_new"
-			unzip -o "$dir_iq/db_new.zip" -d "$dir_iq"
-			mv "$dir_iq/db_tmp" "$dir_iq/db_new"
-			exit 0
+			install_iq_tree "$dir_iq/db_new.zip" "$dir_iq_new" archive
+			exit $?
 
 		elif [ "$3" = "udb" ]; then
-			echo "unzip IQ db at $dir_iq..."
-			rm -rf "$dir_iq/db_tmp" "$dir_iq/db_new"
-			unzip -o "$dir_iq/db_new.zip" -d "$dir_iq"
-			echo "Update folder $dir_iq_dev..."
-			mv "$dir_iq/db_tmp" "$dir_iq/db_new"
-			rm -rf $dir_iq_dev
-			cp -rf $dir_iq_new $dir_iq_dev
-			rm -rf "$dir_iq/db_tmp" "$dir_iq/db_new"
-			echo "Restarting camd service..."
-			systemctl restart camd
-			exit 0
+			install_iq_tree "$dir_iq/db_new.zip" "$dir_iq_dev" archive || exit
+			run_cmd systemctl restart camd
+			exit $?
 
 		elif [ "$3" = "ndd2" ]; then
 			curl http://localhost:8765/fw/gst/start
@@ -1198,23 +1386,20 @@ if [ "$1" = "aic" ]; then
 
 		case "$4" in
 			os)
-				copy_db "$src_base" "tuning_DB/imx214_mipi_raw" "ISP_param.db"
+				copy_db "$src_base" "tuning_DB/imx214_mipi_raw" "ISP_param.db" || exit
 				;;
 			ae)
-				copy_db "$src_base" "ae" "ParameterDB_ae.db"
+				copy_db "$src_base" "ae" "ParameterDB_ae.db" || exit
 				;;
 			awb)
-				copy_db "$src_base" "awb" "ParameterDB_awb.db"
+				copy_db "$src_base" "awb" "ParameterDB_awb.db" || exit
 				;;
 			tone)
-				copy_db "$src_base" "tone" "ParameterDB_tone.db"
+				copy_db "$src_base" "tone" "ParameterDB_tone.db" || exit
 				;;
 			all)
 				echo "Applying all DBs (os, ae, awb, tone)..."
-				echo "cp -rf $dir_iq_new $dir_iq_dev"
-				rm -rf $dir_iq_dev
-				cp -rf $dir_iq_new $dir_iq_dev
-				rm -rf "$dir_iq/db_tmp" "$dir_iq/db_new"
+				install_iq_tree "$src_base" "$dir_iq_dev" directory || exit
 				;;
 			*)
 				echo "❌ Invalid DB type: use one of [os | ae | awb | tone | all]"
@@ -1223,7 +1408,7 @@ if [ "$1" = "aic" ]; then
 		esac
 
 		echo "Restarting camd service..."
-		systemctl restart camd
+		systemctl restart camd || exit
 		echo "✅ IQ DB operation complete."
 
 	elif [ "$2" = "kill" ]; then
@@ -1238,7 +1423,7 @@ if [ "$1" = "aic" ]; then
 		fi
 
 	elif [ "$2" = "ftp" ]; then
-		run_device_ftp_command "${@:3}" || exit 1
+		run_device_ftp_command "${@:3}"
 
 	elif [ "$2" = "uota" ]; then
 		log_separator "OTA from USB"
@@ -1683,8 +1868,8 @@ if [ "$1" = "aic" ]; then
 				gst-launch-1.0 aravissrc camera-name=id1 ! videoconvert ! video/x-raw,format=NV12,width=1536,height=1024 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true &
 				gst-launch-1.0 aravissrc camera-name=id2 ! videoconvert ! video/x-raw,format=NV12,width=1536,height=1024 ! queue ! fpsdisplaysink video-sink=waylandsink sync=false text-overlay=true &
 			else
-				declare -a VIDEO_DEV=(`v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d "\n"`)
-				gst-launch-1.0 v4l2src device=${VIDEO_DEV[0]} ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false &
+				camera=$(find_cis_camera) || exit
+				gst-launch-1.0 v4l2src device="$camera" ! videoconvert ! video/x-raw,width=1280,height=720 ! fpsdisplaysink video-sink=waylandsink sync=false &
 			fi
 			stress-ng --cpu 8 &
 			genio-stress-gpu &
@@ -1709,25 +1894,22 @@ if [ "$1" = "aic" ]; then
 	elif [ "$2" = "lora" ]; then
 
 		if [ "$3" = "r" ]; then
-			BAND="${5:-868000000}"   # optional: pass band as $5, default 433000000
-			PORT="/dev/ttyUSB0"
-
-			if [ "$4" = "log" ]; then
-				if is_aicamera || is_visionhub; then
-					CMD="python3 lora_tdma.py --port $PORT --robots 1-10 --band $BAND --log --log-calc --log-rx"
-				else
-					CMD="ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-10 -p log:=true -p log_calc:=true -p log_rx:=true -p port:=$PORT -p band:=$BAND"
-				fi
-			else
-				if is_aicamera || is_visionhub; then
-					CMD="python3 lora_tdma.py --port $PORT --robots 1-10 --band $BAND --log-calc --log-rx"
-				else
-					CMD="ros2 run lora_rylr993 lora_rylr993_node --ros-args -p robots:=1-10 -p log_calc:=true -p log_rx:=true -p port:=$PORT -p band:=$BAND"
-				fi
+			band="${5:-868000000}"
+			port="/dev/ttyUSB0"
+			if [[ ! "$band" =~ ^[0-9]+$ ]]; then
+				printf 'Invalid LoRa frequency: %s\n' "$band" >&2
+				exit 1
 			fi
 
-			log_step "$CMD"
-			eval "$CMD"
+			if is_aicamera || is_visionhub; then
+				cmd=(python3 lora_tdma.py --port "$port" --robots 1-10 --band "$band" --log-calc --log-rx)
+				[ "$4" = "log" ] && cmd+=(--log)
+			else
+				cmd=(ros2 run lora_rylr993 lora_rylr993_node --ros-args
+					-p robots:=1-10 -p log_calc:=true -p log_rx:=true -p "port:=$port" -p "band:=$band")
+				[ "$4" = "log" ] && cmd+=(-p log:=true)
+			fi
+			run_cmd "${cmd[@]}"
 
 		elif [ "$3" = "i" ]; then
 			ipk_file="lora-rylr993_0.0.1-r0_armv8a.ipk"
@@ -1894,25 +2076,35 @@ except KeyboardInterrupt:
 
 	fi
 
-fi
+	;;
 # use systemd-networkd
 # not use NetworkManager
-if [ "$1" = "eth0" ]; then
+eth0)
 	if [ "$2" = "static" ]; then
-		ip_last_num=99
-
-		if [ "$3" != "" ]; then
-			lan="192.168.$3"
-			echo "set static IP to $lan.$ip_last_num"
-			sed -i '/^\[Network\]/,/^$/d' /etc/systemd/network/00-eth0.network
-			echo -e "[Network]\nAddress=$lan.$ip_last_num/24\nGateway=$lan.1\nDNS=8.8.8.8" | tee -a /etc/systemd/network/00-eth0.network
-		else
-			lan="192.168.1"
-			echo "set static IP to $lan.$ip_last_num"
-			sed -i '/^\[Network\]/,/^$/d' /etc/systemd/network/00-eth0.network
-			echo -e "[Network]\nAddress=$lan.$ip_last_num/24\nGateway=$lan.1\nDNS=8.8.8.8" | tee -a /etc/systemd/network/00-eth0.network
+		subnet="${3:-1}"
+		if [[ ! "$subnet" =~ ^[0-9]{1,3}$ ]] || (( 10#$subnet > 255 )); then
+			printf 'Invalid subnet number: %s\n' "$subnet" >&2
+			exit 1
 		fi
-		echo "write to /etc/systemd/network/00-eth0.network"
+		lan="192.168.$((10#$subnet))"
+		network_config="/etc/systemd/network/00-eth0.network"
+
+		(
+			staged_config=$(mktemp "${network_config}.XXXXXX") || exit
+			trap 'rm -f -- "$staged_config"' EXIT
+			if [ -e "$network_config" ]; then
+				cp -p -- "$network_config" "$staged_config" || exit
+				awk '
+					/^[[:space:]]*\[[^]]+\]/ { in_network = ($0 ~ /^[[:space:]]*\[Network\][[:space:]]*$/) }
+					!in_network { print }
+				' "$network_config" > "$staged_config" || exit
+			else
+				chmod 644 "$staged_config" || exit
+			fi
+			printf '[Network]\nAddress=%s.99/24\nGateway=%s.1\nDNS=8.8.8.8\n' "$lan" "$lan" >> "$staged_config" || exit
+			mv -f -- "$staged_config" "$network_config" || exit
+			printf 'Set static IP to %s.99 in %s\n' "$lan" "$network_config"
+		)
 
 	elif [ "$2" = "dhcp" ]; then
 		echo "reset to dhcp..."
@@ -1933,21 +2125,22 @@ if [ "$1" = "eth0" ]; then
 		log_separator "cat /etc/systemd/network/00-eth0.network"
 		cat /etc/systemd/network/00-eth0.network
 	fi
-fi
+	;;
 
 # Test via restful API
-if [ "$1" = "tv" ]; then
+tv)
 	echo "call vision_box..."
 	url="http://localhost:9876/fw/$2"
 	run_cmd curl $url
-elif [[ "$1" = "tt" || "$1" = "tf" ]]; then
+	;;
+tt|tf)
 	echo "call fw_daemon..."
 	url="http://localhost:8765/fw/$2"
 	run_cmd curl $url
-fi
+	;;
 
 # system related 
-if [ "$1" = "sys" ]; then
+sys)
 	if [ "$2" = "service" ]; then
 		log_separator "Service info"
 		systemctl list-unit-files --type=service --state=enabled
@@ -1989,9 +2182,9 @@ if [ "$1" = "sys" ]; then
 		echo "param 3 not match"
 		exit -1
 	fi
-fi
+	;;
 
-if [ "$1" = "srm" ]; then
+srm)
 	echo "set route metric..."
     if [ $# -lt 3 ]; then
         echo "Usage: $0 srp <lan_id> <metric>"
@@ -2008,10 +2201,10 @@ if [ "$1" = "srm" ]; then
     ip route del default via "$gateway" dev "$iface" 2>/dev/null
     # Add new default route
     ip route add default via "$gateway" dev "$iface" metric "$metric"
-fi
+	;;
 
 # gedit
-if [ "$1" = "ge" ]; then
+ge)
 	if [ "$2" = "x" ]; then
 		cd $xDir
 		gedit x.sh
@@ -2021,10 +2214,10 @@ if [ "$1" = "ge" ]; then
 		echo "param 2 not match"
 		exit -1
 	fi
-fi
+	;;
 
 # vs code
-if [ "$1" = "code" ]; then
+code)
 	if [ "$2" = "x" ]; then
 		code $xDir/x.sh
 	elif [ "$2" = ".rc" ]; then
@@ -2037,10 +2230,10 @@ if [ "$1" = "code" ]; then
 		echo "param 2 not match"
 		exit -1
 	fi
-fi
+	;;
 
 # rename project
-if [ "$1" == "rename" ]; then
+rename)
 
 	if [ ! -n "$2" ] || [ ! -n "$3" ]; then
 		echo "param 3 & 4 shoud not be null"
@@ -2064,12 +2257,12 @@ if [ "$1" == "rename" ]; then
 		echo "step 3 : rename directory name"
 		find . -name "*$2*" -type d -exec rename "s/$2/$3/g" {} \; 
 	fi
-fi
+	;;
 
 # ftp
-if [ "$1" = "ftp" ]; then
+ftp)
 	if ( is_aicamera || is_visionhub ) && [[ "$2" == "sync" || "$2" == "up" || "$2" == "all" ]]; then
-		run_device_ftp_command "${@:2}" || exit 1
+		run_device_ftp_command "${@:2}"
 	elif [ "$2" = "restart" ]; then
 		service vsftpd restart
 		sleep 1
@@ -2118,9 +2311,9 @@ elif [ "$2" = "user+g" ]; then
 		echo "param 2 not match"
 		exit -1
 	fi
-fi
+	;;
 
-if [ "$1" = "date" ]; then
+date)
 
 	if [ "$2" = "+8" ]; then
 		timedatectl set-timezone Asia/Singapore
@@ -2128,15 +2321,15 @@ if [ "$1" = "date" ]; then
 		timedatectl set-ntp yes
 		date
 	fi
-fi
+	;;
 
 # logout
-if [ "$1" = "logout" ]; then
+logout)
 	gnome-session-quit
-fi
+	;;
 
 # file manager
-if [ "$1" = "cd" ]; then
+cd)
 	echo "XDG_CURRENT_DESKTOP:$XDG_CURRENT_DESKTOP" 
 	if [  "$XDG_CURRENT_DESKTOP" = "KDE" ]; then
 			dolphin $2
@@ -2146,10 +2339,10 @@ if [ "$1" = "cd" ]; then
 			echo "param 2 not match"
 			exit -1
 		fi
-fi
+	;;
 
 # chown
-if [ "$1" = "chown" ]; then
+chown)
 	if [ -n "$2" ]; then
 		if [ "$2" = "all" ]; then
 			sudo chown -R nobody:nogroup .
@@ -2157,10 +2350,10 @@ if [ "$1" = "chown" ]; then
 			sudo chown nobody:nogroup $2
 		fi
 	fi
-fi
+	;;
 
 # zip
-if [ "$1" = "zip" ] ; then
+zip)
     # $2 must exist
     if [ -z "$2" ]; then
         echo "❗ Missing target path (arg 2)"
@@ -2194,8 +2387,8 @@ if [ "$1" = "zip" ] ; then
         log_step "gzip $2 to $out.tar.gz"
         run_cmd tar -zcvf "$out.tar.gz" "$2"
     fi
-fi
-if [ "$1" = "unzip" ] ; then
+	;;
+unzip)
 	log_step "unzip file: $2"
 
 	if [[ "$2" == *.tar.gz || "$2" == *.tgz ]]; then
@@ -2218,10 +2411,10 @@ if [ "$1" = "unzip" ] ; then
 	else
 		echo "Unsupported file format: $2"
 	fi
-fi
+	;;
 
 # chmod
-if [ "$1" = "chmod" ]; then
+chmod)
 	if [ -n "$2" ]; then
 		if [ "$2" = "all" ]; then
 			if [ "$3" = "4" ]; then
@@ -2241,10 +2434,10 @@ if [ "$1" = "chmod" ]; then
 			fi
 		fi
 	fi
-fi
+	;;
 
 # ssh
-if [ "$1" = "ssh" ]; then
+ssh)
 	if [ "$2" = "status" ]; then
 		service sshd status
 
@@ -2260,10 +2453,10 @@ if [ "$1" = "ssh" ]; then
 		echo "param 2 not match"
 		exit -1
 	fi
-fi
+	;;
 
 # scp
-if [ "$1" = "scp" ]; then
+scp)
 
 	if [ "$2" = "up" ]; then
 
@@ -2299,10 +2492,10 @@ if [ "$1" = "scp" ]; then
 			fi
 		fi
 	fi
-fi
+	;;
 
 # docker
-if [ "$1" = "dk" ]; then
+dk)
 
 	if [ "$2" = "i" ]; then
 		# image related
@@ -2393,10 +2586,10 @@ if [ "$1" = "dk" ]; then
 		echo "param 2 not match"
 		exit -1
 	fi
-fi
+	;;
 
 # docker-compose
-if [ "$1" = "dkc" ]; then
+dkc)
 	if [ -n "$3" ]; then
 		if [ "$2" = "up" ]; then
 			log_separator "docker-compose -f $3 up"
@@ -2425,10 +2618,10 @@ if [ "$1" = "dkc" ]; then
 			log_separator "docker-compose donothing"
 		fi
 	fi
-fi
+	;;
 
 # update x
-if [ "$1" == "ux" ]; then
+ux)
     REPO=~/OSPath
     BRANCH="main"
     REMOTE="origin"
@@ -2462,19 +2655,19 @@ if [ "$1" == "ux" ]; then
     fi
 
     chmod 755 "$REPO/AICamera/x.sh"
-fi
+	;;
 
 # find content
-if [ "$1" == "grep" ] ; then
+grep)
 	grep -r $2 .
-fi
+	;;
 
 # find
-if [ "$1" == "find" ]; then
+find)
 	run_cmd find . -name "$2"
-fi
+	;;
 
-if [ "$1" == "size" ] ; then
+size)
     
     # must have a target path
     if [ -z "$2" ]; then
@@ -2486,26 +2679,26 @@ if [ "$1" == "size" ] ; then
     # === List directory size (one level) ===
     if [ "$3" == "d" ]; then
         run_cmd --pipe sudo du -h --max-depth=1 "$2" -- sort -h
-        exit 0
+        exit $?
     fi
     
     # === Max depth mode (m) ===
     if [ "$3" == "m" ] && [ -n "$4" ] && [[ "$4" =~ ^[0-9]+$ ]]; then
         run_cmd --pipe sudo du -h --max-depth="$4" "$2" -- sort -h
-        exit 0
+        exit $?
     fi
     
     # === Default: summary only (file or folder size) ===
     run_cmd sudo du --no-dereference -sh "$2"
-fi
+	;;
 
 # tree -L3
-if [ "$1" == "tree" ] ; then
+tree)
 	run_cmd tree -L 3 $2
-fi
+	;;
 
 # format and mount disk
-if [ "$1" == "df" ] ; then
+df)
 	fs_type="$2"
 	device="$3"
 
@@ -2541,9 +2734,10 @@ if [ "$1" == "df" ] ; then
 		run_cmd lsblk -f
 		run_cmd df -h "$mount_point"
 	fi
-fi
+	;;
 
-if [ "$1" == "c" ] ; then
+c)
 	echo "clear ..."
 	clear
-fi
+	;;
+esac
