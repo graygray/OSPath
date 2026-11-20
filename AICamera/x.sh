@@ -1,8 +1,5 @@
 xDir=~/"OSPath/AICamera"
 
-# docker
-dockderDir=~/"Docker"
-
 # Loop through all parameters passed to the script
 echo "param 0: $0"
 i=1
@@ -865,8 +862,6 @@ if [ "$1" = "aic" ]; then
 		echo "update..."
 		dir_local_ftp="/mnt/reserved/10.1.13.207"
 		dir_target="/home/root/backend_data"
-		dir_backend="$dir_target/vision-sensor-backend"
-		dir_frontend="$dir_target/vision-sensor-frontend"
 		
 		cd $dir_target
 		if [ "$3" = "be" ]; then
