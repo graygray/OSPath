@@ -65,8 +65,13 @@ log_separator() {
 	fi
 }
 
-run_command() {
-	log_step "$@"
+run_cmd() {
+	if [ "${1-}" = "--pipe" ]; then
+		shift
+		log_step "$@" >&2
+	else
+		log_step "$@"
+	fi
 	"$@"
 }
 
@@ -348,7 +353,7 @@ run_device_ftp_command() {
 
 		case "$arg1" in
 			up)
-				run_command rsync -avz -e ssh \
+				run_cmd rsync -avz -e ssh \
 					"$dir_local_cache/" \
 					"$ftp_user@$ftp_host:$dir_ssh_remote/"
 				;;
@@ -461,8 +466,8 @@ if [ "$1" = "ccm" ]; then
 		fileReplace2="$dir_ccm/$2/$fileName2"
 		fileTarget2="$dir_iq_dev/$filePath/$fileName2"
 
-		run_command cp -f $fileReplace1 $fileTarget1
-		run_command cp -f $fileReplace2 $fileTarget2
+		run_cmd cp -f $fileReplace1 $fileTarget1
+		run_cmd cp -f $fileReplace2 $fileTarget2
 		sync
 		md5sum $fileReplace1
 		md5sum $fileTarget1
@@ -503,7 +508,7 @@ if [ "$1" = "cp" ]; then
 			fi
 
 			fname=$(basename "$marked_path")
-			run_command cp -rf "$marked_path" "$PWD/$fname"
+			run_cmd cp -rf "$marked_path" "$PWD/$fname"
 		fi
 		exit $?
 	elif [ "$2" = "ftp" ]; then
@@ -545,7 +550,7 @@ if [ "$1" = "mv" ]; then
 			fi
 
 			fname=$(basename "$marked_path")
-			run_command mv "$marked_path" "$PWD/$fname"
+			run_cmd mv "$marked_path" "$PWD/$fname"
 		fi
 		exit $?
 	fi
@@ -556,15 +561,14 @@ fi
 
 if [ "$1" = "ps" ]; then
 	if [ "$2" != "" ]; then
-		log_step "ps aux | grep $2"
-		ps aux | grep $2
+		run_cmd --pipe ps aux | grep $2
 	fi
 fi
 
 if [ "$1" = "ot" ]; then
 	i2cbus=7
 	if [ "$2" = "ck" ]; then
-		run_command i2cdetect -r -y "$i2cbus"
+		run_cmd i2cdetect -r -y "$i2cbus"
 	elif [ "$2" = "r8" ]; then
 		echo "read 8*8... i2ctransfer -y $i2cbus w2@0x68 0x4E 0x00 r141"
 		i2ctransfer -y $i2cbus w2@0x68 0x4E 0x00 r141
@@ -615,12 +619,12 @@ if [ "$1" = "aic" ]; then
 	elif [ "$2" = "ck" ]; then
 		if [ "$3" = "dp" ]; then
 			echo "display port..."
-			run_command fw_printenv list_dtbo boot_conf
-			run_command i2cdetect -r -y 0
-			run_command i2cdetect -r -y 4
-			run_command modeprint mediatek
-			run_command ls /sys/class/drm/
-			run_command cat /sys/class/drm/card0-DP-1/status
+			run_cmd fw_printenv list_dtbo boot_conf
+			run_cmd i2cdetect -r -y 0
+			run_cmd i2cdetect -r -y 4
+			run_cmd modeprint mediatek
+			run_cmd ls /sys/class/drm/
+			run_cmd cat /sys/class/drm/card0-DP-1/status
 
 		elif [ "$3" = "sound" ]; then
 			# runuser -u weston -- env XDG_RUNTIME_DIR=/run/user/1000 speaker-test -D pipewire -c 2 -t sine -f 1000 -l 1
@@ -635,7 +639,7 @@ if [ "$1" = "aic" ]; then
 			! pulsesink
 
 		elif [ "$3" = "uboot" ]; then
-			run_command fw_printenv list_dtbo boot_conf
+			run_cmd fw_printenv list_dtbo boot_conf
 
 		elif [ "$3" = "usb" ]; then
 			check_usb_bus
@@ -646,18 +650,16 @@ if [ "$1" = "aic" ]; then
 				echo "interrupt..."
 				cat /proc/interrupts | grep -iE 'rt171|tcp|tcpc|gpio|55'
 			elif [ "$4" = "k" ]; then
-				log_step "dmesg -w | grep -iE 'rt1715|rt1711|tcpm|type.?c|usb|xhci|dp|altmode'"
-				dmesg -w | grep -iE 'rt1715|rt1711|tcpm|type.?c|usb|xhci|dp|altmode'
+				run_cmd --pipe dmesg -w | grep -iE 'rt1715|rt1711|tcpm|type.?c|usb|xhci|dp|altmode'
 			elif [ "$4" = "udev" ]; then
-				log_step "udevadm monitor --kernel --udev | grep -iE 'typec|usb|drm|display|connector'"
-				udevadm monitor --kernel --udev | grep -iE 'typec|usb|drm|display|connector'
+				run_cmd --pipe udevadm monitor --kernel --udev | grep -iE 'typec|usb|drm|display|connector'
 			elif [ "$4" = "gpio" ]; then
-				run_command gpiomon --chip gpiochip0 --num-events=0 55
+				run_cmd gpiomon --chip gpiochip0 --num-events=0 55
 			elif [ "$4" = "cc" ]; then
-				run_command cat /sys/kernel/debug/usb/tcpm-7-004e/log
+				run_cmd cat /sys/kernel/debug/usb/tcpm-7-004e/log
 			else
-				run_command i2cdetect -r -y 7
-				run_command gpioget --chip gpiochip0 55
+				run_cmd i2cdetect -r -y 7
+				run_cmd gpioget --chip gpiochip0 55
 
 			fi
 
@@ -671,14 +673,14 @@ if [ "$1" = "aic" ]; then
 
 		elif [ "$3" = "tof" ]; then
 			echo "tof sensor..."
-			run_command i2cdetect -r -y 1
+			run_cmd i2cdetect -r -y 1
 		
 		elif [ "$3" = "cam" ]; then
 			echo "camera..."
 
 			if [ "$4" = "usb" ] || [ "$4" = "uvc" ]; then
-				run_command v4l2-ctl --device=${device_uvc} --list-formats-ext
-				run_command v4l2-ctl --device=${device_uvc} --list-ctrls
+				run_cmd v4l2-ctl --device=${device_uvc} --list-formats-ext
+				run_cmd v4l2-ctl --device=${device_uvc} --list-ctrls
 			elif [ "$4" = "l" ]; then
 				echo"v4l2-ctl --list-devices"
 				v4l2-ctl --list-devices
@@ -686,8 +688,8 @@ if [ "$1" = "aic" ]; then
 				log_step "declare -a VIDEO_DEV=(\`v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d \"\n\"\`)"
 				declare -a VIDEO_DEV=(`v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d "\n"`)
 				echo "VIDEO_DEV[0]:${VIDEO_DEV[0]}"
-				run_command v4l2-ctl --device=${VIDEO_DEV[0]} --list-formats-ext
-				run_command v4l2-ctl --device=${VIDEO_DEV[0]} --list-ctrls
+				run_cmd v4l2-ctl --device=${VIDEO_DEV[0]} --list-formats-ext
+				run_cmd v4l2-ctl --device=${VIDEO_DEV[0]} --list-ctrls
 
 				# echo "udevadm info -a -p $(udevadm info -q path -n ${VIDEO_DEV[0]})"
 				# udevadm info -a -p $(udevadm info -q path -n ${VIDEO_DEV[0]})
@@ -707,19 +709,18 @@ if [ "$1" = "aic" ]; then
 			ip addr show eth0
 			log_separator "networkctl status eth0"
 			networkctl status eth0
-			log_separator "fw_printenv | grep eth"
-			fw_printenv | grep --color=auto eth
+			run_cmd --pipe fw_printenv | grep --color=auto eth
 			log_separator "ethtool eth0"
 			ethtool eth0	
 
 		elif [ "$3" = "wifi" ]; then
 			echo "wifi..."
 			log_separator "Wi-Fi Link Info"
-			run_command iw dev wlan0 link
+			run_cmd iw dev wlan0 link
 			log_separator "IP Info"
-			run_command ip addr show wlan0
+			run_cmd ip addr show wlan0
 			log_separator "Wi-Fi Power Management"
-			run_command cat /sys/bus/mmc/devices/mmc0\:0001/power/control
+			run_cmd cat /sys/bus/mmc/devices/mmc0\:0001/power/control
 
 		elif [ "$3" = "wifip" ]; then
 			echo "wifi process..."
@@ -728,33 +729,31 @@ if [ "$1" = "aic" ]; then
 		elif [ "$3" = "i2c" ]; then
 			log_step "ls /dev/i2c-*"
 			ls /dev/i2c-*
-			run_command i2cdetect -r -y 0
-			run_command i2cdetect -r -y 1
-			run_command i2cdetect -r -y 2
-			run_command i2cdetect -r -y 3
-			run_command i2cdetect -r -y 4
-			run_command i2cdetect -r -y 5
+			run_cmd i2cdetect -r -y 0
+			run_cmd i2cdetect -r -y 1
+			run_cmd i2cdetect -r -y 2
+			run_cmd i2cdetect -r -y 3
+			run_cmd i2cdetect -r -y 4
+			run_cmd i2cdetect -r -y 5
 			
 		elif [ "$3" = "di" ]; then
-			run_command gpioget /dev/gpiochip0 0 1
+			run_cmd gpioget /dev/gpiochip0 0 1
 
 		elif [ "$3" = "triger" ]; then
-			run_command gpioget /dev/gpiochip0 17 70
+			run_cmd gpioget /dev/gpiochip0 17 70
 
 		elif [ "$3" = "gige" ]; then
-			run_command arv-tool-0.8 control DeviceUserID Width Height ExposureAuto ExposureTime GainAuto Gain TriggerMode TriggerSource TriggerActivation TriggerDelay LineDebouncerTime LineSelector=Line1 LineInverter LineSource StrobeEnable StrobeLineDuration StrobeLineDelay StrobeLinePreDelay
+			run_cmd arv-tool-0.8 control DeviceUserID Width Height ExposureAuto ExposureTime GainAuto Gain TriggerMode TriggerSource TriggerActivation TriggerDelay LineDebouncerTime LineSelector=Line1 LineInverter LineSource StrobeEnable StrobeLineDuration StrobeLineDelay StrobeLinePreDelay
 
 		elif [ "$3" = "lora" ]; then
-			log_step "opkg list-installed | grep lora"
-			opkg list-installed | grep --color=auto lora
+			run_cmd --pipe opkg list-installed | grep --color=auto lora
 
 			log_step "find /usr -name '*lora_rylr993*' 2>/dev/null"
 			find /usr -name '*lora_rylr993*' 2>/dev/null
 
-			log_step "ros2 pkg list | grep lora_rylr993"
-			ros2 pkg list | grep --color=auto lora_rylr993
+			run_cmd --pipe ros2 pkg list | grep --color=auto lora_rylr993
 
-			run_command ros2 pkg executables lora_rylr993
+			run_cmd ros2 pkg executables lora_rylr993
 
 			log_step "find /etc/udev/rules.d -name '*lora*' 2>/dev/null"
 			find /etc/udev/rules.d -name '*lora*' 2>/dev/null
@@ -784,11 +783,11 @@ if [ "$1" = "aic" ]; then
 			fi
 
 		elif [ "$3" = "rtc" ]; then
-			run_command hwclock -r -f /dev/rtc
+			run_cmd hwclock -r -f /dev/rtc
 
-			run_command hwclock -r -f /dev/rtc1
+			run_cmd hwclock -r -f /dev/rtc1
 
-			run_command hwclock -r -f /dev/rtc0
+			run_cmd hwclock -r -f /dev/rtc0
 
 		elif [ "$3" = "ntp" ]; then
 			# echo ">>>> timedatectl show-timesync --all"
@@ -828,11 +827,9 @@ if [ "$1" = "aic" ]; then
 				echo "App Tag:" && cat "$primax_dir/misc/application_tag" && echo
 			fi
 			if [ "$project_string" = "amr" ]; then
-				echo "FW process... ps aux | grep -E --color=auto \"gst|lora|motor\""
-				ps aux | grep -E --color=auto "gst|lora|motor"
+				run_cmd --pipe ps aux | grep -E --color=auto "gst|lora|motor"
 			else
-				echo "FW process... ps aux | grep -E --color=auto \"vision_box|mediamtx|fw|gst\""
-				ps aux | grep -E --color=auto "vision_box|mediamtx|fw|gst|wpa_s|hostapd"
+				run_cmd --pipe ps aux | grep -E --color=auto "vision_box|mediamtx|fw|gst|wpa_s|hostapd"
 			fi
 		fi
 	
@@ -882,8 +879,8 @@ if [ "$1" = "aic" ]; then
 			mediamtx /etc/mediamtx/mediamtx.yml&
 
 		elif [ "$3" = "udev" ]; then
-			run_command udevadm control --reload-rules
-			run_command udevadm trigger
+			run_cmd udevadm control --reload-rules
+			run_cmd udevadm trigger
 
 		elif [ "$3" = "fw" ]; then
 			pkill vision_box
@@ -900,13 +897,13 @@ if [ "$1" = "aic" ]; then
 			fw_watchdog.sh &
 
 		elif [ "$3" = "net" ]; then
-			run_command systemctl restart systemd-networkd
+			run_cmd systemctl restart systemd-networkd
 
 		elif [ "$3" = "cam" ]; then
-			run_command systemctl restart camd.service
+			run_cmd systemctl restart camd.service
 
 		elif [ "$3" = "gige" ]; then
-			run_command arv-tool-0.8 control DeviceReset
+			run_cmd arv-tool-0.8 control DeviceReset
 
 		elif [ "$3" = "utility" ]; then
 			echo "/usr/bin/python3 $primax_dir/misc/utility_gui.py &"
@@ -1076,21 +1073,21 @@ if [ "$1" = "aic" ]; then
 		declare -a VIDEO_DEV=(`v4l2-ctl --list-devices | grep mtk-v4l2-camera -A 3 | grep video | tr -d "\n"`)
 		if [ "$3" = "reset" ]; then
 			echo "reset ioctls..."
-			run_command v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl white_balance_automatic=1
-			run_command v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl auto_exposure=0
-			run_command v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl saturation=0
-			run_command v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl contrast=0
+			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl white_balance_automatic=1
+			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl auto_exposure=0
+			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl saturation=0
+			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl contrast=0
 		
 		elif [ "$3" = "set" ]; then
 			echo "set ioctls..."
-			run_command v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl white_balance_automatic=0
-			run_command v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl auto_exposure=1
-			run_command v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl saturation=7
-			run_command v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl contrast=5
+			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl white_balance_automatic=0
+			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl auto_exposure=1
+			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl saturation=7
+			run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --set-ctrl contrast=5
 		fi
 
 		sleep 0.5
-		run_command v4l2-ctl -d ${VIDEO_DEV[0]} --list-ctrls
+		run_cmd v4l2-ctl -d ${VIDEO_DEV[0]} --list-ctrls
 
 	elif [ "$2" = "iq" ]; then
 		log_separator "IQ DB Operation"
@@ -1175,7 +1172,7 @@ if [ "$1" = "aic" ]; then
    			setprop vendor.debug.camera.log 5
    			setprop vendor.debug.camera.ulog.level 5
 
-			run_command systemctl restart camd
+			run_cmd systemctl restart camd
 			echo "start streaming for 10 sec..."
 			curl http://localhost:8765/fw/gst/start
 			sleep 10
@@ -1211,13 +1208,13 @@ if [ "$1" = "aic" ]; then
 		elif [ "$3" = "mawb" ]; then
 			if [ "$4" = "on" ]; then
 				echo "Set manual AWB on..."
-				run_command v4l2-ctl -d /dev/csi_cam_preview --set-ctrl white_balance_automatic=0
+				run_cmd v4l2-ctl -d /dev/csi_cam_preview --set-ctrl white_balance_automatic=0
 			elif [ "$4" = "off" ]; then
 				echo "Set manual AWB off..."
-				run_command v4l2-ctl -d /dev/csi_cam_preview --set-ctrl white_balance_automatic=1
+				run_cmd v4l2-ctl -d /dev/csi_cam_preview --set-ctrl white_balance_automatic=1
 			else
 				echo "Set manual AWB=$4..."
-				run_command v4l2-ctl -d /dev/csi_cam_preview --set-ctrl white_balance_temperature=$4
+				run_cmd v4l2-ctl -d /dev/csi_cam_preview --set-ctrl white_balance_temperature=$4
 			fi
 			exit 0
 		else
@@ -1414,7 +1411,7 @@ if [ "$1" = "aic" ]; then
 			wget --mirror --user="$ftp_user" --password="$ftp_pass" "ftp://$ftp_host/$dir_ftp" --no-parent --cut-dirs=3
 
 	elif [ "$2" = "do" ]; then
-		run_command gpioset 0 3=$3 7=$3
+		run_cmd gpioset 0 3=$3 7=$3
 
 	elif [ "$2" = "led" ]; then
 		echo "led..."
@@ -1591,7 +1588,7 @@ if [ "$1" = "aic" ]; then
 				log_separator "Read RTC time (ALL)"
 				for r in /dev/rtc[0-9]*; do
 					[ -e "$r" ] || continue
-					run_command hwclock -r -f "$r"
+					run_cmd hwclock -r -f "$r"
 					echo
 				done
 			else
@@ -1601,7 +1598,7 @@ if [ "$1" = "aic" ]; then
 				fi
 
 				log_separator "Read RTC time on $rtcdev"
-				run_command hwclock -r -f "$rtcdev"
+				run_cmd hwclock -r -f "$rtcdev"
 				echo
 			fi
 
@@ -1633,7 +1630,7 @@ if [ "$1" = "aic" ]; then
 
 					echo "--------------------------------"
 					echo "Setting $dev"
-					run_command hwclock --set --date "$setdate" -f "$dev"
+					run_cmd hwclock --set --date "$setdate" -f "$dev"
 
 					echo "Verify:"
 					hwclock -r -f "$dev"
@@ -1653,7 +1650,7 @@ if [ "$1" = "aic" ]; then
 
 				log_separator "Set RTC time on $rtcdev"
 				echo "Target date: $setdate"
-				run_command hwclock --set --date "$setdate" -f "$rtcdev"
+				run_cmd hwclock --set --date "$setdate" -f "$rtcdev"
 
 				echo "Verify:"
 				hwclock -r -f "$rtcdev"
@@ -1732,7 +1729,7 @@ if [ "$1" = "aic" ]; then
 
 	elif [ "$2" = "pkg" ]; then
 		if [ "$3" = "i" ]; then
-			run_command opkg install $4 --force-reinstall
+			run_cmd opkg install $4 --force-reinstall
 		fi
 
 	elif [ "$2" = "lora" ]; then
@@ -1760,14 +1757,14 @@ if [ "$1" = "aic" ]; then
 
 		elif [ "$3" = "i" ]; then
 			ipk_file="lora-rylr993_0.0.1-r0_armv8a.ipk"
-			run_command opkg install $ipk_file --force-reinstall
+			run_cmd opkg install $ipk_file --force-reinstall
 
 		elif [ "$3" = "pub" ]; then
 			MSG='{"v": 2, "id": "bf54", "d": "v1QDALr//QIJgFg6"}'
-			run_command ros2 topic pub /fleet_transmit std_msgs/msg/String "{data: '$MSG'}" -r 1
+			run_cmd ros2 topic pub /fleet_transmit std_msgs/msg/String "{data: '$MSG'}" -r 1
 
 		elif [ "$3" = "sub" ]; then
-			run_command ros2 topic echo /fleet_receive
+			run_cmd ros2 topic echo /fleet_receive
 
 		fi
 	
@@ -1792,11 +1789,11 @@ if [ "$1" = "aic" ]; then
 				-p feedback_rpm_resolution:=0.1
 		elif [ "$3" = "i" ]; then
 			ipk_file="motor-control-g4dual_0.1.0-r0_armv8a.ipk"
-			run_command opkg install $ipk_file --force-reinstall
+			run_cmd opkg install $ipk_file --force-reinstall
 		elif [ "$3" = "en" ]; then
-			run_command ros2 topic pub --once /enable_motors std_msgs/msg/Empty "{}"
+			run_cmd ros2 topic pub --once /enable_motors std_msgs/msg/Empty "{}"
 		elif [ "$3" = "stop" ]; then
-			run_command ros2 topic pub --once /stop_motors std_msgs/msg/Empty "{}"
+			run_cmd ros2 topic pub --once /stop_motors std_msgs/msg/Empty "{}"
 		elif [ "$3" = "estop" ]; then
 			if [[ "$4" = "on" || "$4" = "1" || "$4" = "true" ]]; then
 				estop_value="true"
@@ -1806,9 +1803,9 @@ if [ "$1" = "aic" ]; then
 				echo "Usage: $0 aic mc estop {on|off}"
 				exit 1
 			fi
-			run_command ros2 topic pub --once /emergency_stop std_msgs/msg/Bool "{data: $estop_value}"
+			run_cmd ros2 topic pub --once /emergency_stop std_msgs/msg/Bool "{data: $estop_value}"
 		elif [ "$3" = "reset" ]; then
-			run_command ros2 topic pub --once /reset_faults std_msgs/msg/Empty "{}"
+			run_cmd ros2 topic pub --once /reset_faults std_msgs/msg/Empty "{}"
 		elif [ "$3" = "cmd" ]; then
 			linear_velocity="${4:-0.0}"
 			angular_velocity="${5:-0.0}"
@@ -1851,7 +1848,7 @@ if [ "$1" = "aic" ]; then
 					;;
 			esac
 		elif [ "$3" = "zero" ]; then
-			run_command ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
+			run_cmd ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
 				"{linear: {x: 0.0}, angular: {z: 0.0}}"
 		elif [ "$3" = "e" ]; then
 			topic_type=""
@@ -1887,9 +1884,9 @@ except KeyboardInterrupt:
     pass
 ' "$topic_name"
 		elif [ "$3" = "info" ]; then
-			run_command ros2 node info /motor_control
+			run_cmd ros2 node info /motor_control
 		elif [ "$3" = "param" ]; then
-			run_command ros2 param dump /motor_control
+			run_cmd ros2 param dump /motor_control
 		elif [ "$3" = "list" ]; then
 			log_separator "Nodes"
 			ros2 node list
@@ -1899,7 +1896,7 @@ except KeyboardInterrupt:
 			ros2 service list
 		elif [ "$3" = "can" ]; then
 			can_interface="${4:-can0}"
-			run_command ip -details -statistics link show "$can_interface"
+			run_cmd ip -details -statistics link show "$can_interface"
 		else
 			echo "Motor-control commands:"
 			echo "  Control events publish once; check results with: $0 aic mc e diag"
@@ -1948,13 +1945,13 @@ if [ "$1" = "eth0" ]; then
 		sed -i '/^\[Network\]/,/^$/d' /etc/systemd/network/00-eth0.network
 	
 	elif [ "$2" = "e" ]; then
-		run_command nano /etc/systemd/network/00-eth0.network
+		run_cmd nano /etc/systemd/network/00-eth0.network
 
 	elif [ "$2" = "c" ]; then
-		run_command ip addr flush dev eth0
+		run_cmd ip addr flush dev eth0
 
 	elif [ "$2" = "r" ]; then
-		run_command systemctl restart systemd-networkd
+		run_cmd systemctl restart systemd-networkd
 
 	else
 		log_separator "ip addr show eth0"
@@ -1968,11 +1965,11 @@ fi
 if [ "$1" = "tv" ]; then
 	echo "call vision_box..."
 	url="http://localhost:9876/fw/$2"
-	run_command curl $url
+	run_cmd curl $url
 elif [[ "$1" = "tt" || "$1" = "tf" ]]; then
 	echo "call fw_daemon..."
 	url="http://localhost:8765/fw/$2"
-	run_command curl $url
+	run_cmd curl $url
 fi
 
 # system related 
@@ -1996,8 +1993,7 @@ if [ "$1" = "sys" ]; then
 		lsblk -p -o NAME,SIZE,TYPE,FSTYPE,PARTLABEL,MOUNTPOINTS
 		log_separator "Disk info ( df -h --total )"
 		df -h --total
-		log_separator "ps -eLo pid,tid,psr,pcpu,comm --sort=-pcpu | head -30"
-		ps -eLo pid,tid,psr,pcpu,comm --sort=-pcpu | head -30
+		run_cmd --pipe ps -eLo pid,tid,psr,pcpu,comm --sort=-pcpu | head -30
 	elif [ "$2" = "users" ]; then
 		# awk -F: '{ print $1}' /etc/passwd
 		log_separator "online User"
@@ -2005,7 +2001,7 @@ if [ "$1" = "sys" ]; then
 
 		# list normal users
 		log_separator "User range"
-		run_command grep -E '^UID_MIN|^UID_MAX' /etc/login.defs
+		run_cmd grep -E '^UID_MIN|^UID_MAX' /etc/login.defs
 		log_separator "User info"
 		log_step "getent passwd {1000..60000}"
 		getent passwd {1000..60000}
@@ -2111,7 +2107,7 @@ if [ "$1" = "ftp" ]; then
 	elif [ "$2" = "d+g" ]; then
 		# add group access for some dir
 		echo "ex : sudo setfacl -Rdm g:SAC_EE:rwx DirName/"
-		run_command sudo setfacl -Rdm g:$4:rwx $3
+		run_cmd sudo setfacl -Rdm g:$4:rwx $3
 	elif [ "$2" = "user+" ]; then
 		if [ -n "$3" ]; then
 			if [ "$4" = "sidee" ]; then
@@ -2212,39 +2208,39 @@ if [ "$1" = "zip" ] ; then
     # === bz2 ===
     if [ "$type" = "bz2" ]; then
         log_step "bz2 $2 to $out.tar.bz2"
-        run_command tar -jcvf "$out.tar.bz2" "$2"
+        run_cmd tar -jcvf "$out.tar.bz2" "$2"
 
     # === zip ===
     elif [ "$type" = "zip" ]; then
         log_step "zip $2 to $out.zip"
-        run_command zip -r "$out.zip" "$2"
+        run_cmd zip -r "$out.zip" "$2"
 
     # === default: gzip ===
     else
         log_step "gzip $2 to $out.tar.gz"
-        run_command tar -zcvf "$out.tar.gz" "$2"
+        run_cmd tar -zcvf "$out.tar.gz" "$2"
     fi
 fi
 if [ "$1" = "unzip" ] ; then
 	log_step "unzip file: $2"
 
 	if [[ "$2" == *.tar.gz || "$2" == *.tgz ]]; then
-		run_command tar -zxvf "$2"
+		run_cmd tar -zxvf "$2"
 	elif [[ "$2" == *.tar.bz2 || "$2" == *.tbz || "$2" == *.tbz2 ]]; then
-		run_command tar -jxvf "$2"
+		run_cmd tar -jxvf "$2"
 	elif [[ "$2" == *.7z ]]; then
 		if command -v 7z >/dev/null 2>&1; then
-			run_command 7z x "$2"
+			run_cmd 7z x "$2"
 		elif command -v 7zr >/dev/null 2>&1; then
-			run_command 7zr x "$2"
+			run_cmd 7zr x "$2"
 		elif command -v 7za >/dev/null 2>&1; then
-			run_command 7za x "$2"
+			run_cmd 7za x "$2"
 		else
 			echo "No 7z extractor found. Install p7zip (7z/7zr/7za)."
 			exit 1
 		fi
 	elif [[ "$2" == *.zip ]]; then
-		run_command unzip "$2"
+		run_cmd unzip "$2"
 	else
 		echo "Unsupported file format: $2"
 	fi
@@ -2255,19 +2251,19 @@ if [ "$1" = "chmod" ]; then
 	if [ -n "$2" ]; then
 		if [ "$2" = "all" ]; then
 			if [ "$3" = "4" ]; then
-				run_command sudo chmod -R 444 .
+				run_cmd sudo chmod -R 444 .
 			elif [ "$3" = "6" ]; then
-				run_command sudo chmod -R 666 .
+				run_cmd sudo chmod -R 666 .
 			else
-				run_command sudo chmod -R 777 .
+				run_cmd sudo chmod -R 777 .
 			fi
 		else
 			if [ "$3" = "4" ]; then
-				run_command sudo chmod -R 444 "$2"
+				run_cmd sudo chmod -R 444 "$2"
 			elif [ "$3" = "6" ]; then
-				run_command sudo chmod -R 666 "$2"
+				run_cmd sudo chmod -R 666 "$2"
 			else
-				run_command sudo chmod -R 777 "$2"
+				run_cmd sudo chmod -R 777 "$2"
 			fi
 		fi
 	fi
@@ -2283,7 +2279,7 @@ if [ "$1" = "ssh" ]; then
 		if [ "$3" = "r" ]; then
 			ssh -Y root@$wheeltec_ip
 		else
-			run_command ssh -Y wheeltec@$wheeltec_ip
+			run_cmd ssh -Y wheeltec@$wheeltec_ip
 		fi
 		
 	else
@@ -2501,7 +2497,7 @@ fi
 
 # find
 if [ "$1" == "find" ]; then
-	run_command find . -name "$2"
+	run_cmd find . -name "$2"
 fi
 
 if [ "$1" == "size" ] ; then
@@ -2515,25 +2511,23 @@ if [ "$1" == "size" ] ; then
     
     # === List directory size (one level) ===
     if [ "$3" == "d" ]; then
-        log_step "sudo du -h --max-depth=1 \"$2\" | sort -h"
-        sudo du -h --max-depth=1 "$2" | sort -h
+        run_cmd --pipe sudo du -h --max-depth=1 "$2" | sort -h
         exit 0
     fi
     
     # === Max depth mode (m) ===
     if [ "$3" == "m" ] && [ -n "$4" ] && [[ "$4" =~ ^[0-9]+$ ]]; then
-        log_step "sudo du -h --max-depth=$4 \"$2\" | sort -h"
-        sudo du -h --max-depth="$4" "$2" | sort -h
+        run_cmd --pipe sudo du -h --max-depth="$4" "$2" | sort -h
         exit 0
     fi
     
     # === Default: summary only (file or folder size) ===
-    run_command sudo du --no-dereference -sh "$2"
+    run_cmd sudo du --no-dereference -sh "$2"
 fi
 
 # tree -L3
 if [ "$1" == "tree" ] ; then
-	run_command tree -L 3 $2
+	run_cmd tree -L 3 $2
 fi
 
 # format and mount disk
@@ -2559,19 +2553,19 @@ if [ "$1" == "df" ] ; then
 	if [ "$fs_type" == "ext4" ] ; then
 		echo "umount $mount_point"
 		if mountpoint -q "$mount_point"; then umount "$mount_point" || exit 1; fi
-		run_command mkfs.ext4 -F -L USBDISK "$device" || exit 1
-		run_command mkdir -p "$mount_point"
-		run_command mount -o noatime "$device" "$mount_point" || exit 1
-		run_command lsblk -f
-		run_command df -h "$mount_point"
+		run_cmd mkfs.ext4 -F -L USBDISK "$device" || exit 1
+		run_cmd mkdir -p "$mount_point"
+		run_cmd mount -o noatime "$device" "$mount_point" || exit 1
+		run_cmd lsblk -f
+		run_cmd df -h "$mount_point"
 	elif [ "$fs_type" == "fat32" ] || [ "$fs_type" == "vfat" ] ; then
 		echo "umount $mount_point"
 		if mountpoint -q "$mount_point"; then umount "$mount_point" || exit 1; fi
-		run_command mkfs.vfat -F 32 -n USBDISK "$device" || exit 1
-		run_command mkdir -p "$mount_point"
-		run_command mount "$device" "$mount_point" || exit 1
-		run_command lsblk -f
-		run_command df -h "$mount_point"
+		run_cmd mkfs.vfat -F 32 -n USBDISK "$device" || exit 1
+		run_cmd mkdir -p "$mount_point"
+		run_cmd mount "$device" "$mount_point" || exit 1
+		run_cmd lsblk -f
+		run_cmd df -h "$mount_point"
 	fi
 fi
 
