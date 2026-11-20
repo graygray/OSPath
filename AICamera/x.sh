@@ -761,9 +761,7 @@ if [ "$1" = "aic" ]; then
 
 		elif [ "$3" = "rtc" ]; then
 			run_cmd hwclock -r -f /dev/rtc
-
 			run_cmd hwclock -r -f /dev/rtc1
-
 			run_cmd hwclock -r -f /dev/rtc0
 
 		elif [ "$3" = "ntp" ]; then
@@ -800,6 +798,7 @@ if [ "$1" = "aic" ]; then
 			echo "hostnamectl :"
 			hostnamectl
 			"$primax_dir/script/slot_build_info.sh" current
+			echo ""
 			if [ -s "$primax_dir/misc/application_tag" ]; then
 				echo "App Tag:" && cat "$primax_dir/misc/application_tag" && echo
 			fi
